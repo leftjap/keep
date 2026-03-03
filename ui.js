@@ -553,75 +553,120 @@ function handleDone() { if(document.activeElement) document.activeElement.blur()
 let contextItemId = null;
 let contextItemType = null;
 
+function showContextMenuAt(item, x, y) {
+  const onclick = item.getAttribute('onclick') || '';
+  const t = activeTab;
+
+  contextItemId = null;
+  contextItemType = null;
+
+  if (textTypes.includes(t)) {
+    const m = onclick.match(/loadDoc\('([^']+)','([^']+)'\)/);
+    if (m) { contextItemType = m[1]; contextItemId = m[2]; }
+  } else if (t === 'book') {
+    const m = onclick.match(/loadBook\('([^']+)'\)/);
+    if (m) { contextItemType = 'book'; contextItemId = m[1]; }
+  } else if (t === 'quote') {
+    const m = onclick.match(/loadQuote\('([^']+)'\)/);
+    if (m) { contextItemType = 'quote'; contextItemId = m[1]; }
+  } else if (t === 'memo') {
+    const m = onclick.match(/loadMemo\('([^']+)'\)/);
+    if (m) { contextItemType = 'memo'; contextItemId = m[1]; }
+  }
+
+  if (!contextItemId) return;
+
+  if (textTypes.includes(contextItemType)) loadDoc(contextItemType, contextItemId, true);
+  else if (contextItemType === 'book') loadBook(contextItemId, true);
+  else if (contextItemType === 'quote') loadQuote(contextItemId, true);
+  else if (contextItemType === 'memo') loadMemo(contextItemId, true);
+
+  const menu = document.getElementById('editorDropdownMenu');
+  const target = (contextItemType === 'memo') ? document.getElementById('memo-body') : document.getElementById('edBody');
+  const txt = target ? target.textContent.trim() : '';
+  const chars = txt.replace(/\s/g, '').length;
+  const pages = (chars / 200).toFixed(1);
+  const charEl = document.getElementById('menuCharCount');
+  const pageEl = document.getElementById('menuPageCount');
+  if (charEl) charEl.textContent = chars.toLocaleString() + '자';
+  if (pageEl) pageEl.textContent = pages + '매';
+
+  const pinLabel = document.getElementById('menuPinLabel');
+  if (pinLabel) {
+    let isPinned = false;
+    let items = [];
+    if (textTypes.includes(contextItemType)) items = allDocs();
+    else if (contextItemType === 'book') items = getBooks();
+    else if (contextItemType === 'quote') items = getQuotes();
+    else if (contextItemType === 'memo') items = getMemos();
+    const found = items.find(x => x.id === contextItemId);
+    if (found) isPinned = found.pinned;
+    pinLabel.textContent = isPinned ? '고정 해제' : '고정';
+  }
+
+  menu.style.position = 'fixed';
+  menu.style.top = Math.min(y, window.innerHeight - 280) + 'px';
+  menu.style.left = Math.min(x, window.innerWidth - 230) + 'px';
+  menu.style.right = 'auto';
+  menu.classList.add('open');
+}
+
 function setupListContextMenu() {
   const listEl = document.getElementById('pane-list');
   if (!listEl) return;
 
+  // PC: 우클릭
   listEl.addEventListener('contextmenu', function(e) {
     const item = e.target.closest('.lp-item');
     if (!item) return;
     e.preventDefault();
-
-    // 클릭된 항목의 ID와 타입 파악
-    const onclick = item.getAttribute('onclick') || '';
-    const t = activeTab;
-
-    if (textTypes.includes(t)) {
-      const m = onclick.match(/loadDoc\('([^']+)','([^']+)'\)/);
-      if (m) { contextItemType = m[1]; contextItemId = m[2]; }
-    } else if (t === 'book') {
-      const m = onclick.match(/loadBook\('([^']+)'\)/);
-      if (m) { contextItemType = 'book'; contextItemId = m[1]; }
-    } else if (t === 'quote') {
-      const m = onclick.match(/loadQuote\('([^']+)'\)/);
-      if (m) { contextItemType = 'quote'; contextItemId = m[1]; }
-    } else if (t === 'memo') {
-      const m = onclick.match(/loadMemo\('([^']+)'\)/);
-      if (m) { contextItemType = 'memo'; contextItemId = m[1]; }
-    }
-
-    if (!contextItemId) return;
-
-    // 해당 항목 로드
-    if (textTypes.includes(contextItemType)) loadDoc(contextItemType, contextItemId, true);
-    else if (contextItemType === 'book') loadBook(contextItemId, true);
-    else if (contextItemType === 'quote') loadQuote(contextItemId, true);
-    else if (contextItemType === 'memo') loadMemo(contextItemId, true);
-
-    // 더보기 메뉴 표시
-    const menu = document.getElementById('editorDropdownMenu');
-
-    // 글자수/원고지 업데이트
-    const target = (contextItemType === 'memo') ? document.getElementById('memo-body') : document.getElementById('edBody');
-    const txt = target ? target.textContent.trim() : '';
-    const chars = txt.replace(/\s/g, '').length;
-    const pages = (chars / 200).toFixed(1);
-    const charEl = document.getElementById('menuCharCount');
-    const pageEl = document.getElementById('menuPageCount');
-    if (charEl) charEl.textContent = chars.toLocaleString() + '자';
-    if (pageEl) pageEl.textContent = pages + '매';
-
-    // 고정 상태
-    const pinLabel = document.getElementById('menuPinLabel');
-    if (pinLabel) {
-      let isPinned = false;
-      let items = [];
-      if (textTypes.includes(contextItemType)) items = allDocs();
-      else if (contextItemType === 'book') items = getBooks();
-      else if (contextItemType === 'quote') items = getQuotes();
-      else if (contextItemType === 'memo') items = getMemos();
-      const found = items.find(x => x.id === contextItemId);
-      if (found) isPinned = found.pinned;
-      pinLabel.textContent = isPinned ? '고정 해제' : '고정';
-    }
-
-    // 메뉴 위치를 마우스 위치에 맞춤
-    menu.style.position = 'fixed';
-    menu.style.top = Math.min(e.clientY, window.innerHeight - 280) + 'px';
-    menu.style.left = Math.min(e.clientX, window.innerWidth - 230) + 'px';
-    menu.style.right = 'auto';
-    menu.classList.add('open');
+    showContextMenuAt(item, e.clientX, e.clientY);
   });
+
+  // 모바일/태블릿: 꾹 누르기 (long press)
+  let lpTimer = null;
+  let lpItem = null;
+  let lpMoved = false;
+  let lpX = 0;
+  let lpY = 0;
+
+  listEl.addEventListener('touchstart', function(e) {
+    const item = e.target.closest('.lp-item');
+    if (!item) return;
+    lpItem = item;
+    lpMoved = false;
+    lpX = e.touches[0].clientX;
+    lpY = e.touches[0].clientY;
+    lpTimer = setTimeout(function() {
+      if (!lpMoved && lpItem) {
+        e.preventDefault();
+        if (navigator.vibrate) navigator.vibrate(20);
+        showContextMenuAt(lpItem, lpX, lpY);
+        lpItem = null;
+      }
+    }, 500);
+  }, { passive: false });
+
+  listEl.addEventListener('touchmove', function(e) {
+    if (!lpItem) return;
+    const dx = Math.abs(e.touches[0].clientX - lpX);
+    const dy = Math.abs(e.touches[0].clientY - lpY);
+    if (dx > 10 || dy > 10) {
+      lpMoved = true;
+      clearTimeout(lpTimer);
+      lpItem = null;
+    }
+  }, { passive: true });
+
+  listEl.addEventListener('touchend', function() {
+    clearTimeout(lpTimer);
+    lpItem = null;
+  }, { passive: true });
+
+  listEl.addEventListener('touchcancel', function() {
+    clearTimeout(lpTimer);
+    lpItem = null;
+  }, { passive: true });
 }
 
 // 메뉴 닫힐 때 위치 초기화

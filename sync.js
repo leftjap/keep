@@ -548,7 +548,7 @@ async function showApp() {
     loading.style.opacity = '';
     document.getElementById('mainApp').style.display = 'flex';
     if(window.innerWidth <= 768) {
-      setMobileView('list');
+      setMobileView('side');
     } else {
       renderListPanel();
     }
