@@ -562,25 +562,25 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   .side .quote-section{display:none}
   .routine-full{display:none}
   .routine-compact{display:flex}
-  .routine-compact-label{color:rgba(255,255,255,.75)}
-  .routine-compact-sub{color:rgba(255,255,255,.35)}
+  .routine-compact-label{color:rgba(255,255,255,.9);font-size:16px}
+  .routine-compact-sub{color:rgba(255,255,255,.5);font-size:12px}
   .routine-compact-arrow{stroke:rgba(255,255,255,.2)}
   .routine-compact:hover{background:rgba(255,255,255,.06)}
   .side .stats-wrap{padding:0}
   .side .stat-col{padding:8px 10px}
-  .side .stat-label{color:rgba(255,255,255,.35)}
-  .side .stat-big{color:rgba(255,255,255,.9)}
-  .side .stat-big .unit{color:rgba(255,255,255,.4)}
-  .side .stat-sub{color:rgba(255,255,255,.3)}
+  .side .stat-label{color:rgba(255,255,255,.5)}
+  .side .stat-big{color:rgba(255,255,255,.95)}
+  .side .stat-big .unit{color:rgba(255,255,255,.5)}
+  .side .stat-sub{color:rgba(255,255,255,.4)}
   .side .stat-col+.stat-col{border-left:1px solid rgba(255,255,255,.08)}
   .side .writing-grid{padding:4px 0;gap:0}
-  .side .side-menu{padding:11px 16px;margin:0;border-radius:0;color:rgba(255,255,255,.75);font-size:15px;font-weight:400;background:none;border:none;width:100%}
+  .side .side-menu{padding:11px 16px;margin:0;border-radius:0;color:rgba(255,255,255,.9);font-size:16px;font-weight:400;background:none;border:none;width:100%}
   .side .side-menu:hover{background:rgba(255,255,255,.06)}
   .side .side-menu.on{background:rgba(255,255,255,.1);color:#ffffff;font-weight:500}
   .side .side-menu .tab-color-dot{display:none}
   .side .badge-pill{display:none}
-  .side .wi-arrow{display:block!important;font-size:17px;color:rgba(255,255,255,.2);font-weight:300;margin-left:auto}
-  .side .side-menu.on .wi-arrow{color:rgba(255,255,255,.35)}
+  .side .wi-arrow{display:block!important;font-size:17px;color:rgba(255,255,255,.3);font-weight:300;margin-left:auto}
+  .side .side-menu.on .wi-arrow{color:rgba(255,255,255,.45)}
 }
 
 
@@ -602,19 +602,20 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   .list-panel{
     width:100%!important;max-width:100%!important;min-width:0!important;
     border-right:none;
-    transition:transform .32s cubic-bezier(.2,.8,.2,1),opacity .32s;
+    transition:transform .35s cubic-bezier(.25,.1,.25,1),opacity .35s;
     padding-top:env(safe-area-inset-top, 0px);
   }
-  .app.view-side .list-panel{transform:translateX(20%);opacity:.35;pointer-events:none}
+  .app.view-side .list-panel{transform:translateX(80%);opacity:1;pointer-events:none}
   .app.view-list .list-panel{transform:translateX(0);opacity:1}
 
   .editor{
     position:fixed;top:0;left:0;right:0;bottom:0;z-index:20;
     transform:translateX(100%);
-    transition:transform .35s cubic-bezier(.2,.8,.2,1);
+    transition:transform .35s cubic-bezier(.25,.1,.25,1);
     padding-top:env(safe-area-inset-top, 0px);
   }
   .app.view-editor .editor{transform:translateX(0)}
+  .app.view-editor .list-panel{transform:translateX(-30%);opacity:.6}
 
   /* 사이드바 다크 테마 */
   .side .side-hdr{background:transparent;border-bottom:1px solid rgba(255,255,255,.08);padding:0 16px;height:56px}
@@ -635,7 +636,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   .side .writing-grid{padding:4px 0;gap:0}
   .side .side-menu{
     padding:11px 16px;margin:0;border-radius:0;
-    color:rgba(255,255,255,.75);font-size:15px;font-weight:400;
+    color:rgba(255,255,255,.9);font-size:16px;font-weight:400;
     background:none;border:none;width:100%;
     display:flex;align-items:center;justify-content:space-between;
   }
@@ -644,9 +645,9 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   .side .side-menu .tab-color-dot{width:14px;height:14px;border-radius:4px;margin-right:12px;border:1px solid rgba(255,255,255,.1)!important}
   .side .side-menu.on .tab-color-dot{border:1px solid rgba(255,255,255,.2)!important}
   .side .badge-pill{display:none}
-  .side .wi-arrow{display:block!important;font-size:17px;color:rgba(255,255,255,.2);font-weight:300;margin-left:auto}
-  .side .side-menu.on .wi-arrow{color:rgba(255,255,255,.35)}
-  .side .side-menu-l{display:flex;align-items:center;font-size:15px}
+  .side .wi-arrow{display:block!important;font-size:17px;color:rgba(255,255,255,.3);font-weight:300;margin-left:auto}
+  .side .side-menu.on .wi-arrow{color:rgba(255,255,255,.45)}
+  .side .side-menu-l{display:flex;align-items:center;font-size:16px}
 
   /* 글쓰기 상위 라벨 */
   .side .sec-t{pointer-events:none}
@@ -655,18 +656,18 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   /* 루틴 컴팩트 */
   .routine-full{display:none}
   .routine-compact{display:flex}
-  .routine-compact-label{color:rgba(255,255,255,.75)}
-  .routine-compact-sub{color:rgba(255,255,255,.35)}
+  .routine-compact-label{color:rgba(255,255,255,.9);font-size:16px}
+  .routine-compact-sub{color:rgba(255,255,255,.5);font-size:12px}
   .routine-compact-arrow{stroke:rgba(255,255,255,.2)}
   .routine-compact:hover{background:rgba(255,255,255,.06)}
 
   /* 기록 통계 다크 */
   .side .stats-wrap{padding:0}
   .side .stat-col{padding:8px 10px}
-  .side .stat-label{color:rgba(255,255,255,.35);font-size:10px}
-  .side .stat-big{color:rgba(255,255,255,.9);font-size:18px}
-  .side .stat-big .unit{color:rgba(255,255,255,.4)}
-  .side .stat-sub{color:rgba(255,255,255,.3);font-size:9px}
+  .side .stat-label{color:rgba(255,255,255,.5);font-size:11px}
+  .side .stat-big{color:rgba(255,255,255,.95);font-size:19px}
+  .side .stat-big .unit{color:rgba(255,255,255,.5)}
+  .side .stat-sub{color:rgba(255,255,255,.4);font-size:10px}
   .side .stat-col+.stat-col{border-left:1px solid rgba(255,255,255,.08)}
 
   /* 버튼들 */
@@ -705,8 +706,9 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   .lp-item::before{display:none}
   .lp-item.on{background:#f0f0f2}  .lp-date-wrap{min-width:36px;max-width:36px}
   .lp-day{font-size:20px}
-  .lp-item-title{font-size:16px;font-weight:500;white-space:normal;-webkit-line-clamp:2;display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden}
-  .lp-item-preview{font-size:14px;-webkit-line-clamp:2;color:var(--tx-m);font-weight:400}
+  .lp-item-title{font-size:17px;font-weight:500;white-space:normal;-webkit-line-clamp:2;display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden}
+  .lp-item-preview{font-size:15px;-webkit-line-clamp:2;color:var(--tx-m);font-weight:400}
+  .lp-item-meta{font-size:12px}
   .lp-thumb{width:40px;min-width:40px;height:40px}
   .lp-pin-hdr{background:var(--bg-white);border:none;border-bottom:1px solid var(--border-l);padding:0 16px}
   .lp-month-hdr{background:var(--bg-white);border:none;border-bottom:1px solid var(--border-l);padding:10px 16px}
@@ -993,18 +995,18 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   /* 루틴 컴팩트 */
   .routine-full{display:none !important}
   .routine-compact{display:flex !important}
-  .routine-compact-label{color:rgba(255,255,255,.75) !important}
-  .routine-compact-sub{color:rgba(255,255,255,.35) !important}
+  .routine-compact-label{color:rgba(255,255,255,.9) !important;font-size:16px !important}
+  .routine-compact-sub{color:rgba(255,255,255,.5) !important;font-size:12px !important}
   .routine-compact-arrow{stroke:rgba(255,255,255,.2) !important}
   .routine-compact:hover{background:rgba(255,255,255,.06) !important}
 
   /* 기록 통계 다크 */
   .side .stats-wrap{padding:0 !important}
   .side .stat-col{padding:8px 10px !important}
-  .side .stat-label{color:rgba(255,255,255,.35) !important}
-  .side .stat-big{color:rgba(255,255,255,.9) !important}
-  .side .stat-big .unit{color:rgba(255,255,255,.4) !important}
-  .side .stat-sub{color:rgba(255,255,255,.3) !important}
+  .side .stat-label{color:rgba(255,255,255,.5) !important}
+  .side .stat-big{color:rgba(255,255,255,.95) !important}
+  .side .stat-big .unit{color:rgba(255,255,255,.5) !important}
+  .side .stat-sub{color:rgba(255,255,255,.4) !important}
   .side .stat-col+.stat-col{border-left:1px solid rgba(255,255,255,.08) !important}
 
   /* 글쓰기 메뉴 — 모바일과 동일 */
@@ -1013,8 +1015,8 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
     padding:11px 16px !important;
     margin:0 !important;
     border-radius:0 !important;
-    color:rgba(255,255,255,.75) !important;
-    font-size:15px !important;
+    color:rgba(255,255,255,.9) !important;
+    font-size:16px !important;
     font-weight:400 !important;
     background:none !important;
     border:none !important;
@@ -1030,10 +1032,10 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   .side .badge-pill{display:none !important}
   .side .wi-arrow{
     display:block !important;font-size:17px !important;
-    color:rgba(255,255,255,.2) !important;font-weight:300 !important;
+    color:rgba(255,255,255,.3) !important;font-weight:300 !important;
     margin-left:auto !important;
   }
-  .side .side-menu.on .wi-arrow{color:rgba(255,255,255,.35) !important}
+  .side .side-menu.on .wi-arrow{color:rgba(255,255,255,.45) !important}
 }
 
 

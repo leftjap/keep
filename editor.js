@@ -390,30 +390,85 @@ function setupAutoSave() {
 // ═══ 모바일 제스처 ═══
 function setupGesturesAndUI() {
   const app=document.getElementById('mainApp');
-  let startX=0,startY=0,isPulling=false;
+  let startX=0,startY=0;
+  let swiping=false, swipeDir=null;
   const editorEl=document.querySelector('.editor');
+  const listEl=document.querySelector('.list-panel');
+  const sideEl=document.querySelector('.side');
+  const THRESHOLD=80;
+
   app.addEventListener('touchstart',e=>{
     if(window.innerWidth>768)return;
-    startX=e.touches[0].screenX; startY=e.touches[0].screenY;
-    const scrollArea=e.target.closest('.editor-scroll-area');
-    if(app.classList.contains('view-editor')&&scrollArea&&scrollArea.scrollTop<=0) isPulling=true;
+    startX=e.touches[0].clientX; startY=e.touches[0].clientY;
+    swiping=false; swipeDir=null;
+    if(editorEl) editorEl.style.transition='none';
+    if(listEl) listEl.style.transition='none';
+    if(sideEl) sideEl.style.transition='none';
   },{passive:true});
+
   app.addEventListener('touchmove',e=>{
     if(window.innerWidth>768)return;
-    if(isPulling&&app.classList.contains('view-editor')){
-      let dy=e.touches[0].screenY-startY, dx=Math.abs(e.touches[0].screenX-startX);
-      if(dy>0&&dy>dx){e.preventDefault();editorEl.style.transform=`translateX(0) translateY(${dy*0.8}px)`;editorEl.style.transition='none';}
+    const cx=e.touches[0].clientX, cy=e.touches[0].clientY;
+    const dx=cx-startX, dy=cy-startY;
+
+    if(!swiping && Math.abs(dx)>Math.abs(dy) && Math.abs(dx)>12){
+      swiping=true;
+      swipeDir=dx>0?'right':'left';
+    }
+    if(!swiping) return;
+    e.preventDefault();
+
+    const clampDx = Math.max(-window.innerWidth, Math.min(window.innerWidth, dx));
+
+    if(app.classList.contains('view-side')){
+      if(swipeDir==='left'){
+        const move=Math.min(0, clampDx);
+        if(sideEl) sideEl.style.transform=`translateX(${move}px)`;
+        if(listEl) listEl.style.transform=`translateX(${80 + (clampDx/window.innerWidth)*80}%)`;
+        if(listEl) listEl.style.opacity=Math.min(1, 0.6 + Math.abs(clampDx)/window.innerWidth*0.8);
+      }
+    } else if(app.classList.contains('view-list')){
+      if(swipeDir==='right' && startX < 60){
+        const move=Math.max(0, Math.min(clampDx, window.innerWidth*0.8));
+        if(sideEl) sideEl.style.transform=`translateX(${-window.innerWidth*0.8 + move}px)`;
+        if(listEl) listEl.style.transform=`translateX(${(move/window.innerWidth)*80}%)`;
+        if(listEl) listEl.style.opacity=Math.max(0.6, 1 - move/window.innerWidth*0.4);
+      } else if(swipeDir==='left'){
+        const move=Math.min(0, clampDx);
+        if(listEl) listEl.style.transform=`translateX(${(clampDx/window.innerWidth)*30}%)`;
+        if(listEl) listEl.style.opacity=Math.max(0.6, 1 + clampDx/window.innerWidth*0.4);
+        if(editorEl) editorEl.style.transform=`translateX(${100 + (clampDx/window.innerWidth)*100}%)`;
+      }
+    } else if(app.classList.contains('view-editor')){
+      if(swipeDir==='right'){
+        const move=Math.max(0, clampDx);
+        if(editorEl) editorEl.style.transform=`translateX(${move}px)`;
+        if(listEl) listEl.style.transform=`translateX(${-30 + (move/window.innerWidth)*30}%)`;
+        if(listEl) listEl.style.opacity=Math.min(1, 0.6 + move/window.innerWidth*0.4);
+      }
     }
   },{passive:false});
+
   app.addEventListener('touchend',e=>{
-    if(window.innerWidth>768)return;
-    const dx=e.changedTouches[0].screenX-startX, dy=e.changedTouches[0].screenY-startY;
-    if(Math.abs(dx)>Math.abs(dy)*1.5&&dx>50&&startX<40){if(app.classList.contains('view-editor'))handleDone();else if(app.classList.contains('view-list'))setMobileView('side');}
-    if(isPulling){
-      isPulling=false; editorEl.style.transition='transform 0.35s cubic-bezier(0.2,0.8,0.2,1)';
-      if(dy>window.innerHeight*0.35||dy>200) handleDone(); else editorEl.style.transform='translateX(0) translateY(0)';
-      setTimeout(()=>{editorEl.style.transform='';},350);
+    if(window.innerWidth>768 || !swiping)return;
+    const dx=e.changedTouches[0].clientX-startX;
+    const reset=()=>{
+      [editorEl,listEl,sideEl].forEach(el=>{if(el){el.style.transition='transform .3s cubic-bezier(.25,.1,.25,1), opacity .3s';el.style.transform='';el.style.opacity='';}});
+      setTimeout(()=>{[editorEl,listEl,sideEl].forEach(el=>{if(el){el.style.transition='';el.style.transform='';el.style.opacity='';}});},350);
+    };
+
+    if(app.classList.contains('view-side')){
+      if(swipeDir==='left' && dx < -THRESHOLD){ reset(); setMobileView('list'); }
+      else { reset(); }
+    } else if(app.classList.contains('view-list')){
+      if(swipeDir==='right' && dx > THRESHOLD && startX < 60){ reset(); setMobileView('side'); }
+      else if(swipeDir==='left' && dx < -THRESHOLD){ reset(); setMobileView('editor'); }
+      else { reset(); }
+    } else if(app.classList.contains('view-editor')){
+      if(swipeDir==='right' && dx > THRESHOLD){ reset(); handleDone(); }
+      else { reset(); }
     }
+    swiping=false; swipeDir=null;
   },{passive:true});
 }
 
