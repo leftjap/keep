@@ -669,54 +669,6 @@ function setupListContextMenu() {
   }, { passive: true });
 }
 
-  listEl.addEventListener('touchmove', function(e) {
-    if (!lpItem) return;
-    var dx = Math.abs(e.touches[0].clientX - lpX);
-    var dy = Math.abs(e.touches[0].clientY - lpY);
-    if (dx > 8 || dy > 8) {
-      lpMoved = true;
-      clearTimeout(lpTimer);
-      lpItem = null;
-    }
-  }, { passive: true });
-
-  listEl.addEventListener('touchend', function() {
-    clearTimeout(lpTimer);
-    lpItem = null;
-  }, { passive: true });
-
-  listEl.addEventListener('touchcancel', function() {
-    clearTimeout(lpTimer);
-    lpItem = null;
-  }, { passive: true });
-}
-
-  listEl.addEventListener('contextmenu', function(e) {
-    if (e.target.closest('.lp-item')) e.preventDefault();
-  });
-
-  listEl.addEventListener('touchmove', function(e) {
-    if (!lpItem) return;
-    const dx = Math.abs(e.touches[0].clientX - lpX);
-    const dy = Math.abs(e.touches[0].clientY - lpY);
-    if (dx > 10 || dy > 10) {
-      lpMoved = true;
-      clearTimeout(lpTimer);
-      lpItem = null;
-    }
-  }, { passive: true });
-
-  listEl.addEventListener('touchend', function() {
-    clearTimeout(lpTimer);
-    lpItem = null;
-  }, { passive: true });
-
-  listEl.addEventListener('touchcancel', function() {
-    clearTimeout(lpTimer);
-    lpItem = null;
-  }, { passive: true });
-}
-
 // 메뉴 닫힐 때 위치 초기화
 const origToggleMenu = toggleEditorMenu;
 document.addEventListener('click', e => {
