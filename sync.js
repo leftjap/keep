@@ -547,16 +547,19 @@ async function showApp() {
     loading.classList.add('hidden');
     loading.style.opacity = '';
     document.getElementById('mainApp').style.display = 'flex';
-    if (window.innerWidth <= 768) setMobileView('side');
+    if(window.innerWidth <= 768) {
+      setMobileView('list');
+    } else {
+      renderListPanel();
+    }
   }, 400);
 }
 
 // ═══ Init ═══
 function init() {
   try {
-    if (localStorage.getItem('gb_sidebar_closed') === '1') {
-      document.getElementById('mainApp').classList.add('sidebar-closed');
-    }
+    // 사이드바는 오버레이 방식으로 통합됨
+
     applyTabColor('navi');
     renderChk();
     renderRoutineRing();

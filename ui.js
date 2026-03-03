@@ -32,16 +32,35 @@ function switchListView(view) {
 
 function toggleSidebar() {
   const app = document.getElementById('mainApp');
-  app.classList.toggle('sidebar-closed');
-  localStorage.setItem('gb_sidebar_closed', app.classList.contains('sidebar-closed') ? '1' : '0');
+  if(window.innerWidth > 768) {
+    // PC/태블릿: sidebar-closed 토글
+    app.classList.toggle('sidebar-closed');
+  } else {
+    // 모바일: 오버레이 방식
+    if(app.classList.contains('view-side')) {
+      app.classList.remove('view-side');
+    } else {
+      app.classList.add('view-side');
+    }
+  }
 }
 
 function setMobileView(view) {
   const app = document.getElementById('mainApp');
+  // PC/태블릿에서는 뷰 전환 불필요 (3단 항상 표시)
+  if(window.innerWidth > 768) {
+    if(view==='list') renderListPanel();
+    if(view==='side') toggleSidebar();
+    return;
+  }
   app.classList.remove('view-side','view-list','view-editor');
   app.classList.add('view-'+view);
   if(view==='list') renderListPanel();
+  if(view==='list' || view==='editor') {
+    app.classList.remove('view-side');
+  }
 }
+
 
 function toggleSearch() {
   const bar=document.getElementById('searchBar'), input=document.getElementById('searchInput'), vs=document.getElementById('viewSwitcher');
@@ -87,25 +106,13 @@ function renderWritingGrid() {
     {id:'memo',   label:'메모'}
   ];
   let html = '';
-  if(window.innerWidth <= 768) {
-    tabs.forEach(t => {
-      const color = TAB_COLORS[t.id] || '#B0B0B8';
-      const isOn = activeTab===t.id;
-      html += `<div class="side-menu ${isOn?'on':''}" data-tab="${t.id}" onclick="switchTab('${t.id}'); setMobileView('list');">
-        <div class="side-menu-l"><span class="tab-color-dot" style="background:${color}"></span>${t.label}</div>
-        <div class="wi-arrow">›</div>
-      </div>`;
-    });
-  } else {
-    tabs.forEach(t => {
-      const color = TAB_COLORS[t.id] || '#B0B0B8';
-      const isOn = activeTab===t.id;
-      html += `<button class="side-menu ${isOn?'on':''}" data-tab="${t.id}" onclick="switchTab('${t.id}');">
-        <span class="side-menu-l"><span class="tab-color-dot" style="background:${color}"></span>${t.label}</span>
-        <span class="badge-pill">${getTabCount(t.id)}</span>
-      </button>`;
-    });
-  }
+  tabs.forEach(t => {
+    const isOn = activeTab===t.id;
+    html += `<div class="side-menu ${isOn?'on':''}" data-tab="${t.id}" onclick="switchTab('${t.id}'); setMobileView('list');">
+      <div class="side-menu-l">${t.label}</div>
+      <div class="wi-arrow">›</div>
+    </div>`;
+  });
   nav.innerHTML = html;
 }
 
@@ -121,7 +128,7 @@ function switchTab(t) {
   document.getElementById('editorMemo').style.display  = t==='memo'  ? 'flex':'none';
   document.getElementById('edToolbar').style.display   = ['book','quote'].includes(t) ? 'none':'flex';
   clearSearch(); hideRoutineCard(); switchListView('list');
-  if(textTypes.includes(t)) { const docs=getDocs(t); if(curIds[t])loadDoc(t,curIds[t],true); else if(docs.length)loadDoc(t,docs[0].id,true); else{const nd=newDoc(t);loadDoc(t,nd.id,true);} }
+  setMobileView('list');  if(textTypes.includes(t)) { const docs=getDocs(t); if(curIds[t])loadDoc(t,curIds[t],true); else if(docs.length)loadDoc(t,docs[0].id,true); else{const nd=newDoc(t);loadDoc(t,nd.id,true);} }
   if(t==='book')  { if(curBookId)loadBook(curBookId,true); else{const b=getBooks();if(b.length)loadBook(b[0].id,true);else newBook();} }
   if(t==='memo')  { if(curMemoId)loadMemo(curMemoId,true); else{const m=getMemos();if(m.length)loadMemo(m[0].id,true);else newMemoForm();} }
   if(t==='quote') { newQuoteForm(); }
@@ -173,8 +180,8 @@ const hl = (txt) => {
 };
 
 const getPreviewText = (htmlContent) => {
-  let raw = stripHtml(htmlContent)||'';
-  if(!currentSearchQuery) return raw.slice(0,80);
+  let raw = stripHtml(htmlContent||'').replace(/https?:\/\/[^\s]+/g,'').replace(/\s+/g,' ').trim();
+  raw = raw.slice(0,60);  if(!currentSearchQuery) return raw.slice(0,80);
   const idx = raw.toLowerCase().indexOf(currentSearchQuery.toLowerCase());
   if(idx!==-1) { const start=Math.max(0,idx-30), end=Math.min(raw.length,idx+currentSearchQuery.length+30); return (start>0?'...':'')+raw.substring(start,end)+(end<raw.length?'...':''); }
   return raw.slice(0,80);
