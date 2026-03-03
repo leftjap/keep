@@ -615,6 +615,12 @@ function setupListContextMenu() {
   const listEl = document.getElementById('pane-list');
   if (!listEl) return;
 
+  let lpTimer = null;
+  let lpItem = null;
+  let lpMoved = false;
+  let lpX = 0;
+  let lpY = 0;
+
   // PC: 우클릭
   listEl.addEventListener('contextmenu', function(e) {
     const item = e.target.closest('.lp-item');
@@ -623,13 +629,7 @@ function setupListContextMenu() {
     showContextMenuAt(item, e.clientX, e.clientY);
   });
 
-  // 모바일/태블릿: 꾹 누르기 (long press)
-  let lpTimer = null;
-  let lpItem = null;
-  let lpMoved = false;
-  let lpX = 0;
-  let lpY = 0;
-
+  // 모바일: 꾹 누르기
   listEl.addEventListener('touchstart', function(e) {
     const item = e.target.closest('.lp-item');
     if (!item) return;
@@ -637,15 +637,59 @@ function setupListContextMenu() {
     lpMoved = false;
     lpX = e.touches[0].clientX;
     lpY = e.touches[0].clientY;
+    clearTimeout(lpTimer);
     lpTimer = setTimeout(function() {
       if (!lpMoved && lpItem) {
         if (navigator.vibrate) navigator.vibrate(20);
-        lpItem.style.pointerEvents = 'none';
         showContextMenuAt(lpItem, lpX, lpY);
-        setTimeout(function(){ if(lpItem) lpItem.style.pointerEvents=''; lpItem=null; }, 100);
+        lpItem = null;
       }
-    }, 500);
+    }, 600);
   }, { passive: true });
+
+  listEl.addEventListener('touchmove', function(e) {
+    if (!lpItem) return;
+    var dx = Math.abs(e.touches[0].clientX - lpX);
+    var dy = Math.abs(e.touches[0].clientY - lpY);
+    if (dx > 8 || dy > 8) {
+      lpMoved = true;
+      clearTimeout(lpTimer);
+      lpItem = null;
+    }
+  }, { passive: true });
+
+  listEl.addEventListener('touchend', function() {
+    clearTimeout(lpTimer);
+    lpItem = null;
+  }, { passive: true });
+
+  listEl.addEventListener('touchcancel', function() {
+    clearTimeout(lpTimer);
+    lpItem = null;
+  }, { passive: true });
+}
+
+  listEl.addEventListener('touchmove', function(e) {
+    if (!lpItem) return;
+    var dx = Math.abs(e.touches[0].clientX - lpX);
+    var dy = Math.abs(e.touches[0].clientY - lpY);
+    if (dx > 8 || dy > 8) {
+      lpMoved = true;
+      clearTimeout(lpTimer);
+      lpItem = null;
+    }
+  }, { passive: true });
+
+  listEl.addEventListener('touchend', function() {
+    clearTimeout(lpTimer);
+    lpItem = null;
+  }, { passive: true });
+
+  listEl.addEventListener('touchcancel', function() {
+    clearTimeout(lpTimer);
+    lpItem = null;
+  }, { passive: true });
+}
 
   listEl.addEventListener('contextmenu', function(e) {
     if (e.target.closest('.lp-item')) e.preventDefault();

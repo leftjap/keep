@@ -618,6 +618,8 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   }
   .app.view-editor .editor{transform:translateX(0)}
   .app.view-editor .list-panel{transform:translateX(-30%);opacity:.6}
+  .app.view-list .editor{transform:translateX(100%);visibility:hidden}
+  .app.view-list.view-editor .editor{visibility:visible}
 
   /* 사이드바 다크 테마 */
   .side .side-hdr{background:transparent;border-bottom:1px solid rgba(255,255,255,.08);padding:0 16px;height:56px}
@@ -716,7 +718,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   .tb-btn{width:36px;height:36px}
   .tb-btn svg{width:19px;height:19px}
   .tb-sep{height:18px;margin:0 5px}
-  .editor-content-wrap{padding:20px 18px 80px}
+  .editor-content-wrap{padding:20px 16px 80px}
   .ed-title{font-size:20px;margin-bottom:16px}
   .ed-body{font-size:17px;line-height:1.9}
 
@@ -742,6 +744,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 .pane-routine{
   padding:0;
   flex-shrink:0;
+  overflow-y:auto;
 }
 .routine-card{
   background:none;
@@ -778,6 +781,8 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 @media(max-width:768px){
   .pane-routine{
     padding:10px 12px 0;
+    flex:1;
+    overflow-y:auto;
   }
   .routine-card{
     border-radius:12px;
