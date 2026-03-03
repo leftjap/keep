@@ -86,7 +86,12 @@
         <span id="syncStatus">완료됨</span>
       </div>
       <button class="sync-btn" onclick="SYNC.syncAll()">↻</button>
-    </div>
+    <button class="sync-cloud-btn" onclick="SYNC.syncAll()" id="syncCloudBtn" title="동기화">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/>
+      </svg>
+      <span class="sync-cloud-dot" id="syncCloudDot"></span>
+    </button>    </div>
   </div>
   
   <div class="side-scroll">
@@ -108,8 +113,20 @@
     </div>
 
     <div class="sec sec-border">
-      <div class="sec-t">데일리 루틴</div>
-      <div class="chk-table" id="chkTable"></div>
+      <div class="routine-full">
+        <div class="sec-t">데일리 루틴</div>
+        <div class="chk-table" id="chkTable"></div>
+      </div>
+      <div class="routine-compact" onclick="openRoutineDetail()">
+        <div class="routine-compact-left">
+          <canvas id="routineRing" width="44" height="44"></canvas>
+          <div class="routine-compact-text">
+            <span class="routine-compact-label">데일리 루틴</span>
+            <span class="routine-compact-sub" id="routineCompactSub">0/7 완료</span>
+          </div>
+        </div>
+        <svg class="routine-compact-arrow" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
     </div>
     
     <div class="sec" style="padding-bottom:40px;">

@@ -250,14 +250,66 @@ function renderChk() {
   container.innerHTML = h;
 }
 
-let _chkT = null;
-function toggleChk(id) { toggleDay(id, today()); }
+function renderRoutineRing() {
+  const canvas = document.getElementById('routineRing');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const chk = getChk();
+  let done = 0;
+  ROUTINE_META.forEach(r => { if (chk[r.id]) done++; });
+  const total = ROUTINE_META.length;
+  const pct = total > 0 ? done / total : 0;
+
+  const size = 44;
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = size * dpr;
+  canvas.height = size * dpr;
+  canvas.style.width = size + 'px';
+  canvas.style.height = size + 'px';
+  ctx.scale(dpr, dpr);
+
+  const cx = size / 2, cy = size / 2, radius = 17, lineW = 3.5;
+  const startAngle = -Math.PI / 2;
+
+  ctx.clearRect(0, 0, size, size);
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(255,255,255,.1)';
+  ctx.lineWidth = lineW;
+  ctx.stroke();
+
+  if (pct > 0) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, startAngle, startAngle + Math.PI * 2 * pct);
+    ctx.strokeStyle = '#7EB5F4';
+    ctx.lineWidth = lineW;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+  }
+
+  ctx.fillStyle = 'rgba(255,255,255,.85)';
+  ctx.font = '600 13px Pretendard, -apple-system, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(done + '/' + total, cx, cy);
+
+  const sub = document.getElementById('routineCompactSub');
+  if (sub) sub.textContent = done + '/' + total + ' 완료';
+}
+
+function openRoutineDetail() {
+  setMobileView('list');
+}
+
+let _chkT = null;function toggleChk(id) { toggleDay(id, today()); renderRoutineRing(); }
 function toggleDay(id, dateStr) {
   const d = L(K.checks)||{};
   if(!d[dateStr]) d[dateStr]={};
   d[dateStr][id] = !d[dateStr][id];
   S(K.checks, d);
   renderChk();
+  renderRoutineRing();
   clearTimeout(_chkT);
   _chkT = setTimeout(() => { SYNC.saveChecksToSheet(dateStr, d[dateStr]); SYNC.scheduleDatabaseSave(); }, 1200);
 }

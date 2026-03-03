@@ -92,8 +92,7 @@ function renderWritingGrid() {
       const color = TAB_COLORS[t.id] || '#B0B0B8';
       const isOn = activeTab===t.id;
       html += `<div class="side-menu ${isOn?'on':''}" data-tab="${t.id}" onclick="switchTab('${t.id}'); setMobileView('list');">
-        <div class="side-menu-l"><span class="tab-color-dot" style="background:${isOn ? '#ffffff' : color}"></span>${t.label}</div>
-        <div class="badge-pill">${getTabCount(t.id)}</div>
+        <div class="side-menu-l"><span class="tab-color-dot" style="background:${color}"></span>${t.label}</div>
         <div class="wi-arrow">›</div>
       </div>`;
     });

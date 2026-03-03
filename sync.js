@@ -25,6 +25,10 @@ const SYNC = {
       dot.style.background = type === 'error' ? 'var(--red)' : type === 'syncing' ? 'var(--yellow)' : '#7a9968';
       dot.style.animation = type === 'syncing' ? 'pulse 1s infinite' : 'none';
     }
+    const cloudDot = document.getElementById('syncCloudDot');
+    if (cloudDot) {
+      cloudDot.style.background = type === 'error' ? 'var(--red)' : type === 'syncing' ? 'var(--yellow)' : '#7a9968';
+    }
   },
 
   async _post(data) {
@@ -555,6 +559,7 @@ function init() {
     }
     applyTabColor('navi');
     renderChk();
+    renderRoutineRing();
     updateBookStats();
     updateWritingStats();
     showRandomQuote();
