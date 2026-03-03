@@ -437,7 +437,7 @@ function setupGesturesAndUI() {
         const move=Math.min(0, clampDx);
         if(listEl) listEl.style.transform=`translateX(${(clampDx/window.innerWidth)*30}%)`;
         if(listEl) listEl.style.opacity=Math.max(0.6, 1 + clampDx/window.innerWidth*0.4);
-        if(editorEl) editorEl.style.transform=`translateX(${100 + (clampDx/window.innerWidth)*100}%)`;
+        
       }
     } else if(app.classList.contains('view-editor')){
       if(swipeDir==='right'){

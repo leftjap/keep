@@ -548,6 +548,8 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   .fab-btn{display:none!important}
 
   .ed-body{font-size:17px;line-height:1.9}
+  .side .sec-t{font-size:13px !important}
+  .side .stat-label{font-size:13px !important;color:rgba(255,255,255,.9) !important}
 
   /* 사이드바 다크 (모바일과 동일) */
   .side .side-hdr{background:transparent;border-bottom:1px solid rgba(255,255,255,.08)}
@@ -650,8 +652,8 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   .side .side-menu-l{display:flex;align-items:center;font-size:16px}
 
   /* 글쓰기 상위 라벨 */
-  .side .sec-t{pointer-events:none}
-  .side .side-menu{padding:9px 16px 9px 32px}
+  .side .sec-t{pointer-events:none;font-size:13px}
+  .side .stat-label{font-size:13px !important;color:rgba(255,255,255,.9) !important}  .side .side-menu{padding:9px 16px 9px 32px}
   .side .side-menu .tab-color-dot{display:none}
   /* 루틴 컴팩트 */
   .routine-full{display:none}
@@ -688,6 +690,14 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   .fab-btn:active{transform:scale(.92)}
   .fab-btn svg{width:22px;height:22px;stroke:currentColor;stroke-width:2.2;fill:none}
 
+  .lp-hdr{height:56px;min-height:56px;padding:0 14px}
+  .sb-toggle{width:38px;height:38px}
+  .sb-toggle svg{width:21px;height:21px}
+  .vs-btn{width:40px;height:34px}
+  .vs-btn svg{width:19px;height:19px}
+  .search-icon-btn{width:38px;height:38px}
+  .search-icon-btn svg{width:20px;height:20px}
+
 
   .swipe-actions{display:flex;position:absolute;right:-160px;top:0;bottom:0;flex-direction:row;z-index:10}
   .swipe-action{width:80px;display:flex;align-items:center;justify-content:center;color:white;font-size:11px;font-weight:600}
@@ -696,6 +706,16 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   .pin-action{background:#a8c8f0}
   .del-action{background:#e8756d}
 
+  .ed-topbar{height:56px;min-height:56px;padding:0 16px}
+  .mobile-back-btn{width:40px;height:40px}
+  .mobile-back-btn svg{width:24px;height:24px;stroke-width:2}
+  .ed-btn-done{font-size:16px;padding:8px 14px}
+  .toolbar{height:42px;min-height:42px;padding:0 12px;gap:3px}
+  .tb-heading-btn{padding:6px 10px;font-size:14px}
+  .tb-heading-btn svg{width:16px;height:16px}
+  .tb-btn{width:36px;height:36px}
+  .tb-btn svg{width:19px;height:19px}
+  .tb-sep{height:18px;margin:0 5px}
   .editor-content-wrap{padding:20px 18px 80px}
   .ed-title{font-size:20px;margin-bottom:16px}
   .ed-body{font-size:17px;line-height:1.9}

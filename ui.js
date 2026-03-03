@@ -639,13 +639,17 @@ function setupListContextMenu() {
     lpY = e.touches[0].clientY;
     lpTimer = setTimeout(function() {
       if (!lpMoved && lpItem) {
-        e.preventDefault();
         if (navigator.vibrate) navigator.vibrate(20);
+        lpItem.style.pointerEvents = 'none';
         showContextMenuAt(lpItem, lpX, lpY);
-        lpItem = null;
+        setTimeout(function(){ if(lpItem) lpItem.style.pointerEvents=''; lpItem=null; }, 100);
       }
     }, 500);
-  }, { passive: false });
+  }, { passive: true });
+
+  listEl.addEventListener('contextmenu', function(e) {
+    if (e.target.closest('.lp-item')) e.preventDefault();
+  });
 
   listEl.addEventListener('touchmove', function(e) {
     if (!lpItem) return;
