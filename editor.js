@@ -453,7 +453,7 @@ function setupGesturesAndUI() {
     swiping=true;
     showOverlay();
     allEls.forEach(el=>{if(el){el.style.transition='none';el.style.webkitTransition='none';}});
-  },{capture:true,passive:false});
+  },{capture:true,passive:true});
 
   // 원래 터치가 끝나면 (오버레이 전환 실패 시 안전장치)
   document.addEventListener('touchend',function(e){
