@@ -395,88 +395,125 @@ function setupTabletGestures() {
 function setupGesturesAndUI() {
   if(window.innerWidth > 768) return;
   const app=document.getElementById('mainApp');
+  const overlay=document.getElementById('swipeCaptureOverlay');
   let startX=0,startY=0;
-  let swiping=false, swipeDir=null;
+  let swiping=false, swipeDir=null, decided=false;
+  let startState=null;
+  let phase='idle';
   window._itemSwiping=false;
   const editorEl=document.querySelector('.editor');
   const listEl=document.querySelector('.list-panel');
   const sideEl=document.querySelector('.side');
-  const THRESHOLD=80;
+  const THRESHOLD=60;
+  const DECIDE_DIST=12;
+  const allEls=[editorEl,listEl,sideEl];
 
-  app.addEventListener('touchstart',e=>{
-    if(window.innerWidth>600)return;
+  allEls.forEach(el=>{if(el) el.style.willChange='transform,opacity';});
+
+  function showOverlay(){if(overlay)overlay.classList.add('active');}
+  function hideOverlay(){if(overlay)overlay.classList.remove('active');}
+  function resetAll(){
+    hideOverlay();swiping=false;swipeDir=null;decided=false;phase='idle';
+    allEls.forEach(el=>{if(el){el.style.transition='';el.style.webkitTransition='';el.style.transform='';el.style.opacity='';}});
+  }
+
+  // ── 1단계: 일반 document에서 터치 시작 감지 ──
+  document.addEventListener('touchstart',function(e){
+    if(window.innerWidth>768||phase!=='idle')return;
+    if(e.touches.length!==1)return;
+    var t=e.target;
+    if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.tagName==='SELECT'))return;
     startX=e.touches[0].clientX; startY=e.touches[0].clientY;
-    swiping=false; swipeDir=null;
-    if(editorEl) editorEl.style.transition='none';
-    if(listEl) listEl.style.transition='none';
-    if(sideEl) sideEl.style.transition='none';
-  },{passive:true});
+    swiping=false; swipeDir=null; decided=false;
+    startState=app.classList.contains('view-side')?'side':app.classList.contains('view-editor')?'editor':'list';
+    phase='watching';
+  },{capture:true,passive:true});
 
-  app.addEventListener('touchmove',e=>{
-    if(window.innerWidth>600)return;
-    if(window._itemSwiping)return;
-    const cx=e.touches[0].clientX, cy=e.touches[0].clientY;
-    const dx=cx-startX, dy=cy-startY;
+  // ── 2단계: 방향 판단 → 가로면 오버레이 활성화 ──
+  document.addEventListener('touchmove',function(e){
+    if(window.innerWidth>768||phase!=='watching')return;
+    if(window._itemSwiping){phase='idle';return;}
+    if(e.touches.length!==1)return;
+    var dx=e.touches[0].clientX-startX, dy=e.touches[0].clientY-startY;
+    if(Math.abs(dx)<DECIDE_DIST&&Math.abs(dy)<DECIDE_DIST)return;
 
-    if(!swiping && Math.abs(dx)>Math.abs(dy) && Math.abs(dx)>12){
-      swiping=true;
-      swipeDir=dx>0?'right':'left';
+    decided=true;
+
+    // 세로 → 포기, 브라우저 스크롤에 맡김
+    if(Math.abs(dy)>=Math.abs(dx)){phase='idle';return;}
+
+    swipeDir=dx>0?'right':'left';
+    // 불가능한 방향
+    if(startState==='list'&&swipeDir==='left'){phase='idle';return;}
+    if(startState==='side'&&swipeDir==='right'){phase='idle';return;}
+    if(startState==='editor'&&swipeDir==='left'){phase='idle';return;}
+
+    // 가로 확정 → 오버레이로 터치 탈취
+    phase='swiping';
+    swiping=true;
+    showOverlay();
+    allEls.forEach(el=>{if(el){el.style.transition='none';el.style.webkitTransition='none';}});
+  },{capture:true,passive:true});
+
+  // 원래 터치가 끝나면 (오버레이 전환 실패 시 안전장치)
+  document.addEventListener('touchend',function(e){
+    if(phase==='watching') phase='idle';
+  },{capture:true,passive:true});
+  document.addEventListener('touchcancel',function(){
+    if(phase==='watching') phase='idle';
+  },{capture:true,passive:true});
+
+  // ── 3단계: 오버레이 위에서 새 터치 시퀀스 처리 ──
+  // 오버레이가 활성화되면 다음 터치는 오버레이 위에서 시작됨
+  // 하지만 현재 터치는 이미 진행 중이므로, document 레벨에서 계속 추적
+
+  // 실제 스와이프 애니메이션은 document touchmove (passive:false)에서 처리
+  document.addEventListener('touchmove',function(e){
+    if(window.innerWidth>768||phase!=='swiping'||!swiping)return;
+    if(e.touches.length!==1)return;
+
+    // 오버레이가 활성화된 상태에서는 cancelable=true
+    if(e.cancelable) e.preventDefault();
+
+    var cx=e.touches[0].clientX;
+    var dx=cx-startX;
+    var vw=window.innerWidth;
+    var sideW=sideEl?sideEl.offsetWidth:vw*0.8;
+
+    if(startState==='side'){
+      var move=Math.min(0,dx);
+      if(sideEl) sideEl.style.transform='translate3d('+move+'px,0,0)';
+      if(listEl){var pct=Math.max(0,sideW+dx)/vw*100;listEl.style.transform='translate3d('+pct+'%,0,0)';listEl.style.opacity=String(Math.min(1,0.6+Math.abs(dx)/vw*0.8));}
+    } else if(startState==='list'){
+      var move2=Math.max(0,Math.min(dx,sideW));
+      if(sideEl) sideEl.style.transform='translate3d('+(-sideW+move2)+'px,0,0)';
+      if(listEl){listEl.style.transform='translate3d('+move2+'px,0,0)';listEl.style.opacity=String(Math.max(0.6,1-move2/vw*0.4));}
+    } else if(startState==='editor'){
+      var move3=Math.max(0,Math.min(dx,vw));
+      if(editorEl) editorEl.style.transform='translate3d('+move3+'px,0,0)';
+      if(listEl){listEl.style.transform='translate3d('+(-30+(move3/vw)*30)+'%,0,0)';listEl.style.opacity=String(Math.min(1,0.6+move3/vw*0.4));}
     }
-    if(!swiping) return;
-    e.preventDefault();
+  },{capture:false,passive:false});
 
-    const clampDx = Math.max(-window.innerWidth, Math.min(window.innerWidth, dx));
+  document.addEventListener('touchend',function(e){
+    if(phase!=='swiping'||!swiping){return;}
+    var dx=e.changedTouches[0].clientX-startX;
 
-    if(app.classList.contains('view-side')){
-      if(swipeDir==='left'){
-        const move=Math.min(0, clampDx);
-        if(sideEl) sideEl.style.transform=`translateX(${move}px)`;
-        if(listEl) listEl.style.transform=`translateX(${80 + (clampDx/window.innerWidth)*80}%)`;
-        if(listEl) listEl.style.opacity=Math.min(1, 0.6 + Math.abs(clampDx)/window.innerWidth*0.8);
-      }
-    } else if(app.classList.contains('view-list')){
-      if(swipeDir==='right' && startX < 60){
-        const move=Math.max(0, Math.min(clampDx, window.innerWidth*0.8));
-        if(sideEl) sideEl.style.transform=`translateX(${-window.innerWidth*0.8 + move}px)`;
-        if(listEl) listEl.style.transform=`translateX(${(move/window.innerWidth)*80}%)`;
-        if(listEl) listEl.style.opacity=Math.max(0.6, 1 - move/window.innerWidth*0.4);
-      } else if(swipeDir==='left'){
-        const move=Math.min(0, clampDx);
-        if(listEl) listEl.style.transform=`translateX(${(clampDx/window.innerWidth)*30}%)`;
-        if(listEl) listEl.style.opacity=Math.max(0.6, 1 + clampDx/window.innerWidth*0.4);
-        
-      }
-    } else if(app.classList.contains('view-editor')){
-      if(swipeDir==='right'){
-        const move=Math.max(0, clampDx);
-        if(editorEl) editorEl.style.transform=`translateX(${move}px)`;
-        if(listEl) listEl.style.transform=`translateX(${-30 + (move/window.innerWidth)*30}%)`;
-        if(listEl) listEl.style.opacity=Math.min(1, 0.6 + move/window.innerWidth*0.4);
-      }
-    }
-  },{passive:false});
+    if(startState==='side'){
+      if(swipeDir==='left'&&dx<-THRESHOLD){resetAll();setMobileView('list');}
+      else{resetAll();}
+    } else if(startState==='list'){
+      if(swipeDir==='right'&&dx>THRESHOLD){resetAll();setMobileView('side');}
+      else{resetAll();}
+    } else if(startState==='editor'){
+      if(swipeDir==='right'&&dx>THRESHOLD){resetAll();handleDone();}
+      else{resetAll();}
+    } else {resetAll();}
+  },{capture:false,passive:true});
 
-  app.addEventListener('touchend',e=>{
-    if(window.innerWidth>600 || !swiping)return;
-    const dx=e.changedTouches[0].clientX-startX;
-    const reset=()=>{
-      [editorEl,listEl,sideEl].forEach(el=>{if(el){el.style.transition='transform .3s cubic-bezier(.25,.1,.25,1), opacity .3s';el.style.transform='';el.style.opacity='';}});
-      setTimeout(()=>{[editorEl,listEl,sideEl].forEach(el=>{if(el){el.style.transition='';el.style.transform='';el.style.opacity='';}});},350);
-    };
-
-    if(app.classList.contains('view-side')){
-      if(swipeDir==='left' && dx < -THRESHOLD){ reset(); setMobileView('list'); }
-      else { reset(); }
-    } else if(app.classList.contains('view-list')){
-      if(swipeDir==='right' && dx > THRESHOLD && startX < 60){ reset(); setMobileView('side'); }
-      else if(swipeDir==='left' && dx < -THRESHOLD){ reset(); setMobileView('editor'); }
-      else { reset(); }
-    } else if(app.classList.contains('view-editor')){
-      if(swipeDir==='right' && dx > THRESHOLD){ reset(); handleDone(); }
-      else { reset(); }
-    }
-    swiping=false; swipeDir=null;
-  },{passive:true});
+  document.addEventListener('touchcancel',function(){
+    if(phase==='swiping') resetAll();
+  },{capture:false,passive:true});
 }
 
 function setupSwipeActions() {

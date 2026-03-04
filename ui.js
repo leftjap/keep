@@ -53,12 +53,14 @@ function setMobileView(view) {
     if(view==='side') toggleSidebar();
     return;
   }
+  if(view==='side') {
+    // 사이드바는 오버레이 방식: view-list 유지하면서 view-side만 추가
+    app.classList.add('view-side');
+    return;
+  }
   app.classList.remove('view-side','view-list','view-editor');
   app.classList.add('view-'+view);
   if(view==='list') renderListPanel();
-  if(view==='list' || view==='editor') {
-    app.classList.remove('view-side');
-  }
 }
 
 

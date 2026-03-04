@@ -54,6 +54,8 @@ body{font-family:'Pretendard',-apple-system,'SF Pro Display',sans-serif;backgrou
 @media(min-width:769px){
   .side{transition:width .3s cubic-bezier(.2,.8,.2,1),min-width .3s cubic-bezier(.2,.8,.2,1),opacity .2s}
   .app.sidebar-closed .side{width:0!important;min-width:0!important;max-width:0!important;opacity:0;border-right-width:0;pointer-events:none}
+  .list-panel{transition:width .3s cubic-bezier(.2,.8,.2,1),min-width .3s,max-width .3s,opacity .2s}
+  .app.list-closed .list-panel{width:0!important;min-width:0!important;max-width:0!important;opacity:0;border-right-width:0;pointer-events:none;overflow:hidden}
 }
 .side-hdr{display:flex;align-items:center;padding:0 14px;height:60px;min-height:60px;border-bottom:1px solid var(--border);gap:8px}
 .brand-wrap{display:flex;align-items:center;gap:10px}
@@ -161,7 +163,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 .list-panel{
   width:var(--list-w);min-width:var(--list-min);max-width:var(--list-max);
   background:var(--bg-white);border-right:1px solid var(--border);
-  display:flex;flex-direction:column;overflow:hidden;position:relative;
+  display:flex;flex-direction:column;overflow:visible;position:relative;
 }
 
 .lp-hdr{
@@ -543,6 +545,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   .app.list-closed .list-panel{
     width:0!important;min-width:0!important;max-width:0!important;
     opacity:0;border-right-width:0;pointer-events:none;overflow:hidden;
+    transition:width .3s cubic-bezier(.25,.1,.25,1),min-width .3s,max-width .3s,opacity .2s;
   }
   .editor{flex:1;min-width:0}
   .pc-sidebar-toggle{display:flex!important}
@@ -605,15 +608,17 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
    ═══════════════════════════════════════ */
 @media(max-width:768px){
   .app{position:relative;overflow:hidden}
+  .pane-list,.pane-photo,.pane-calendar,.side-scroll,.editor-scroll-area{touch-action:auto}
 
   .side{
     position:fixed;top:0;left:0;bottom:0;padding-top:env(safe-area-inset-top, 0px);
-    width:80%!important;max-width:320px!important;min-width:0!important;
+    width:calc(100% - 72px)!important;max-width:340px!important;min-width:0!important;
+
     z-index:30;transform:translateX(-100%);
     transition:transform .32s cubic-bezier(.2,.8,.2,1);
     background:#2c2c2e;border-right:none;box-shadow:none;
   }
-  .app.view-side .side{transform:translateX(0);box-shadow:4px 0 24px rgba(0,0,0,.3)}
+  .app.view-side .side{transform:translateX(0);box-shadow:4px 0 20px rgba(0,0,0,.3)}
 
   .list-panel{
     width:100%!important;max-width:100%!important;min-width:0!important;
@@ -621,9 +626,8 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
     transition:transform .35s cubic-bezier(.25,.1,.25,1),opacity .35s;
     padding-top:env(safe-area-inset-top, 0px);
   }
-  .app.view-side .list-panel{transform:translateX(80%);opacity:1;pointer-events:none}
-  .app.view-list .list-panel{transform:translateX(0);opacity:1}
-
+  .app.view-side .list-panel{opacity:.5;pointer-events:none}  .app.view-list .list-panel{transform:translateX(0);opacity:1}
+  .app.view-side.view-list .list-panel{transform:translateX(calc(100% - 72px));opacity:.5;pointer-events:none}
   .editor{
     position:fixed;top:0;left:0;right:0;bottom:0;z-index:20;
     transform:translateX(100%);
@@ -696,6 +700,13 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   .ed-btn-done{display:block;background:none;border:none;color:var(--tab-color);font-size:14px;font-weight:600;cursor:pointer;padding:6px 10px}
   .pc-only{display:none!important}
 
+  .edge-swipe-zone{
+    position:fixed;top:0;bottom:0;width:40px;z-index:25;
+    touch-action:none;background:transparent;
+  }
+  .edge-swipe-zone.edge-left{left:0}
+  .app.view-side .edge-swipe-zone{display:none}
+
   .fab-btn{
     display:flex;position:fixed;bottom:24px;right:20px;
     width:52px;height:52px;border-radius:50%;
@@ -750,7 +761,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   .lp-thumb{width:40px;min-width:40px;height:40px}
   .lp-pin-hdr{background:var(--bg-white);border:none;border-bottom:1px solid var(--border-l);padding:0 16px}
   .lp-month-hdr{background:var(--bg-white);border:none;border-bottom:1px solid var(--border-l);padding:10px 16px}
-    .pane-list{background:var(--bg-white);padding-top:0;overflow-x:clip}
+    .pane-list{background:var(--bg-white);padding-top:0;overflow-x:visible}
   .toolbar{padding:0 10px;gap:1px}
   .tb-heading-btn{padding:5px 6px;font-size:12px}
   .tb-btn{width:28px;height:28px}
@@ -759,8 +770,11 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 /* ═══ 루틴 카드 (2단 리스트 상단) ═══ */
 .pane-routine{
   padding:0;
-  flex-shrink:0;
+  flex:1;
   overflow-y:auto;
+  background:var(--bg-white);
+  position:relative;
+  z-index:4;
 }
 .routine-card{
   background:none;
@@ -975,7 +989,9 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 }
 .pane-list{
   overflow-y:auto !important;
-  overflow-x:hidden !important;
+  overflow-x:visible !important;
+  touch-action:auto !important;
+  -ms-touch-action:auto !important;
 }
 .lp-item::after{
   content:'' !important;
@@ -1086,6 +1102,11 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
     opacity:0;border-right-width:0;pointer-events:none;
     overflow:hidden;
     transition:width .3s cubic-bezier(.2,.8,.2,1),min-width .3s,opacity .2s;
+  }
+  .app.list-closed .list-panel{
+    width:0 !important;min-width:0 !important;max-width:0 !important;
+    opacity:0;border-right-width:0;pointer-events:none;overflow:hidden;
+    transition:width .3s cubic-bezier(.2,.8,.2,1),min-width .3s,max-width .3s,opacity .2s;
   }
   .app.view-side .side{
     transform:none !important;
@@ -1217,6 +1238,26 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 }
 #swipeOverlay .pin-action{background:#a8c8f0}
 #swipeOverlay .del-action{background:#e8756d}
+
+/* ═══ 스와이프 엣지 (모바일 전용) ═══ */
+.swipe-edge{
+  position:absolute;top:0;bottom:0;left:0;width:36px;
+  z-index:50;touch-action:none;background:transparent;
+  pointer-events:none;
+}
+@media(max-width:768px){
+  .swipe-edge{pointer-events:auto;}
+}
+
+/* ═══ 스와이프 캡처 오버레이 ═══ */
+.swipe-capture-overlay{
+  position:fixed;top:0;left:0;right:0;bottom:0;
+  z-index:9998;touch-action:none;background:transparent;
+  pointer-events:none;display:none;
+}
+.swipe-capture-overlay.active{
+  display:block;pointer-events:auto;
+}
 
 
 
