@@ -608,7 +608,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
    ═══════════════════════════════════════ */
 @media(max-width:768px){
   .app{position:relative;overflow:hidden}
-  .pane-list,.pane-photo,.pane-calendar,.side-scroll,.editor-scroll-area{touch-action:auto}
+  .pane-list,.pane-photo,.pane-calendar,.side-scroll,.editor-scroll-area{touch-action:pan-y}
 
   .side{
     position:fixed;top:0;left:0;bottom:0;padding-top:env(safe-area-inset-top, 0px);
@@ -766,6 +766,16 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   .tb-heading-btn{padding:5px 6px;font-size:12px}
   .tb-btn{width:28px;height:28px}
   .heading-dropdown{min-width:120px}
+
+  .pane-list,
+  .pane-photo,
+  .pane-calendar,
+  .side-scroll,
+  .editor-scroll-area,
+  .list-panel,
+  .editor{
+    touch-action:pan-y;
+  }
 }
 /* ═══ 루틴 카드 (2단 리스트 상단) ═══ */
 .pane-routine{
@@ -990,8 +1000,6 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 .pane-list{
   overflow-y:auto !important;
   overflow-x:visible !important;
-  touch-action:auto !important;
-  -ms-touch-action:auto !important;
 }
 .lp-item::after{
   content:'' !important;
@@ -1250,6 +1258,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 }
 
 /* ═══ 스와이프 캡처 오버레이 ═══ */
+
 .swipe-capture-overlay{
   position:fixed;top:0;left:0;right:0;bottom:0;
   z-index:9998;touch-action:none;background:transparent;

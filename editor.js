@@ -393,128 +393,116 @@ function setupTabletGestures() {
 }
 
 function setupGesturesAndUI() {
-  if(window.innerWidth > 768) return;
-  const app=document.getElementById('mainApp');
-  const overlay=document.getElementById('swipeCaptureOverlay');
-  let startX=0,startY=0;
-  let swiping=false, swipeDir=null, decided=false;
-  let startState=null;
-  let phase='idle';
+  var app=document.getElementById('mainApp');
+  var editorEl=document.querySelector('.editor');
+  var listEl=document.querySelector('.list-panel');
+  var sideEl=document.querySelector('.side');
+  var allEls=[editorEl,listEl,sideEl];
   window._itemSwiping=false;
-  const editorEl=document.querySelector('.editor');
-  const listEl=document.querySelector('.list-panel');
-  const sideEl=document.querySelector('.side');
-  const THRESHOLD=35;
-  const DECIDE_DIST=6;
-  const allEls=[editorEl,listEl,sideEl];
 
-  allEls.forEach(el=>{if(el) el.style.willChange='transform,opacity';});
+  var startX=0,startY=0,swiping=false,swipeDir=null,decided=false,startState=null;
 
-  function showOverlay(){if(overlay)overlay.classList.add('active');}
-  function hideOverlay(){if(overlay)overlay.classList.remove('active');}
-  function resetAll(){
-    hideOverlay();swiping=false;swipeDir=null;decided=false;phase='idle';
-    allEls.forEach(el=>{if(el){el.style.transition='';el.style.webkitTransition='';el.style.transform='';el.style.opacity='';}});
+  function getState(){
+    if(app.classList.contains('view-side')) return 'side';
+    if(app.classList.contains('view-editor')) return 'editor';
+    return 'list';
+  }
+  function cleanStyles(){
+    allEls.forEach(function(el){if(el){el.style.transition='';el.style.transform='';el.style.opacity='';}});
+  }
+  function animateBack(){
+    allEls.forEach(function(el){if(el){el.style.transition='transform .25s ease, opacity .25s';el.style.transform='';el.style.opacity='';}});
+    setTimeout(cleanStyles,280);
   }
 
-  // ── 1단계: 일반 document에서 터치 시작 감지 ──
   document.addEventListener('touchstart',function(e){
-    if(window.innerWidth>768||phase!=='idle')return;
-    if(e.touches.length!==1)return;
+    if(window.innerWidth>768) return;
+    if(e.touches.length!==1) return;
+    if(window._itemSwiping) return;
     var t=e.target;
-    if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.tagName==='SELECT'))return;
-    startX=e.touches[0].clientX; startY=e.touches[0].clientY;
-    swiping=false; swipeDir=null; decided=false;
-    startState=app.classList.contains('view-side')?'side':app.classList.contains('view-editor')?'editor':'list';
-    phase='watching';
+    if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.tagName==='SELECT')) return;
+    startX=e.touches[0].clientX;
+    startY=e.touches[0].clientY;
+    swiping=false;swipeDir=null;decided=false;
+    startState=getState();
   },{capture:true,passive:true});
 
-  // ── 2단계: 방향 판단 → 가로면 오버레이 활성화 ──
   document.addEventListener('touchmove',function(e){
-    if(window.innerWidth>768||phase!=='watching')return;
-    if(window._itemSwiping){phase='idle';return;}
-    if(e.touches.length!==1)return;
-    var dx=e.touches[0].clientX-startX, dy=e.touches[0].clientY-startY;
-    if(Math.abs(dx)<DECIDE_DIST&&Math.abs(dy)<DECIDE_DIST)return;
+    if(window.innerWidth>768) return;
+    if(startState===null) return;
+    if(window._itemSwiping){startState=null;return;}
+    if(e.touches.length!==1) return;
+    var cx=e.touches[0].clientX,cy=e.touches[0].clientY;
+    var dx=cx-startX,dy=cy-startY;
 
-    decided=true;
-
-    // 세로 → 포기, 브라우저 스크롤에 맡김
-    if(Math.abs(dy)>Math.abs(dx)*0.8){phase='idle';return;}
-
-    swipeDir=dx>0?'right':'left';
-    // 불가능한 방향
-    if(startState==='list'&&swipeDir==='left'){phase='idle';return;}
-    if(startState==='side'&&swipeDir==='right'){phase='idle';return;}
-    if(startState==='editor'&&swipeDir==='left'){phase='idle';return;}
-
-    // 가로 확정 → 오버레이로 터치 탈취
-    phase='swiping';
-    swiping=true;
-    showOverlay();
-    allEls.forEach(el=>{if(el){el.style.transition='none';el.style.webkitTransition='none';}});
-  },{capture:true,passive:true});
-
-  // 원래 터치가 끝나면 (오버레이 전환 실패 시 안전장치)
-  document.addEventListener('touchend',function(e){
-    if(phase==='watching') phase='idle';
-  },{capture:true,passive:true});
-  document.addEventListener('touchcancel',function(){
-    if(phase==='watching') phase='idle';
-  },{capture:true,passive:true});
-
-  // ── 3단계: 오버레이 위에서 새 터치 시퀀스 처리 ──
-  // 오버레이가 활성화되면 다음 터치는 오버레이 위에서 시작됨
-  // 하지만 현재 터치는 이미 진행 중이므로, document 레벨에서 계속 추적
-
-  // 실제 스와이프 애니메이션은 document touchmove (passive:false)에서 처리
-  document.addEventListener('touchmove',function(e){
-    if(window.innerWidth>768||phase!=='swiping'||!swiping)return;
-    if(e.touches.length!==1)return;
-
-    // 오버레이가 활성화된 상태에서는 cancelable=true
+    if(!decided){
+      if(Math.abs(dx)<8&&Math.abs(dy)<8) return;
+      decided=true;
+      if(Math.abs(dy)>Math.abs(dx)){startState=null;return;}
+      swipeDir=dx>0?'right':'left';
+      // 유효 방향만
+      if(startState==='list'&&swipeDir==='left'){startState=null;return;}
+      if(startState==='side'&&swipeDir==='right'){startState=null;return;}
+      if(startState==='editor'&&swipeDir==='left'){startState=null;return;}
+      swiping=true;
+      if(e.cancelable) e.preventDefault();
+      allEls.forEach(function(el){if(el){el.style.transition='none';}});
+    }
+    if(!swiping) return;
     if(e.cancelable) e.preventDefault();
 
-    var cx=e.touches[0].clientX;
-    var dx=cx-startX;
     var vw=window.innerWidth;
-    var sideW=sideEl?sideEl.offsetWidth:vw*0.8;
+    var sideW=sideEl?Math.min(sideEl.offsetWidth,vw*0.82):(vw*0.75);
 
-    if(startState==='side'){
-      var move=Math.min(0,dx);
+    if(startState==='side'&&swipeDir==='left'){
+      var move=Math.max(-sideW,Math.min(0,dx));
       if(sideEl) sideEl.style.transform='translate3d('+move+'px,0,0)';
-      if(listEl){var pct=Math.max(0,sideW+dx)/vw*100;listEl.style.transform='translate3d('+pct+'%,0,0)';listEl.style.opacity=String(Math.min(1,0.6+Math.abs(dx)/vw*0.8));}
-    } else if(startState==='list'){
+      if(listEl){listEl.style.transform='translate3d('+Math.max(0,sideW+dx)+'px,0,0)';listEl.style.opacity=String(Math.min(1,0.5+Math.abs(dx)/sideW*0.5));}
+    } else if(startState==='list'&&swipeDir==='right'){
       var move2=Math.max(0,Math.min(dx,sideW));
       if(sideEl) sideEl.style.transform='translate3d('+(-sideW+move2)+'px,0,0)';
-      if(listEl){var targetShift=vw-72;var listShift=move2/sideW*targetShift;listEl.style.transform='translate3d('+listShift+'px,0,0)';listEl.style.opacity=String(Math.max(0.5,1-move2/vw*0.5));}
-    } else if(startState==='editor'){
+      if(listEl){listEl.style.transform='translate3d('+move2+'px,0,0)';listEl.style.opacity=String(Math.max(0.5,1-move2/vw*0.5));}
+    } else if(startState==='editor'&&swipeDir==='right'){
       var move3=Math.max(0,Math.min(dx,vw));
       if(editorEl) editorEl.style.transform='translate3d('+move3+'px,0,0)';
-      if(listEl){listEl.style.transform='translate3d('+(-30+(move3/vw)*30)+'%,0,0)';listEl.style.opacity=String(Math.min(1,0.6+move3/vw*0.4));}
+      if(listEl){listEl.style.transform='translate3d('+(-vw*0.3+move3*0.3)+'px,0,0)';listEl.style.opacity=String(Math.min(1,0.6+move3/vw*0.4));}
     }
-  },{capture:false,passive:false});
+  },{capture:true,passive:false});
 
   document.addEventListener('touchend',function(e){
-    if(phase!=='swiping'||!swiping){return;}
+    if(window.innerWidth>768) return;
+    if(!swiping||startState===null){startState=null;decided=false;return;}
     var dx=e.changedTouches[0].clientX-startX;
+    var savedState=startState;
+    swiping=false;swipeDir=null;decided=false;startState=null;
 
-    if(startState==='side'){
-      if(swipeDir==='left'&&dx<-THRESHOLD){resetAll();setMobileView('list');}
-      else{resetAll();}
-    } else if(startState==='list'){
-      if(swipeDir==='right'&&dx>THRESHOLD){resetAll();setMobileView('side');}
-      else{resetAll();}
-    } else if(startState==='editor'){
-      if(swipeDir==='right'&&dx>THRESHOLD){resetAll();handleDone();}
-      else{resetAll();}
-    } else {resetAll();}
-  },{capture:false,passive:true});
+    var vw=window.innerWidth;
+    var minSwipe=Math.max(80,vw*0.25);
+    var didSwipe=false;
+
+    if(savedState==='side'&&dx<-minSwipe) didSwipe=true;
+    else if(savedState==='list'&&dx>minSwipe) didSwipe=true;
+    else if(savedState==='editor'&&dx>minSwipe) didSwipe=true;
+
+    if(didSwipe){
+      if(savedState==='list') app.classList.add('view-side');
+      else if(savedState==='side') app.classList.remove('view-side');
+      cleanStyles();
+      if(savedState==='editor') handleDone();
+    } else {
+      animateBack();
+    }
+  },{capture:true,passive:true});
 
   document.addEventListener('touchcancel',function(){
-    if(phase==='swiping') resetAll();
-  },{capture:false,passive:true});
+    if(swiping) animateBack();
+    startState=null;decided=false;swiping=false;
+  },{capture:true,passive:true});
 }
+
+
+
+
 
 function setupSwipeActions() {
   const listEl=document.getElementById('pane-list'); if(!listEl)return;
