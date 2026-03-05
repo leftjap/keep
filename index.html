@@ -14,21 +14,21 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700;900&family=Pretendard:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <link rel="stylesheet" href="style.css?v=61">
-
-
-
-
 </head>
 <body>
 
+<!-- ─── 전역 오버레이 ─── -->
 <div id="swipeCaptureOverlay" class="swipe-capture-overlay"></div>
 
-<!-- 리스트 꾹누르기 팝업 -->
+<!-- ─── 리스트 꾹누르기 팝업 ─── -->
 <div class="lp-popup-overlay" id="lpPopupOverlay" onclick="closeLpPopup()"></div>
 <div class="lp-popup-card" id="lpPopupCard">
   <div class="lp-popup-menu" id="lpPopupMenu"></div>
 </div>
-<div id="loadingScreen" class="hidden">  <div class="loading-wrapper">
+
+<!-- ─── 로딩 화면 ─── -->
+<div id="loadingScreen" class="hidden">
+  <div class="loading-wrapper">
     <div class="loading-scene">
       <img src="gio_circle_white_closeup2_512.png" alt="지오" class="bounce-avatar">
       <div class="bounce-shadow"></div>
@@ -37,6 +37,7 @@
   </div>
 </div>
 
+<!-- ─── 잠금 화면 (Google 로그인) ─── -->
 <div id="lockScreen" class="hidden">
   <div class="lock-card">
     <div class="lock-brand">이름표 붙이기 게임</div>
@@ -46,18 +47,17 @@
   </div>
 </div>
 
-<!-- 플로팅 인라인 툴바 -->
+<!-- ─── 플로팅 인라인 툴바 ─── -->
 <div id="floatingToolbar">
-  <button class="ft-btn" title="굵게" data-cmd="bold"><b>B</b></button>
+  <button class="ft-btn" title="굵게"  data-cmd="bold"><b>B</b></button>
   <button class="ft-btn" title="기울임" data-cmd="italic"><i style="font-style:italic">I</i></button>
   <button class="ft-btn highlight-btn" title="형광펜" data-cmd="hiliteColor" data-val="#fde68a"><span class="hl-inner">A</span></button>
   <button class="ft-btn" title="취소선" data-cmd="strikeThrough"><s>S</s></button>
-  <button class="ft-btn" title="밑줄" data-cmd="underline"><u>U</u></button>
+  <button class="ft-btn" title="밑줄"  data-cmd="underline"><u>U</u></button>
 </div>
 
-<!-- 이미지 우클릭 컨텍스트 메뉴 -->
+<!-- ─── 이미지 우클릭/꾹누르기 컨텍스트 메뉴 ─── -->
 <div id="imgContextMenu" class="img-ctx-menu" style="position:fixed;">
-
   <div class="img-ctx-item" onclick="imgCtxAction('copy')">
     <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
     <span>복사</span>
@@ -68,7 +68,8 @@
     <span>삭제</span>
   </div>
 </div>
-<!-- 이미지 리사이즈 핸들 — Bear 삼각형 + 13점 그립 -->
+
+<!-- ─── 이미지 리사이즈 핸들 ─── -->
 <div id="imgResizeHandle" class="img-resize-handle">
   <svg viewBox="0 0 44 44" width="44" height="44">
     <defs>
@@ -77,20 +78,15 @@
       </clipPath>
     </defs>
     <rect x="0" y="0" width="44" height="44" fill="rgba(255,255,255,.82)" clip-path="url(#triClip)"/>
-    <!-- row 1: 1 dot -->
     <circle cx="37" cy="17" r="1.5" fill="#E55643" opacity=".5"/>
-    <!-- row 2: 2 dots -->
     <circle cx="31" cy="23" r="1.5" fill="#E55643" opacity=".5"/>
     <circle cx="37" cy="23" r="1.5" fill="#E55643" opacity=".5"/>
-    <!-- row 3: 3 dots -->
     <circle cx="25" cy="29" r="1.5" fill="#E55643" opacity=".5"/>
     <circle cx="31" cy="29" r="1.5" fill="#E55643" opacity=".5"/>
     <circle cx="37" cy="29" r="1.5" fill="#E55643" opacity=".5"/>
-    <!-- row 4: 3 dots -->
     <circle cx="19" cy="35" r="1.5" fill="#E55643" opacity=".5"/>
     <circle cx="25" cy="35" r="1.5" fill="#E55643" opacity=".5"/>
     <circle cx="31" cy="35" r="1.5" fill="#E55643" opacity=".5"/>
-    <!-- row 5: 4 dots -->
     <circle cx="13" cy="41" r="1.5" fill="#E55643" opacity=".5"/>
     <circle cx="19" cy="41" r="1.5" fill="#E55643" opacity=".5"/>
     <circle cx="25" cy="41" r="1.5" fill="#E55643" opacity=".5"/>
@@ -98,9 +94,13 @@
   </svg>
 </div>
 
+<!-- ═══════════════════════════════════════════════════
+     메인 앱
+════════════════════════════════════════════════════ -->
 <div class="app view-list" id="mainApp" style="display:none;">
 <div class="edge-swipe-zone edge-left" id="edgeLeft"></div>
 
+<!-- ─── 사이드바 ─── -->
 <div class="side">
   <div class="side-rubber" id="sideRubber"></div>
   <div class="header side-hdr">
@@ -114,16 +114,18 @@
         <span id="syncStatus">완료됨</span>
       </div>
       <button class="sync-btn" onclick="SYNC.syncAll()">↻</button>
-    <button class="sync-cloud-btn" onclick="SYNC.syncAll()" id="syncCloudBtn" title="동기화">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M6.5 19a4.5 4.5 0 0 1-.42-8.98A7 7 0 0 1 13 5a6.97 6.97 0 0 1 6.79 5.32A4.5 4.5 0 0 1 17.5 19H6.5z"/>
-        <line x1="12" y1="10" x2="12" y2="14"/>
-        <circle cx="12" cy="16.5" r="0.5" fill="currentColor" stroke="none"/>
-      </svg>
-    </button>    </div>
+      <button class="sync-cloud-btn" onclick="SYNC.syncAll()" id="syncCloudBtn" title="동기화">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6.5 19a4.5 4.5 0 0 1-.42-8.98A7 7 0 0 1 13 5a6.97 6.97 0 0 1 6.79 5.32A4.5 4.5 0 0 1 17.5 19H6.5z"/>
+          <line x1="12" y1="10" x2="12" y2="14"/>
+          <circle cx="12" cy="16.5" r="0.5" fill="currentColor" stroke="none"/>
+        </svg>
+      </button>
+    </div>
   </div>
-  
+
   <div class="side-scroll">
+    <!-- 오늘의 어구 -->
     <div class="sec sec-border quote-section">
       <div class="sec-t">오늘의 어구</div>
       <div class="q-card quote-card" onclick="showRandomQuote()">
@@ -136,11 +138,13 @@
       </div>
     </div>
 
+    <!-- 글쓰기 탭 네비 -->
     <div class="sec sec-border side-nav" style="padding:8px 12px 12px">
       <div class="sec-t" style="margin-bottom:4px">글쓰기</div>
       <div id="sideNav" class="writing-grid"></div>
     </div>
 
+    <!-- 데일리 루틴 -->
     <div class="sec sec-border">
       <div class="routine-full">
         <div class="sec-t">데일리 루틴</div>
@@ -157,7 +161,8 @@
         <svg class="routine-compact-arrow" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
     </div>
-    
+
+    <!-- 기록 통계 -->
     <div class="sec" style="padding-bottom:40px;">
       <div class="sec-t" style="display:flex; justify-content:space-between; align-items:center;">기록</div>
       <div class="stats-wrap">
@@ -174,18 +179,22 @@
       </div>
     </div>
   </div>
-</div>
+</div><!-- /.side -->
 
+<!-- ─── 리스트 패널 ─── -->
 <div class="list-panel">
   <div class="swipe-edge" id="listSwipeEdge"></div>
   <div class="lp-hdr">
+    <!-- PC 사이드바 토글 -->
     <button class="sb-toggle pc-sidebar-toggle" onclick="toggleSidebar()" title="사이드바 열기/닫기">
       <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
     </button>
+    <!-- 모바일 메뉴 버튼 -->
     <button class="sb-toggle mobile-nav-btn" onclick="setMobileView('side')" title="메뉴 열기">
       <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
     </button>
 
+    <!-- 뷰 스위처 (목록/사진/캘린더) -->
     <div class="view-switcher" id="viewSwitcher">
       <button class="vs-btn on" id="btn-list" onclick="switchListView('list')" title="목록">
         <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
@@ -198,15 +207,19 @@
       </button>
     </div>
 
+    <!-- 검색 바 -->
     <div class="search-bar" id="searchBar">
       <button class="search-icon-btn lp-search-btn" onclick="toggleSearch()" title="검색">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
       </button>
       <input type="text" id="searchInput" placeholder="#태그 또는 검색어" oninput="handleSearch(event)">
-      <button id="clearSearchBtn" onclick="clearSearch()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+      <button id="clearSearchBtn" onclick="clearSearch()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
     </div>
   </div>
 
+  <!-- 루틴 상세 패널 -->
   <div class="pane-routine" id="pane-routine" style="display:none">
     <div class="routine-card">
       <div class="routine-card-hdr">
@@ -215,14 +228,19 @@
       </div>
       <div class="routine-card-body" id="routineCardBody"></div>
     </div>
-    <div class="routine-streak" id="routineStreak"></div>
+    <div class="routine-streak"  id="routineStreak"></div>
     <div class="routine-monthly" id="routineMonthly"></div>
   </div>
-  <div class="pane-list" id="pane-list"></div>  
+
+  <!-- 리스트 패널 -->
+  <div class="pane-list" id="pane-list"></div>
+
+  <!-- 사진 패널 -->
   <div class="pane-photo" id="pane-photo">
     <div class="photo-grid" id="photoGrid"></div>
   </div>
 
+  <!-- 캘린더 패널 -->
   <div class="pane-calendar" id="pane-calendar">
     <div class="cal-global-dow">
       <div class="cal-dow">일</div><div class="cal-dow">월</div><div class="cal-dow">화</div>
@@ -230,18 +248,26 @@
     </div>
     <div class="cal-wrap" id="calWrap"></div>
   </div>
-  
-  <button class="fab-btn" onclick="handleNew()" title="새 글 작성">
-    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="M15 5l4 4"/></svg>
-  </button>
-</div>
 
+  <!-- 새 글 FAB -->
+  <button class="fab-btn" onclick="handleNew()" title="새 글 작성">
+    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/>
+      <path d="M15 5l4 4"/>
+    </svg>
+  </button>
+</div><!-- /.list-panel -->
+
+<!-- ─── 에디터 ─── -->
 <div class="editor">
   <div class="editor-rubber" id="editorRubber"></div>
   <div class="swipe-edge" id="editorSwipeEdge"></div>
+
+  <!-- 에디터 상단 바 -->
   <div class="col-header ed-topbar">
     <div class="ed-topbar-left">
-      <button class="mobile-nav-btn mobile-back-btn" onclick="handleBackBtn()" title="목록으로 가기">        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      <button class="mobile-nav-btn mobile-back-btn" onclick="handleBackBtn()" title="목록으로 가기">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
       </button>
     </div>
     <div class="ed-tab-label-wrap" id="edTabDropdown">
@@ -250,44 +276,41 @@
     <span id="edDate" style="display:none"></span>
     <span class="ed-save-status" id="edSaveStatus" style="display:none">저장됨</span>
     <div class="ed-topbar-right">
-      <!-- Aa 서식 버튼 (모바일/태블릿 전용) -->
+      <!-- Aa 서식 버튼 -->
       <button class="ed-aa-btn" onclick="toggleAaMenu(event)" title="서식">
         <svg viewBox="0 0 24 24" fill="none" stroke="none">
-          <text x="3" y="18" font-size="16" font-weight="700" fill="currentColor" font-family="serif">A</text>
+          <text x="3"  y="18" font-size="16" font-weight="700" fill="currentColor" font-family="serif">A</text>
           <text x="14" y="18" font-size="11" font-weight="600" fill="currentColor" font-family="serif">a</text>
         </svg>
       </button>
-      <!-- 더보기 메뉴 버튼: 가로 세 점 -->
-      <button class="ed-more-btn" onclick="toggleEditorMenu(event)" title="더보기">        <svg viewBox="0 0 24 24" fill="none" stroke="none">
-          <circle cx="12" cy="5" r="1.8" fill="currentColor"/>
+      <!-- 더보기 버튼 -->
+      <button class="ed-more-btn" onclick="toggleEditorMenu(event)" title="더보기">
+        <svg viewBox="0 0 24 24" fill="none" stroke="none">
+          <circle cx="12" cy="5"  r="1.8" fill="currentColor"/>
           <circle cx="12" cy="12" r="1.8" fill="currentColor"/>
           <circle cx="12" cy="19" r="1.8" fill="currentColor"/>
         </svg>
       </button>
-      <!-- + 새 글 버튼 -->
+      <!-- + 새 글 버튼 (PC 전용) -->
       <button class="ed-new-btn pc-only" onclick="handleNew()" title="새 글">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
       </button>
       <button class="ed-btn-done" onclick="handleDone()">완료</button>
     </div>
   </div>
 
-  <!-- Aa 서식 드롭다운 메뉴 -->
+  <!-- Aa 서식 드롭다운 -->
   <div id="aaDropdownMenu" class="aa-menu">
     <div class="aa-menu-grid">
-      <button class="aa-item" onclick="aaAction('h1')" title="제목 1">
-        <span class="aa-icon">H<sub>1</sub></span>
-      </button>
-      <button class="aa-item" onclick="aaAction('h2')" title="제목 2">
-        <span class="aa-icon">H<sub>2</sub></span>
-      </button>
-      <button class="aa-item" onclick="aaAction('h3')" title="제목 3">
-        <span class="aa-icon">H<sub>3</sub></span>
-      </button>
-      <button class="aa-item" onclick="aaAction('ul')" title="목록">
+      <button class="aa-item" onclick="aaAction('h1')"    title="제목 1"><span class="aa-icon">H<sub>1</sub></span></button>
+      <button class="aa-item" onclick="aaAction('h2')"    title="제목 2"><span class="aa-icon">H<sub>2</sub></span></button>
+      <button class="aa-item" onclick="aaAction('h3')"    title="제목 3"><span class="aa-icon">H<sub>3</sub></span></button>
+      <button class="aa-item" onclick="aaAction('ul')"    title="목록">
         <svg viewBox="0 0 24 24"><line x1="9" y1="6" x2="21" y2="6"/><line x1="9" y1="12" x2="21" y2="12"/><line x1="9" y1="18" x2="21" y2="18"/><circle cx="4" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1.5" fill="currentColor" stroke="none"/></svg>
       </button>
-      <button class="aa-item" onclick="aaAction('ol')" title="번호 목록">
+      <button class="aa-item" onclick="aaAction('ol')"    title="번호 목록">
         <svg viewBox="0 0 24 24"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><text x="2" y="9" font-size="8" font-family="sans-serif" stroke="none" fill="currentColor" font-weight="700">1.</text><text x="2" y="15" font-size="8" font-family="sans-serif" stroke="none" fill="currentColor" font-weight="700">2.</text><text x="2" y="21" font-size="8" font-family="sans-serif" stroke="none" fill="currentColor" font-weight="700">3.</text></svg>
       </button>
       <button class="aa-item" onclick="aaAction('check')" title="체크리스트">
@@ -296,45 +319,16 @@
       <button class="aa-item" onclick="aaAction('quote')" title="인용">
         <svg viewBox="0 0 24 24"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
       </button>
-      <button class="aa-item" onclick="aaAction('hr')" title="구분선">
+      <button class="aa-item" onclick="aaAction('hr')"    title="구분선">
         <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/></svg>
       </button>
     </div>
   </div>
 
-  <!-- 에디터 더보기 드롭다운 메뉴 -->
-  <div id="editorDropdownMenu" class="editor-menu">
+  <!-- 에디터 더보기 드롭다운 (레거시 — 팝업으로 대체됨) -->
+  <div id="editorDropdownMenu" class="editor-menu" style="display:none;"></div>
 
-    <div class="editor-menu-item" style="cursor:default;" onclick="event.stopPropagation();">
-      <span>단어수</span>
-      <span class="editor-menu-val" id="menuCharCount">0자</span>
-    </div>
-    <div class="editor-menu-item" style="cursor:default;" onclick="event.stopPropagation();">
-      <span>원고지</span>
-      <span class="editor-menu-val" id="menuPageCount">0매</span>
-    </div>
-    <div class="editor-menu-sep"></div>
-    <div class="editor-menu-item" onclick="editorMenuAction('pin')">
-      <svg viewBox="0 0 24 24"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.68V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3v4.68a2 2 0 0 1-1.11 1.87l-1.78.9A2 2 0 0 0 5 15.24Z"/></svg>
-      <span id="menuPinLabel">고정</span>
-    </div>
-    <div class="editor-menu-item" onclick="editorMenuAction('copymd')">
-      <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-      <span>본문 복사</span>
-    </div>
-   
-    <div class="editor-menu-sep"></div>
-    <div class="editor-menu-item" onclick="editorMenuAction('photo')">
-      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-      <span>사진 추가</span>
-    </div>
-    <div class="editor-menu-sep"></div>
-    <div class="editor-menu-item danger" onclick="editorMenuAction('delete')">
-      <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-      <span>삭제</span>
-    </div>
-  </div>
-  
+  <!-- PC 서식 툴바 -->
   <div class="toolbar" id="edToolbar">
     <div style="position:relative;flex-shrink:0;">
       <button class="tb-heading-btn" id="headingBtn" onclick="toggleHeadingMenu()">
@@ -348,23 +342,25 @@
       </div>
     </div>
     <div class="tb-sep"></div>
-    <button class="tb-btn" title="순서 없는 목록" onclick="execCmd('insertUnorderedList')"><svg viewBox="0 0 24 24"><line x1="9" y1="6" x2="21" y2="6"/><line x1="9" y1="12" x2="21" y2="12"/><line x1="9" y1="18" x2="21" y2="18"/><circle cx="4" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1.5" fill="currentColor" stroke="none"/></svg></button>
-    <button class="tb-btn" title="순서 있는 목록" onclick="execCmd('insertOrderedList')"><svg viewBox="0 0 24 24"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><text x="2" y="9" font-size="8" font-family="sans-serif" stroke="none" fill="currentColor" font-weight="700">1.</text><text x="2" y="15" font-size="8" font-family="sans-serif" stroke="none" fill="currentColor" font-weight="700">2.</text><text x="2" y="21" font-size="8" font-family="sans-serif" stroke="none" fill="currentColor" font-weight="700">3.</text></svg></button>
-    <button class="tb-btn" title="체크리스트" onclick="insertChecklist()"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></button>
+    <button class="tb-btn" title="순서 없는 목록"  onclick="execCmd('insertUnorderedList')"><svg viewBox="0 0 24 24"><line x1="9" y1="6" x2="21" y2="6"/><line x1="9" y1="12" x2="21" y2="12"/><line x1="9" y1="18" x2="21" y2="18"/><circle cx="4" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1.5" fill="currentColor" stroke="none"/></svg></button>
+    <button class="tb-btn" title="순서 있는 목록"  onclick="execCmd('insertOrderedList')"><svg viewBox="0 0 24 24"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><text x="2" y="9" font-size="8" font-family="sans-serif" stroke="none" fill="currentColor" font-weight="700">1.</text><text x="2" y="15" font-size="8" font-family="sans-serif" stroke="none" fill="currentColor" font-weight="700">2.</text><text x="2" y="21" font-size="8" font-family="sans-serif" stroke="none" fill="currentColor" font-weight="700">3.</text></svg></button>
+    <button class="tb-btn" title="체크리스트"        onclick="insertChecklist()"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></button>
     <div class="tb-sep"></div>
-    <button class="tb-btn" title="인용" onclick="execCmd('formatBlock','blockquote')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg></button>
-    <button class="tb-btn" title="구분선" onclick="execCmd('insertHorizontalRule')"><svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/></svg></button>
+    <button class="tb-btn" title="인용"             onclick="execCmd('formatBlock','blockquote')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg></button>
+    <button class="tb-btn" title="구분선"            onclick="execCmd('insertHorizontalRule')"><svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/></svg></button>
     <div class="tb-sep"></div>
-    <button class="tb-btn" title="이미지 추가" onclick="document.getElementById('fileInput').click()"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></button>
-    <input type="file" id="mediaInput" accept="image/*,video/*" style="display:none" onchange="handleMediaUpload(event)">
-    <input type="file" id="fileInput" style="display:none" onchange="handleMediaUpload(event)">
+    <button class="tb-btn" title="이미지 추가"       onclick="document.getElementById('fileInput').click()"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></button>
+    <input type="file" id="mediaInput" accept="image/*,video/*"  style="display:none" onchange="handleMediaUpload(event)">
+    <input type="file" id="fileInput"  style="display:none"       onchange="handleMediaUpload(event)">
   </div>
-  
+
+  <!-- 글쓰기 에디터 (일반 문서 / 메모) -->
   <div id="editorText" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
     <div class="editor-scroll-area">
       <div class="editor-content-wrap">
         <input class="ed-title" id="edTitle" placeholder="제목">
-        <div class="ed-body" id="edBody" contenteditable="true" spellcheck="false" translate="no" data-placeholder="여기에 글을 쓰세요... (이미지 복사+붙여넣기 가능)"></div>
+        <div class="ed-body" id="edBody" contenteditable="true" spellcheck="false" translate="no"
+             data-placeholder="여기에 글을 쓰세요... (이미지 복사+붙여넣기 가능)"></div>
       </div>
     </div>
     <div class="ed-foot">
@@ -380,7 +376,8 @@
       </div>
     </div>
   </div>
-  
+
+  <!-- 서재 에디터 -->
   <div id="editorBook" style="display:none;flex-direction:column;flex:1;overflow:hidden">
     <div class="editor-scroll-area">
       <div class="editor-content-wrap">
@@ -397,15 +394,19 @@
     </div>
   </div>
 
+  <!-- 어구 에디터 -->
   <div id="editorQuote" style="display:none;flex-direction:column;flex:1;overflow:hidden">
     <div class="editor-scroll-area">
       <div class="editor-content-wrap">
-        <div class="special-form"><div class="sf-field"><span class="sf-label">출처</span><input class="sf-input" id="quote-by" placeholder="책 제목, 저자 등"></div></div>
+        <div class="special-form">
+          <div class="sf-field"><span class="sf-label">출처</span><input class="sf-input" id="quote-by" placeholder="책 제목, 저자 등"></div>
+        </div>
         <div class="ed-body" id="quote-body" contenteditable="true" spellcheck="false" translate="no" data-placeholder="인상 깊은 문장을 기록하세요..."></div>
       </div>
     </div>
   </div>
 
+  <!-- 메모 에디터 -->
   <div id="editorMemo" style="display:none;flex-direction:column;flex:1;overflow:hidden">
     <div class="editor-scroll-area">
       <div class="editor-content-wrap">
@@ -415,15 +416,16 @@
     </div>
   </div>
 
+  <!-- 날짜별 다중 항목 리스트 (캘린더 클릭 시) -->
   <div id="editorDayList" style="display:none;flex-direction:column;flex:1;overflow:hidden">
     <div class="editor-scroll-area">
       <div class="day-list-wrap" id="dayListWrap"></div>
     </div>
   </div>
 
-</div>
+</div><!-- /.editor -->
 
-<!-- 위치 모달 -->
+<!-- ─── 위치 모달 ─── -->
 <div class="modal-overlay" id="modalOverlay" onclick="onLocationOverlayClick(event)">
   <div class="modal-card">
     <div class="modal-hdr">
@@ -439,569 +441,23 @@
         <div class="addr-sub"  id="addrSub"></div>
       </div>
     </div>
-    <div class="modal-map-wrap"><div class="modal-map"><canvas id="mapCanvas"></canvas></div></div>
+    <div class="modal-map-wrap">
+      <div class="modal-map"><canvas id="mapCanvas"></canvas></div>
+    </div>
   </div>
 </div>
 
-<script src="storage.js"></script>
-<script src="data.js"></script>
-<script src="ui.js"></script>
-<script src="editor.js"></script>
-<script src="sync.js"></script>
+</div><!-- /#mainApp -->
 
-<script>
-// 태블릿+PC 제스처 — v15 (태블릿: 모바일식 transform 추적 / PC: 기존 width 토글)
-window._gestureReady=false;
-(function waitAndBind(){
-  var app=document.getElementById('mainApp');
-  if(!app||app.style.display==='none'||app.style.display===''){
-    setTimeout(waitAndBind,300);return;
-  }
-  if(window._gestureReady)return;
-  window._gestureReady=true;
-
-  var sx=0,sy=0,panel=null,swiping=false,dir=null,tracking=false,decided=false;
-  var TH=50;
-  var DECIDE_DIST=6;
-  var startState=null;
-  var isMouse=false;
-
-  var sideEl=document.querySelector('.side');
-  var listEl=document.querySelector('.list-panel');
-  var editorEl=document.querySelector('.editor');
-  var allPanels=[sideEl,listEl,editorEl];
-
-  var isTablet=function(){var w=window.innerWidth;return w>=769&&w<=1400;};
-  var isPC=function(){return window.innerWidth>1024;};
-
-  function findPanel(el){
-    while(el&&el!==document.body){
-      if(el.classList){
-        if(el.classList.contains('side'))return'side';
-        if(el.classList.contains('editor'))return'editor';
-        if(el.classList.contains('list-panel'))return'list';
-      }
-      el=el.parentElement;
-    }
-    return null;
-  }
-
-  // ── 태블릿 상태 ──
-  function getTabletState(){
-    var sideOpen=app.classList.contains('tablet-side-open');
-    var listClosed=app.classList.contains('tablet-list-closed');
-    if(sideOpen) return 'side-open';
-    if(listClosed) return 'editor-only';
-    return 'list-editor';
-  }
-
-  // ── PC 상태 ──
-  function getPCState(){
-    var so=!app.classList.contains('sidebar-closed');
-    var lo=!app.classList.contains('list-closed');
-    if(so&&lo) return 'all';
-    if(!so&&lo) return 'no-side';
-    if(!so&&!lo) return 'editor-only';
-    return 'all';
-  }
-
-  function isValidTabletGesture(state,pn,d){
-    if(state==='list-editor'){
-      if(pn==='list'&&d==='right') return true;
-      if(pn==='list'&&d==='left') return true;
-      if(pn==='editor'&&d==='left') return true;
-      if(pn==='editor'&&d==='right') return true;
-      return false;
-    }
-    if(state==='side-open'){
-      if(d==='left') return true;
-      if(pn==='side'&&d==='right') return true;
-      return false;
-    }
-    if(state==='editor-only'){
-      if(pn==='editor'&&d==='right') return true;
-      if(pn==='editor'&&d==='left') return true;
-      return false;
-    }
-    return false;
-  }
-
-
-  function isValidPCGesture(state,pn,d){
-    if(state==='all'){
-      if(pn==='side'&&d==='left') return true;
-      if(pn==='editor'&&d==='left') return true;
-      return false;
-    }
-    if(state==='no-side'){
-      if(pn==='list'&&d==='right') return true;
-      if(pn==='editor'&&d==='left') return true;
-      if(pn==='editor'&&d==='right') return true;
-      return false;
-    }
-    if(state==='editor-only'){
-      if(pn==='editor'&&d==='right') return true;
-      return false;
-    }
-    return false;
-  }
-
-  function clearInlineStyles(){
-    app.classList.remove('gesture-active');
-    allPanels.forEach(
-function(el){if(el){el.style.transition='';el.style.webkitTransition='';el.style.transform='';el.style.opacity='';el.style.left='';el.style.width='';}});
-    var _edR=document.getElementById('editorRubber');
-    var _siR=document.getElementById('sideRubber');
-    if(_edR){_edR.style.transition='';_edR.style.width='0';}
-    if(_siR){_siR.style.transition='';_siR.style.width='0';}
-  }
-
-  function restoreFixedEls(){
-    var f=window._fixedEls;
-    if(!f)return;
-    if(f.tr){
-      f.tr.classList.remove('gesture-fixed');
-      if(f.parent&&!f.parent.contains(f.tr))f.parent.appendChild(f.tr);
-    }
-    window._fixedEls=null;
-  }
-
-  function resetState(){
-    clearInlineStyles();
-    restoreFixedEls();
-    tracking=false;swiping=false;panel=null;dir=null;decided=false;startState=null;isMouse=false;
-    window._gestureActive=false;
-    var paneList=document.getElementById('pane-list');
-    if(paneList)paneList.style.touchAction='';
-  }
-
-  function canStartGesture(target,touchX){
-    if(target.closest('input')||target.closest('textarea'))return false;
-    if(target.closest('.swipe-actions')||target.closest('#swipeOverlay'))return false;
-    if(target.closest('.chk-dot'))return false;
-    if(target.closest('.tb-btn')||target.closest('.tb-heading-btn'))return false;
-    if(target.closest('button'))return false;
-    if(target.closest('.ed-title'))return false;
-    if(target.closest('.special-form'))return false;
-    if(target.closest('[contenteditable="true"]')){
-      if(isTablet()&&!isMouse&&editorEl){
-        window._gestureFromEditable=true;
-      }else{return false;}
-    }
-    window._gestureStartTarget=target;
-    var sel=window.getSelection();
-    if(sel&&sel.rangeCount>0&&!sel.isCollapsed)return false;
-    return true;
-  }
-
-  // ═══ 태블릿 제스처 로직 — v7 (CSS transform 실측 기반) ═══
-  var SIDE_W=240, LIST_W=300;
-  function getTabletSizes(){
-    SIDE_W=sideEl?Math.round(sideEl.getBoundingClientRect().width)||240:240;
-    LIST_W=listEl?Math.round(listEl.getBoundingClientRect().width)||300:300;
-  }
-
-  // 태블릿 상태별 기본 위치 계산 (DOM 읽기 없이)
-  function getTabletBasePositions(st){
-    if(st==='side-open') return {side:0, list:SIDE_W, editor:SIDE_W+LIST_W};
-    if(st==='editor-only') return {side:-SIDE_W, list:-LIST_W, editor:0};
-    return {side:-SIDE_W, list:0, editor:LIST_W};
-  }
-
-   // ⚠️ gesture-active는 transition:none + overflow:hidden만 적용됨.
-   // CSS에서 .gesture-active .editor에 width를 변경하면 튕김 버그 재발. 절대 금지.
-   function tabletMove(dx){
-    var state=startState;
-
-    if(!app.classList.contains('gesture-active')) app.classList.add('gesture-active');
-
-    var setPos=function(el,x){if(el)el.style.transform='translate3d('+x+'px,0,0)';};
-
-    if(state==='list-editor'&&dir==='right'){
-      var move=Math.max(0,Math.min(dx,SIDE_W));
-      setPos(sideEl, -SIDE_W+move);
-      setPos(listEl, move);
-      setPos(editorEl, LIST_W+move);
-    }
-    else if(state==='list-editor'&&dir==='left'){
-      var move2=Math.max(-LIST_W,Math.min(0,dx));
-      setPos(listEl, move2);
-      setPos(editorEl, LIST_W+move2);
-    }
-    else if(state==='side-open'&&dir==='right'){
-      var maxRubber=80;
-      var raw=Math.max(0,dx);
-      var rubberDx=maxRubber*(1-Math.exp(-raw/maxRubber));
-      var rubberPanel=document.getElementById('sideRubber');
-      var sideHdr=sideEl?sideEl.querySelector('.side-hdr'):null;
-      var sideScroll=sideEl?sideEl.querySelector('.side-scroll'):null;
-      if(rubberPanel){rubberPanel.style.transition='none';rubberPanel.style.width=rubberDx+'px';}
-      if(sideHdr){sideHdr.style.transition='none';sideHdr.style.transform='translate3d('+rubberDx+'px,0,0)';}
-      if(sideScroll){sideScroll.style.transition='none';sideScroll.style.transform='translate3d('+rubberDx+'px,0,0)';}
-    }
-    else if(state==='side-open'&&dir==='left'){
-      var move3=Math.max(-SIDE_W,Math.min(0,dx));
-      setPos(sideEl, move3);
-      setPos(listEl, SIDE_W+move3);
-      setPos(editorEl, SIDE_W+LIST_W+move3);
-    }
-    else if(state==='editor-only'&&dir==='left'){
-      var maxRubber=80;
-      var raw=Math.max(0,Math.abs(dx));
-      var rubberDx=maxRubber*(1-Math.exp(-raw/maxRubber));
-      var edRubber=document.getElementById('editorRubber');
-      var edTopbar=editorEl?editorEl.querySelector('.ed-topbar'):null;
-      var edToolbar=document.getElementById('edToolbar');
-      var edText=document.getElementById('editorText');
-      var edBook=document.getElementById('editorBook');
-      var edQuote=document.getElementById('editorQuote');
-      var edMemo=document.getElementById('editorMemo');
-      if(edRubber){edRubber.style.transition='none';edRubber.style.width=rubberDx+'px';}
-      var shift='translate3d(-'+rubberDx+'px,0,0)';
-      if(edTopbar){edTopbar.style.transition='none';edTopbar.style.transform=shift;}
-      if(edToolbar){edToolbar.style.transition='none';edToolbar.style.transform=shift;}
-      if(edText){edText.style.transition='none';edText.style.transform=shift;}
-      if(edBook){edBook.style.transition='none';edBook.style.transform=shift;}
-      if(edQuote){edQuote.style.transition='none';edQuote.style.transform=shift;}
-      if(edMemo){edMemo.style.transition='none';edMemo.style.transform=shift;}
-    }
-    else if(state==='editor-only'&&dir==='right'){
-      var move4=Math.max(0,Math.min(dx,LIST_W));
-      setPos(sideEl, -SIDE_W);
-      setPos(listEl, -LIST_W+move4);
-      setPos(editorEl, move4);
-    }
-  }
-
-
-  function tabletEnd(dx){
-    window._tlog=false;
-    var state=startState;
-    var swipeDir=dir;
-    var elapsed=Date.now()-(window._gestureStartTime||Date.now());
-    var velocity=elapsed>0?Math.abs(dx)/elapsed:0;
-    var totalDist=SIDE_W;
-    if(state==='list-editor'&&swipeDir==='left') totalDist=LIST_W;
-    else if(state==='editor-only'&&swipeDir==='right') totalDist=LIST_W;
-    var pctMoved=Math.abs(dx)/totalDist;
-    var didSwipe=(pctMoved>0.5)||(velocity>0.5&&pctMoved>0.2);
-
-    // velocity 기반 동적 duration
-    var baseDur=1.2;
-    if(velocity>0.8) baseDur=0.7;
-    else if(velocity>0.4) baseDur=0.85;
-    else if(velocity>0.2) baseDur=1.0;
-    var progress=pctMoved;
-    var remainRatio=didSwipe?(1-progress):progress;
-    var dur=Math.max(0.55,baseDur*Math.max(0.5,remainRatio));
-    var springCurve='cubic-bezier(.25,.46,.45,.94)';
-    var snapBackCurve='cubic-bezier(.25,.46,.45,.94)';
-    var activeCurve=didSwipe?springCurve:snapBackCurve;
-    var durStr=dur.toFixed(2)+'s';
-    var transStr='transform '+durStr+' '+activeCurve;
-    var cleanupDelay=Math.round(dur*1000)+80;
-
-    var targetState=state;
-    if(didSwipe){
-      if(state==='list-editor'&&swipeDir==='right') targetState='side-open';
-      else if(state==='list-editor'&&swipeDir==='left') targetState='editor-only';
-      else if(state==='side-open'&&swipeDir==='left') targetState='list-editor';
-      else if(state==='editor-only'&&swipeDir==='right') targetState='list-editor';
-    }
-
-    // side-open + right: 고무줄 스프링백
-    if(state==='side-open'&&swipeDir==='right'){
-      var rbDur=Math.max(0.65,0.95*(1-Math.min(velocity,1)*0.25));
-      var rbDurStr=rbDur.toFixed(2)+'s';
-      var rbCurve='cubic-bezier(.25,.46,.45,.94)';
-      var rubberPanel=document.getElementById('sideRubber');
-      var sideHdr=sideEl?sideEl.querySelector('.side-hdr'):null;
-      var sideScroll=sideEl?sideEl.querySelector('.side-scroll'):null;
-      if(rubberPanel){rubberPanel.style.transition='width '+rbDurStr+' '+rbCurve;rubberPanel.style.width='0';}
-      if(sideHdr){sideHdr.style.transition='transform '+rbDurStr+' '+rbCurve;sideHdr.style.transform='';}
-      if(sideScroll){sideScroll.style.transition='transform '+rbDurStr+' '+rbCurve;sideScroll.style.transform='';}
-      setTimeout(function(){
-        if(rubberPanel)rubberPanel.style.transition='';
-        if(sideHdr){sideHdr.style.transition='';sideHdr.style.transform='';}
-        if(sideScroll){sideScroll.style.transition='';sideScroll.style.transform='';}
-        clearInlineStyles();
-        restoreFixedEls();
-      },Math.round(rbDur*1000)+60);
-      tracking=false;swiping=false;panel=null;dir=null;decided=false;startState=null;isMouse=false;
-      return;
-    }
-
-    // editor-only + left: 고무줄 스프링백
-    if(state==='editor-only'&&swipeDir==='left'){
-      var rbDur2=Math.max(0.65,0.95*(1-Math.min(velocity,1)*0.25));
-      var rbDurStr2=rbDur2.toFixed(2)+'s';
-      var rbCurve2='cubic-bezier(.25,.46,.45,.94)';
-      var edRubber=document.getElementById('editorRubber');
-      var edTopbar=editorEl?editorEl.querySelector('.ed-topbar'):null;
-      var edToolbar=document.getElementById('edToolbar');
-      var edText=document.getElementById('editorText');
-      var edBook=document.getElementById('editorBook');
-      var edQuote=document.getElementById('editorQuote');
-      var edMemo=document.getElementById('editorMemo');
-      if(edRubber){edRubber.style.transition='width '+rbDurStr2+' '+rbCurve2;edRubber.style.width='0';}
-      var els=[edTopbar,edToolbar,edText,edBook,edQuote,edMemo];
-      els.forEach(function(el){if(el){el.style.transition='transform '+rbDurStr2+' '+rbCurve2;el.style.transform='';}});
-      setTimeout(function(){
-        if(edRubber)edRubber.style.transition='';
-        els.forEach(function(el){if(el){el.style.transition='';el.style.transform='';}});
-        clearInlineStyles();
-        restoreFixedEls();
-      },Math.round(rbDur2*1000)+60);
-      tracking=false;swiping=false;panel=null;dir=null;decided=false;startState=null;isMouse=false;
-      return;
-    }
-
-    // ── 패널 전환 / 스냅백 ──
-    var pendingClass=null;
-    if(didSwipe){
-      if(state==='list-editor'&&swipeDir==='right') pendingClass={action:'add',cls:'tablet-side-open'};
-      else if(state==='list-editor'&&swipeDir==='left') pendingClass={action:'add',cls:'tablet-list-closed'};
-      else if(state==='side-open'&&swipeDir==='left') pendingClass={action:'remove',cls:'tablet-side-open'};
-      else if(state==='editor-only'&&swipeDir==='right') pendingClass={action:'remove',cls:'tablet-list-closed'};
-    }
-
-    var targets=getTabletBasePositions(didSwipe?targetState:state);
-
-    // 에디터 현재 width를 inline으로 고정 (클래스 전환 시 점프 방지)
-    var editorCurrentWidth=null;
-    if(editorEl && pendingClass){
-      editorCurrentWidth=editorEl.getBoundingClientRect().width;
-      editorEl.style.width=editorCurrentWidth+'px';
-    }
-
-    app.classList.remove('gesture-active');
-    app.classList.add('gesture-animating');
-
-    // 다음 프레임: transition 설정 + transform 애니메이션 시작
-    requestAnimationFrame(function(){
-      allPanels.forEach(function(el){
-        if(el){
-          el.style.transition=transStr;
-          el.style.webkitTransition=transStr;
-        }
-      });
-      // 에디터에 width transition도 추가
-      if(editorEl && pendingClass){
-        editorEl.style.transition=transStr+', width '+durStr+' '+activeCurve;
-        editorEl.style.webkitTransition=transStr+', width '+durStr+' '+activeCurve;
-      }
-
-      requestAnimationFrame(function(){
-        if(sideEl) sideEl.style.transform='translate3d('+targets.side+'px,0,0)';
-        if(listEl) listEl.style.transform='translate3d('+targets.list+'px,0,0)';
-        if(editorEl) editorEl.style.transform='translate3d('+targets.editor+'px,0,0)';
-
-        // 클래스를 지금 적용하되, inline width가 고정되어 있으므로 점프 없음
-        if(pendingClass){
-          if(pendingClass.action==='add') app.classList.add(pendingClass.cls);
-          else app.classList.remove(pendingClass.cls);
-        }
-
-        // inline width 제거 → CSS 클래스의 width로 transition 시작
-        if(editorEl && editorCurrentWidth!==null){
-          // 클래스 적용 직후 inline width를 제거하면 CSS width로 자연스럽게 전환
-          requestAnimationFrame(function(){
-            editorEl.style.width='';
-          });
-        }
-
-        var widthDelay=Math.max(cleanupDelay,550);
-        setTimeout(function(){
-          allPanels.forEach(function(el){
-            if(el){
-              el.style.transition='';
-              el.style.webkitTransition='';
-              el.style.transform='';
-              el.style.opacity='';
-              el.style.width='';
-            }
-          });
-          restoreFixedEls();
-          app.classList.remove('gesture-animating');
-          if(typeof updateBackBtnIcon==='function') updateBackBtnIcon();
-        },widthDelay);
-      });
-    });
-  }
-
-
-
-  // ═══ PC 제스처 로직 (기존 유지) ═══
-  function pcMove(dx){
-    var state=startState;
-    var sideW=sideEl?sideEl.offsetWidth:240;
-    var listW=listEl?listEl.offsetWidth:280;
-    allPanels.forEach(function(el){if(el)el.style.transition='none';});
-
-    if(state==='all'&&dir==='left'){
-      var move=Math.max(-sideW,Math.min(0,dx));
-      var progress=Math.abs(move)/sideW;
-      if(sideEl){sideEl.style.transform='translateX('+move+'px)';sideEl.style.opacity=String(Math.max(0,1-progress));}
-      if(listEl){listEl.style.opacity=String(Math.min(1,0.7+progress*0.3));}
-    }
-    else if(state==='no-side'&&dir==='right'){
-      var move2=Math.max(0,Math.min(dx,sideW));
-      var progress2=move2/sideW;
-      if(sideEl){sideEl.style.transform='translateX('+(-sideW+move2)+'px)';sideEl.style.opacity=String(Math.min(1,progress2));}
-      if(listEl){listEl.style.opacity=String(Math.max(0.7,1-progress2*0.3));}
-    }
-    else if(state==='no-side'&&dir==='left'){
-      var move3=Math.max(-listW,Math.min(0,dx));
-      var progress3=Math.abs(move3)/listW;
-      if(listEl){listEl.style.transform='translateX('+move3+'px)';listEl.style.opacity=String(Math.max(0.3,1-progress3*0.7));}
-    }
-    else if(state==='editor-only'&&dir==='right'){
-      var move4=Math.max(0,Math.min(dx,listW));
-      var progress4=move4/listW;
-      if(listEl){listEl.style.transform='translateX('+(-listW+move4)+'px)';listEl.style.opacity=String(Math.min(1,0.3+progress4*0.7));}
-    }
-  }
-
-  function pcEnd(dx){
-    allPanels.forEach(function(el){if(el)el.style.transition='transform .32s cubic-bezier(.25,.1,.25,1), opacity .32s cubic-bezier(.25,.1,.25,1)';});
-    if(Math.abs(dx)>TH){
-      clearInlineStyles();
-      var state=startState;
-      if(state==='all'&&dir==='left') app.classList.add('sidebar-closed');
-      else if(state==='no-side'&&dir==='right') app.classList.remove('sidebar-closed');
-      else if(state==='no-side'&&dir==='left') app.classList.add('list-closed');
-      else if(state==='editor-only'&&dir==='right') app.classList.remove('list-closed');
-    } else {
-      resetState();
-    }
-  }
-
-  // ═══ 공통 핸들러 ═══
-  function handleStart(x,y,target){
-    if(window.innerWidth<=768)return;
-    if(window.innerWidth>1400)return;
-    window._gestureFromEditable=false;
-    if(!canStartGesture(target,x))return;
-    var pn=findPanel(target);
-    if(!pn)return;
-    sx=x;sy=y;
-    panel=pn;swiping=false;dir=null;tracking=true;decided=false;
-    window._itemSwiping=false;
-    window._gestureStartTime=Date.now();
-    window._fixedEls=null;
-
-    if(isTablet()){
-      getTabletSizes();
-      startState=getTabletState();
-    }
-    else if(isPC()) startState=getPCState();
-
-
-
-  }
-
-  function handleMove(x,y,e){
-    if(typeof cancelLongPress==='function') cancelLongPress();
-    if(!tracking||window.innerWidth<=768)return;
-    if(window._itemSwiping){tracking=false;return;}
-    var dx=x-sx,dy=y-sy;
-    if(!decided){
-      var decideDist=window._gestureFromEditable?10:DECIDE_DIST;
-      if(Math.abs(dx)<decideDist&&Math.abs(dy)<decideDist)return;
-      decided=true;
-      window._gestureActive=true;
-      if(typeof cancelLongPress==='function') cancelLongPress();
-      var angleThreshold=window._gestureFromEditable?0.7:0.8;
-      if(Math.abs(dy)>Math.abs(dx)*angleThreshold){tracking=false;window._gestureActive=false;return;}
-      if(window._gestureFromEditable){var _s=window.getSelection();if(_s)_s.removeAllRanges();}
-      dir=dx>0?'right':'left';
-
-      // 리스트 아이템 위 좌 스와이프 → 아이템 스와이프 액션 우선 (리스트 패널 내에서만)
-      if(dir==='left'&&panel==='list'&&window._gestureStartTarget&&window._gestureStartTarget.closest&&window._gestureStartTarget.closest('.lp-item')){
-        tracking=false;swiping=false;decided=false;return;
-      }
-
-      var valid=false;
-      if(isTablet()) valid=isValidTabletGesture(startState,panel,dir);
-      else if(isPC()) valid=isValidPCGesture(startState,panel,dir);
-      if(!valid){tracking=false;swiping=false;decided=false;return;}
-      swiping=true;
-      if(isTablet()&&editorEl&&!window._fixedEls){
-        var _gTR=editorEl.querySelector('.ed-topbar-right');
-        var _gTP=editorEl.querySelector('.col-header.ed-topbar');
-        if(_gTR){_gTR.classList.add('gesture-fixed');document.body.appendChild(_gTR);}
-        window._fixedEls={tr:_gTR,parent:_gTP};
-      }
-    }
-    if(swiping&&e&&e.cancelable){
-      e.preventDefault();
-      e.stopPropagation();
-      var dx2=x-sx;
-      if(window._gestureRaf) cancelAnimationFrame(window._gestureRaf);
-      window._gestureRaf=requestAnimationFrame(function(){
-        window._gestureRaf=null;
-        if(isTablet()) tabletMove(dx2);
-        else if(isPC()) pcMove(dx2);
-      });
-    }
-  }
-
-  function handleEnd(x){
-    window._gestureActive=false;
-    if(window._gestureRaf){cancelAnimationFrame(window._gestureRaf);window._gestureRaf=null;}
-    var _pl=document.getElementById('pane-list');
-    if(!tracking||!swiping||window.innerWidth<=768){resetState();if(_pl)_pl.style.touchAction='';return;}
-    var dx=x-sx;
-    if(isTablet()) tabletEnd(dx);
-    else if(isPC()) pcEnd(dx);
-    tracking=false;swiping=false;panel=null;dir=null;decided=false;startState=null;isMouse=false;
-    if(_pl)_pl.style.touchAction='';
-  }
-
-  // ── 터치 이벤트 ──
-  document.addEventListener('touchstart',function(e){
-    if(e.touches.length!==1)return;
-    isMouse=false;
-    handleStart(e.touches[0].clientX,e.touches[0].clientY,e.target);
-  },{capture:true,passive:true});
-
-  document.addEventListener('touchmove',function(e){
-    if(isMouse)return;
-    if(e.touches.length!==1){tracking=false;return;}
-    handleMove(e.touches[0].clientX,e.touches[0].clientY,e);
-  },{capture:true,passive:false});
-
-  document.addEventListener('touchend',function(e){
-    if(isMouse)return;
-    handleEnd(e.changedTouches[0].clientX);
-  },{capture:true,passive:true});
-
-  document.addEventListener('touchcancel',function(){resetState();},{capture:true,passive:true});
-
-  // ── 마우스 이벤트 (PC/태블릿 브라우저 테스트용) ──
-  document.addEventListener('mousedown',function(e){
-    if(window.innerWidth<=768)return;
-    if(window.innerWidth>1400)return;
-    if(e.button!==0)return;
-    if(e.target.closest('[contenteditable]')){
-      isMouse=true;
-      return;
-    }
-    isMouse=true;
-    handleStart(e.clientX,e.clientY,e.target);
-  },true);
-
-  document.addEventListener('mousemove',function(e){
-    if(!isMouse||!tracking)return;
-    handleMove(e.clientX,e.clientY,e);
-  },true);
-
-  document.addEventListener('mouseup',function(e){
-    if(!isMouse)return;
-    handleEnd(e.clientX);
-  },true);
-})();
-</script>
+<!-- ═══ JS 로드 순서: 의존성 순서대로 ═══ -->
+<script src="js/storage.js"></script>   <!-- 1. 기본 유틸, LocalStorage, 날짜 -->
+<script src="js/routine.js"></script>   <!-- 2. 루틴 데이터 + 렌더링 -->
+<script src="js/data.js"></script>      <!-- 3. 문서/책/어구/메모 CRUD -->
+<script src="js/ui.js"></script>        <!-- 4. UI 전환, 리스트 렌더링 -->
+<script src="js/editor.js"></script>    <!-- 5. 에디터 툴바, 미디어 -->
+<script src="js/gesture.js"></script>   <!-- 6. 제스처 (모바일/태블릿/PC) -->
+<script src="js/sync.js"></script>      <!-- 7. GAS 동기화 -->
+<script src="js/app.js"></script>       <!-- 8. 인증, init, 진입점 -->
 
 </body>
 </html>
