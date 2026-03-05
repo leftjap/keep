@@ -797,7 +797,8 @@ function updateBackBtnIcon() {
 let contextItemId = null;
 let contextItemType = null;
 
-function showContextMenuAt(item, x, y) {
+function showContextMenuAt(item, x, y, fromTouch) {
+
   const onclick = item.getAttribute('onclick') || '';
   const t = activeTab;
 
@@ -834,35 +835,46 @@ function showContextMenuAt(item, x, y) {
 
   if (!itemData) return;
 
-  // 해당 항목 떠오르기: 클론 먼저 만들고 원본 숨기기
   const itemRect = item.getBoundingClientRect();
-  const clone = item.cloneNode(true);
+  const showClone = !!fromTouch;
 
-  window._liftedOriginal = item;
-  item.style.visibility = 'hidden';
-  clone.className = item.className.replace(/\bswiped\b/g,'').replace(/\bon\b/g,'');
-  clone.classList.remove('swiped','on');
-  clone.classList.add('lp-lifted');
-  var inset = 24;
-  clone.style.position = 'fixed';
-  clone.style.left = (itemRect.left + inset) + 'px';
-  clone.style.top = itemRect.top + 'px';
-  clone.style.width = (itemRect.width - inset * 2) + 'px';
-  clone.style.margin = '0';
-  clone.style.padding = '16px 18px 14px';
-  clone.style.pointerEvents = 'none';
-  clone.style.borderRadius = '16px';
-  clone.style.boxShadow = '0 12px 40px rgba(0,0,0,.22), 0 4px 12px rgba(0,0,0,.12)';
-  clone.style.background = '#ffffff';
-  clone.style.maxHeight = (itemRect.height) + 'px';
-  clone.style.overflow = 'hidden';
-  clone.style.boxSizing = 'border-box';
-  clone.onclick = null;
-  // 스와이프 액션 제거
-  const sa = clone.querySelector('.swipe-actions');
-  if (sa) sa.remove();
-  document.body.appendChild(clone);
-  window._liftedClone = clone;
+  if (showClone) {
+    // 터치 꾹누르기: Bear/Day One 스타일 lift
+    var clone = item.cloneNode(true);
+    window._liftedOriginal = item;
+    clone.className = item.className.replace(/\bswiped\b/g,'').replace(/\bon\b/g,'');
+    clone.classList.remove('swiped','on');
+    clone.classList.add('lp-lifted');
+    clone.style.left = itemRect.left + 'px';
+    clone.style.top = itemRect.top + 'px';
+    clone.style.width = itemRect.width + 'px';
+    clone.style.height = itemRect.height + 'px';
+    clone.style.margin = '0';
+    clone.style.background = '#ffffff';
+    clone.style.boxSizing = 'border-box';
+    clone.style.transformOrigin = 'center center';
+    clone.onclick = null;
+    var sa = clone.querySelector('.swipe-actions');
+    if (sa) sa.remove();
+    document.body.appendChild(clone);
+    window._liftedClone = clone;
+    window._liftedOrigRect = { left: itemRect.left, width: itemRect.width };
+    var liftPad = 12;
+    var liftedLeft = itemRect.left + liftPad;
+    var liftedWidth = itemRect.width - (liftPad * 2);
+    item.style.transition = 'opacity .15s ease .05s';
+    item.style.opacity = '0.3';
+    requestAnimationFrame(function() {
+      clone.style.left = liftedLeft + 'px';
+      clone.style.width = liftedWidth + 'px';
+      clone.classList.add('lp-lifted-up');
+    });
+  } else {
+    // 우클릭/비터치: 클론 없음
+    window._liftedOriginal = null;
+    window._liftedClone = null;
+  }
+
 
   const overlay = document.getElementById('lpPopupOverlay');
   const card = document.getElementById('lpPopupCard');
@@ -875,74 +887,124 @@ function showContextMenuAt(item, x, y) {
   const pages = (chars / 200).toFixed(1);
   const isPinned = !!itemData.pinned;
 
-  // 메뉴 구성 (기존 에디터 메뉴와 동일)
+  // 메뉴 구성
   let menuHtml = '';
   menuHtml += `<div class="lp-popup-menu-item" style="cursor:default;" onclick="event.stopPropagation()">
     <span>단어수</span><span class="popup-menu-val">${words.toLocaleString()}단어</span>
   </div>`;
-
   menuHtml += `<div class="lp-popup-menu-item" style="cursor:default;" onclick="event.stopPropagation()">
     <span>원고지</span><span class="popup-menu-val">${pages}매</span>
   </div>`;
-
   menuHtml += `<div class="lp-popup-sep"></div>`;
-
   menuHtml += `<div class="lp-popup-menu-item" onclick="lpPopupAction('pin')">
     <span>${isPinned ? '고정 해제' : '고정'}</span>
     <svg viewBox="0 0 24 24"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.68V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3v4.68a2 2 0 0 1-1.11 1.87l-1.78.9A2 2 0 0 0 5 15.24Z"/></svg>
   </div>`;
-
   menuHtml += `<div class="lp-popup-menu-item" onclick="lpPopupAction('copymd')">
     <span>본문 복사</span>
     <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
   </div>`;
-
   menuHtml += `<div class="lp-popup-sep"></div>`;
-
   menuHtml += `<div class="lp-popup-menu-item danger" onclick="lpPopupAction('delete')">
     <span>삭제</span>
     <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
   </div>`;
-
   menuEl.innerHTML = menuHtml;
 
-  // 메뉴 위치: 떠오른 항목 바로 아래에 배치
-  const cardW = itemRect.width - 48;
-
-  let left = itemRect.left + 24;
-  if (left < 16) left = 16;
-  if (left + cardW > window.innerWidth - 16) left = window.innerWidth - cardW - 16;
-
-  let top = itemRect.bottom + 6;
-  // 아래 공간 부족하면 위로
   const estimatedMenuH = 220;
-  if (top + estimatedMenuH > window.innerHeight - 16) {
-    top = itemRect.top - estimatedMenuH - 6;
+
+  if (showClone) {
+    // 터치 꾹누르기: 항목 아래에 배치
+    const cardW = itemRect.width - 48;
+    let left = itemRect.left + 24;
+    if (left < 16) left = 16;
+    if (left + cardW > window.innerWidth - 16) left = window.innerWidth - cardW - 16;
+    let top = itemRect.bottom + 6;
+    if (top + estimatedMenuH > window.innerHeight - 16) {
+      top = itemRect.top - estimatedMenuH - 6;
+      if (top < 16) top = 16;
+    }
+    card.style.left = left + 'px';
+    card.style.top = top + 'px';
+    card.style.width = cardW + 'px';
+  } else {
+    // 우클릭/비터치: 좌표 기준 배치
+    const cardW = 260;
+    let left = x;
+    if (left + cardW > window.innerWidth - 16) left = window.innerWidth - cardW - 16;
+    if (left < 16) left = 16;
+    let top = y;
+    if (top + estimatedMenuH > window.innerHeight - 16) top = y - estimatedMenuH;
     if (top < 16) top = 16;
+    card.style.left = left + 'px';
+    card.style.top = top + 'px';
+    card.style.width = cardW + 'px';
   }
 
-  card.style.left = left + 'px';
-  card.style.top = top + 'px';
-  card.style.width = cardW + 'px';
-
   // 표시
-  overlay.classList.add('open');
-  requestAnimationFrame(() => { card.classList.add('open'); });
+  if (!showClone) {
+    overlay.style.background = 'transparent';
+    overlay.style.backdropFilter = 'none';
+    overlay.style.webkitBackdropFilter = 'none';
+    overlay.classList.add('open');
+    requestAnimationFrame(() => { card.classList.add('open'); });
+  } else {
+    overlay.style.background = '';
+    overlay.style.backdropFilter = '';
+    overlay.style.webkitBackdropFilter = '';
+    setTimeout(() => {
+      overlay.classList.add('open');
+    }, 120);
+    setTimeout(() => {
+      card.classList.add('open');
+    }, 220);
+  }
 }
 
 function closeLpPopup() {
   const overlay = document.getElementById('lpPopupOverlay');
   const card = document.getElementById('lpPopupCard');
   if (card) card.classList.remove('open');
-  if (overlay) overlay.classList.remove('open');
-  // 클론 제거 + 원본 복원
-  if (window._liftedClone) {
-    window._liftedClone.remove();
-    window._liftedClone = null;
-  }
-  if (window._liftedOriginal) {
-    window._liftedOriginal.style.visibility = '';
-    window._liftedOriginal = null;
+  var clone = window._liftedClone;
+  var original = window._liftedOriginal;
+  window._liftedClone = null;
+  window._liftedOriginal = null;
+  if (clone) {
+    var origRect = window._liftedOrigRect;
+    window._liftedOrigRect = null;
+    clone.classList.remove('lp-lifted-up');
+    clone.style.transition = 'transform .25s cubic-bezier(.25,.1,.25,1), box-shadow .2s ease, border-radius .25s ease, left .25s cubic-bezier(.25,.1,.25,1), width .25s cubic-bezier(.25,.1,.25,1), opacity .18s ease .12s';
+    clone.style.transform = 'scale(1)';
+    clone.style.boxShadow = 'none';
+    clone.style.opacity = '0';
+    if (origRect) {
+      clone.style.left = origRect.left + 'px';
+      clone.style.width = origRect.width + 'px';
+    }
+    if (original && original.parentNode) {
+      setTimeout(function() {
+        if (original.parentNode) {
+          original.style.transition = 'opacity .2s ease';
+          original.style.opacity = '1';
+        }
+      }, 80);
+    }
+    setTimeout(function() {
+      if (overlay) overlay.classList.remove('open');
+    }, 100);
+    setTimeout(function() {
+      if (clone.parentNode) clone.remove();
+      if (original && original.parentNode) {
+        original.style.transition = '';
+        original.style.opacity = '';
+      }
+    }, 320);
+  } else {
+    if (overlay) overlay.classList.remove('open');
+    if (original && original.parentNode) {
+      original.style.transition = '';
+      original.style.opacity = '';
+    }
   }
   contextItemId = null;
   contextItemType = null;
@@ -1026,7 +1088,7 @@ function setupListContextMenu() {
       if (!_lpMoved && _lpItem && !window._gestureActive) {
         window._itemSwiping = true;
         if (navigator.vibrate) navigator.vibrate(20);
-        showContextMenuAt(_lpItem, lpX, lpY);
+        showContextMenuAt(_lpItem, lpX, lpY, true);
         _lpItem = null;
         setTimeout(function(){ window._itemSwiping = false; }, 100);
       } else {

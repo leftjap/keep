@@ -871,6 +871,7 @@ window._gestureReady=false;
   // ── 마우스 이벤트 (PC/태블릿 브라우저 테스트용) ──
   document.addEventListener('mousedown',function(e){
     if(window.innerWidth<=768)return;
+    if(window.innerWidth>1400)return;
     if(e.button!==0)return;
     if(e.target.closest('[contenteditable]')&&e.target.tagName!=='IMG'){
       var ce=e.target.closest('[contenteditable]');

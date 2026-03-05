@@ -465,7 +465,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   position:fixed;inset:0;z-index:998;
   background:rgba(0,0,0,.3);
   backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
-  opacity:0;transition:opacity .2s ease;pointer-events:none;
+  opacity:0;transition:opacity .35s cubic-bezier(.2,.6,.3,1);pointer-events:none;
 }
 .lp-popup-overlay.open{opacity:1;pointer-events:auto}
 
@@ -475,23 +475,31 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   border-radius:14px;
   box-shadow:0 12px 40px rgba(0,0,0,.25),0 4px 12px rgba(0,0,0,.1);
   overflow:hidden;
-  transform:scale(.95);opacity:0;
-  transition:transform .2s cubic-bezier(.2,.8,.2,1),opacity .15s ease;
+  transform:scale(.92) translateY(6px);opacity:0;
+  transition:transform .28s cubic-bezier(.2,.7,.2,1.04),opacity .22s cubic-bezier(.2,.6,.3,1);
   pointer-events:none;
   max-width:320px;width:calc(100vw - 48px);
 }
 .lp-popup-card.open{
-  transform:scale(1);opacity:1;pointer-events:auto;
+  transform:scale(1) translateY(0);opacity:1;pointer-events:auto;
 }
 
 .lp-item.lp-lifted{
   position:fixed !important;z-index:9999 !important;
-  transform:scale(1.03) !important;
-  box-shadow:0 12px 40px rgba(0,0,0,.22),0 4px 12px rgba(0,0,0,.12) !important;
-  border-radius:12px !important;
+  transform:scale(1) !important;
+  box-shadow:none !important;
+  border-radius:0 !important;
   background:var(--bg-white) !important;
-  transition:transform .2s cubic-bezier(.2,.8,.2,1),box-shadow .2s ease !important;
+  transition:none !important;
   overflow:hidden !important;
+  will-change:transform,box-shadow,border-radius,left,width !important;
+  pointer-events:none !important;
+}
+.lp-item.lp-lifted.lp-lifted-up{
+  transform:scale(1.01) !important;
+  border-radius:14px !important;
+  box-shadow:0 12px 40px rgba(0,0,0,.18),0 4px 12px rgba(0,0,0,.08) !important;
+  transition:transform .32s cubic-bezier(.2,.7,.2,1.08),box-shadow .32s cubic-bezier(.2,.7,.2,1),border-radius .32s cubic-bezier(.2,.7,.2,1),left .32s cubic-bezier(.2,.7,.2,1),width .32s cubic-bezier(.2,.7,.2,1) !important;
 }
 .lp-item.lp-lifted::after{display:none !important}
 
