@@ -507,18 +507,20 @@ window._gestureReady=false;
 
   function isValidTabletGesture(state,pn,d){
     if(state==='list-editor'){
-      if(d==='right') return true;
-      if(d==='left') return true;
+      if(pn==='list'&&d==='right') return true;
+      if(pn==='list'&&d==='left') return true;
+      if(pn==='editor'&&d==='left') return true;
+      if(pn==='editor'&&d==='right') return true;
       return false;
     }
     if(state==='side-open'){
       if(d==='left') return true;
-      if(d==='right') return true;
+      if(pn==='side'&&d==='right') return true;
       return false;
     }
     if(state==='editor-only'){
-      if(d==='right') return true;
-      if(d==='left') return true;
+      if(pn==='editor'&&d==='right') return true;
+      if(pn==='editor'&&d==='left') return true;
       return false;
     }
     return false;
@@ -546,7 +548,11 @@ window._gestureReady=false;
 
   function clearInlineStyles(){
     app.classList.remove('gesture-active');
-    allPanels.forEach(function(el){if(el){el.style.transition='';el.style.webkitTransition='';el.style.transform='';el.style.opacity='';el.style.left='';}});
+    allPanels.forEach(function(el){if(el){el.style.transition='';el.style.webkitTransition='';el.style.transform='';el.style.opacity='';el.style.left='';el.style.width='';}});
+    var _edR=document.getElementById('editorRubber');
+    var _siR=document.getElementById('sideRubber');
+    if(_edR){_edR.style.transition='';_edR.style.width='0';}
+    if(_siR){_siR.style.transition='';_siR.style.width='0';}
   }
 
   function resetState(){
@@ -557,12 +563,19 @@ window._gestureReady=false;
     if(paneList)paneList.style.touchAction='';
   }
 
-  function canStartGesture(target){
+  function canStartGesture(target,touchX){
     if(target.closest('input')||target.closest('textarea'))return false;
     if(target.closest('.swipe-actions')||target.closest('#swipeOverlay'))return false;
     if(target.closest('.chk-dot'))return false;
     if(target.closest('.tb-btn')||target.closest('.tb-heading-btn'))return false;
     if(target.closest('button'))return false;
+    if(target.closest('.ed-title'))return false;
+    if(target.closest('.special-form'))return false;
+    if(target.closest('[contenteditable="true"]')){
+      if(isTablet()&&editorEl){
+        window._gestureFromEditable=true;
+      }else{return false;}
+    }
     window._gestureStartTarget=target;
     var sel=window.getSelection();
     if(sel&&sel.rangeCount>0&&!sel.isCollapsed)return false;
@@ -600,16 +613,15 @@ window._gestureReady=false;
     snapEditor=getComputedTranslateX(editorEl);
   }
 
-  function tabletMove(dx){
+   function tabletMove(dx){
     var state=startState;
-    if(!window._tlog){window._tlog=true;console.log('[TABLET MOVE] state='+state+' dir='+dir+' dx='+dx);}
 
+    app.classList.add('gesture-active');
     allPanels.forEach(function(el){if(el){el.style.transition='none';el.style.webkitTransition='none';}});
 
     var setPos=function(el,x){if(el)el.style.transform='translate3d('+x+'px,0,0)';};
 
     if(state==='list-editor'&&dir==='right'){
-      // 오른쪽 → 사이드바 열기: 사이드바가 왼쪽에서 들어오고 리스트+에디터는 밀림
       var move=Math.max(0,Math.min(dx,SIDE_W));
       setPos(sideEl, -SIDE_W+move);
       setPos(listEl, move);
@@ -617,15 +629,10 @@ window._gestureReady=false;
     }
     else if(state==='list-editor'&&dir==='left'){
       var move2=Math.max(-LIST_W,Math.min(0,dx));
-      var listX=move2;
-      var editorX=listX+LIST_W;
-      console.log('[MOVE LEFT] dx='+dx+' listX='+listX+' editorX='+editorX+' LIST_W='+LIST_W);
-      setPos(sideEl, snapSide+move2);
-      setPos(listEl, listX);
-      setPos(editorEl, editorX);
+      setPos(listEl, move2);
+      setPos(editorEl, LIST_W+move2);
     }
     else if(state==='side-open'&&dir==='right'){
-      // 사이드바 고무줄 효과: rubber 표시 + 사이드바 내부 콘텐츠 밀기
       var maxRubber=80;
       var raw=Math.max(0,dx);
       var rubberDx=maxRubber*(1-Math.exp(-raw/maxRubber));
@@ -637,14 +644,12 @@ window._gestureReady=false;
       if(sideScroll){sideScroll.style.transition='none';sideScroll.style.transform='translate3d('+rubberDx+'px,0,0)';}
     }
     else if(state==='side-open'&&dir==='left'){
-      // 사이드바 닫기
       var move3=Math.max(-SIDE_W,Math.min(0,dx));
-      setPos(sideEl, snapSide+move3);
-      setPos(listEl, snapList+move3);
-      setPos(editorEl, snapEditor+move3);
+      setPos(sideEl, move3);
+      setPos(listEl, SIDE_W+move3);
+      setPos(editorEl, SIDE_W+LIST_W+move3);
     }
     else if(state==='editor-only'&&dir==='left'){
-      // 에디터 고무줄 효과: rubber 표시 + 에디터 내부 콘텐츠 왼쪽으로 밀기
       var maxRubber=80;
       var raw=Math.max(0,Math.abs(dx));
       var rubberDx=maxRubber*(1-Math.exp(-raw/maxRubber));
@@ -665,20 +670,20 @@ window._gestureReady=false;
       if(edMemo){edMemo.style.transition='none';edMemo.style.transform=shift;}
     }
     else if(state==='editor-only'&&dir==='right'){
-      // 에디터에서 리스트 복원 — 사이드바는 숨긴 채로 고정
       var move4=Math.max(0,Math.min(dx,LIST_W));
       setPos(sideEl, -SIDE_W);
-      setPos(listEl, snapList+move4);
-      setPos(editorEl, snapEditor+move4);
+      setPos(listEl, -LIST_W+move4);
+      setPos(editorEl, move4);
     }
   }
+
 
   function tabletEnd(dx){
     window._tlog=false;
     var state=startState;
     var swipeDir=dir;
+    var swipePanel=panel;
     var didSwipe=Math.abs(dx)>TH;
-    console.log('[TABLET END] state='+state+' dir='+swipeDir+' dx='+dx+' didSwipe='+didSwipe);
 
     // 목표 상태 결정
     var targetState=state;
@@ -688,6 +693,7 @@ window._gestureReady=false;
       else if(state==='side-open'&&swipeDir==='left') targetState='list-editor';
       else if(state==='editor-only'&&swipeDir==='right') targetState='list-editor';
     }
+
 
     // side-open + right: 고무줄 스프링백 (패널 전환 없음)
     if(state==='side-open'&&swipeDir==='right'){
@@ -742,12 +748,13 @@ window._gestureReady=false;
     }
 
     var T='transform .32s cubic-bezier(.25,.1,.25,1)';
-    allPanels.forEach(function(el){if(el){el.style.transition=T;el.style.webkitTransition=T;}});
+    allPanels.forEach(function(el){if(el){el.style.transition=T;el.style.webkitTransition=T;el.style.opacity='';}});
 
     var setPos=function(el,x){if(el)el.style.transform='translate3d('+x+'px,0,0)';};
     setPos(sideEl, targetSide);
     setPos(listEl, targetList);
     setPos(editorEl, targetEditor);
+
 
     // 애니메이션 완료 후 CSS 클래스로 전환
     var transitionDone=false;
@@ -769,15 +776,7 @@ window._gestureReady=false;
     };
 
     // transitionend 이벤트로 정확한 타이밍에 finalize
-    var handler=function(e){
-      if(e.target===listEl && e.propertyName==='transform'){
-        listEl.removeEventListener('transitionend',handler);
-        finalize();
-      }
-    };
-    if(listEl) listEl.addEventListener('transitionend',handler);
-    // 안전장치: transitionend가 안 오는 경우 대비
-    setTimeout(finalize, 380);
+    setTimeout(finalize, 350);
   }
 
 
@@ -830,15 +829,13 @@ window._gestureReady=false;
   function handleStart(x,y,target){
     if(window.innerWidth<=768)return;
     if(window.innerWidth>1400)return;
-    if(!canStartGesture(target))return;
+    window._gestureFromEditable=false;
+    if(!canStartGesture(target,x))return;
     var pn=findPanel(target);
     if(!pn)return;
     sx=x;sy=y;
     panel=pn;swiping=false;dir=null;tracking=true;decided=false;
     window._itemSwiping=false;
-    // 스크롤 영역의 touch-action을 일시적으로 none으로 설정
-    var paneList=document.getElementById('pane-list');
-    if(paneList)paneList.style.touchAction='none';
 
     if(isTablet()){
       getTabletSizes();
@@ -858,15 +855,18 @@ window._gestureReady=false;
     if(window._itemSwiping){tracking=false;return;}
     var dx=x-sx,dy=y-sy;
     if(!decided){
-      if(Math.abs(dx)<DECIDE_DIST&&Math.abs(dy)<DECIDE_DIST)return;
+      var decideDist=window._gestureFromEditable?10:DECIDE_DIST;
+      if(Math.abs(dx)<decideDist&&Math.abs(dy)<decideDist)return;
       decided=true;
       window._gestureActive=true;
       if(typeof cancelLongPress==='function') cancelLongPress();
-      if(Math.abs(dy)>Math.abs(dx)*0.8){tracking=false;window._gestureActive=false;return;}
+      var angleThreshold=window._gestureFromEditable?0.7:0.8;
+      if(Math.abs(dy)>Math.abs(dx)*angleThreshold){tracking=false;window._gestureActive=false;return;}
+      if(window._gestureFromEditable){var _s=window.getSelection();if(_s)_s.removeAllRanges();}
       dir=dx>0?'right':'left';
 
-      // 리스트 아이템 위 좌 스와이프 → 아이템 스와이프 액션 우선
-      if(dir==='left'&&window._gestureStartTarget&&window._gestureStartTarget.closest&&window._gestureStartTarget.closest('.lp-item')){
+      // 리스트 아이템 위 좌 스와이프 → 아이템 스와이프 액션 우선 (리스트 패널 내에서만)
+      if(dir==='left'&&panel==='list'&&window._gestureStartTarget&&window._gestureStartTarget.closest&&window._gestureStartTarget.closest('.lp-item')){
         tracking=false;swiping=false;decided=false;return;
       }
 
@@ -887,11 +887,13 @@ window._gestureReady=false;
 
   function handleEnd(x){
     window._gestureActive=false;
-    if(!tracking||!swiping||window.innerWidth<=768){resetState();return;}
+    var _pl=document.getElementById('pane-list');
+    if(!tracking||!swiping||window.innerWidth<=768){resetState();if(_pl)_pl.style.touchAction='';return;}
     var dx=x-sx;
     if(isTablet()) tabletEnd(dx);
     else if(isPC()) pcEnd(dx);
     tracking=false;swiping=false;panel=null;dir=null;decided=false;startState=null;isMouse=false;
+    if(_pl)_pl.style.touchAction='';
   }
 
   // ── 터치 이벤트 ──

@@ -680,26 +680,24 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   .editor{
     position:fixed;top:0;bottom:0;
     left:0;right:auto;
-    width:calc(100vw - 300px);
+    width:100vw;
     min-width:0;z-index:10;
     padding-left:0;
-    transition:transform .32s cubic-bezier(.25,.1,.25,1), width .32s cubic-bezier(.25,.1,.25,1);
+    transition:transform .32s cubic-bezier(.25,.1,.25,1);
     will-change:transform;
     transform:translateX(300px);
     backface-visibility:hidden;
     -webkit-backface-visibility:hidden;
+    overflow:hidden;
   }
   .app.tablet-list-closed .editor{
     transform:translateX(0);
-    width:100vw;
   }
   .app.tablet-side-open .editor{
     transform:translateX(540px);
-    width:calc(100vw - 540px);
   }
   .app.tablet-side-open.tablet-list-closed .editor{
     transform:translateX(0);
-    width:100vw;
   }
 
   /* 기존 sidebar-closed/list-closed는 태블릿에서 무시 */
