@@ -666,10 +666,29 @@ window._gestureReady=false;
     window._tlog=false;
     var state=startState;
     var swipeDir=dir;
-    var swipePanel=panel;
-    var didSwipe=Math.abs(dx)>TH;
+    var elapsed=Date.now()-(window._gestureStartTime||Date.now());
+    var velocity=elapsed>0?Math.abs(dx)/elapsed:0;
+    var totalDist=SIDE_W;
+    if(state==='list-editor'&&swipeDir==='left') totalDist=LIST_W;
+    else if(state==='editor-only'&&swipeDir==='right') totalDist=LIST_W;
+    var pctMoved=Math.abs(dx)/totalDist;
+    var didSwipe=(pctMoved>0.5)||(velocity>0.5&&pctMoved>0.2);
 
-    // 목표 상태 결정
+    // velocity 기반 동적 duration
+    var baseDur=1.0;
+    if(velocity>0.8) baseDur=0.6;
+    else if(velocity>0.4) baseDur=0.75;
+    else if(velocity>0.2) baseDur=0.88;
+    var progress=pctMoved;
+    var remainRatio=didSwipe?(1-progress):progress;
+    var dur=Math.max(0.5,baseDur*Math.max(0.5,remainRatio));
+    var springCurve='cubic-bezier(.32,.72,.40,1)';
+    var snapBackCurve='cubic-bezier(.36,.10,.28,1)';
+    var activeCurve=didSwipe?springCurve:snapBackCurve;
+    var durStr=dur.toFixed(2)+'s';
+    var transStr='transform '+durStr+' '+activeCurve;
+    var cleanupDelay=Math.round(dur*1000)+80;
+
     var targetState=state;
     if(didSwipe){
       if(state==='list-editor'&&swipeDir==='right') targetState='side-open';
@@ -678,28 +697,32 @@ window._gestureReady=false;
       else if(state==='editor-only'&&swipeDir==='right') targetState='list-editor';
     }
 
-
-    // side-open + right: 고무줄 스프링백 (패널 전환 없음)
+    // side-open + right: 고무줄 스프링백
     if(state==='side-open'&&swipeDir==='right'){
+      var rbDur=Math.max(0.65,0.95*(1-Math.min(velocity,1)*0.25));
+      var rbDurStr=rbDur.toFixed(2)+'s';
+      var rbCurve='cubic-bezier(.25,.46,.45,.94)';
       var rubberPanel=document.getElementById('sideRubber');
       var sideHdr=sideEl?sideEl.querySelector('.side-hdr'):null;
       var sideScroll=sideEl?sideEl.querySelector('.side-scroll'):null;
-      var T2='all .4s cubic-bezier(.2,.8,.2,1)';
-      if(rubberPanel){rubberPanel.style.transition='width .4s cubic-bezier(.2,.8,.2,1)';rubberPanel.style.width='0';}
-      if(sideHdr){sideHdr.style.transition='transform .4s cubic-bezier(.2,.8,.2,1)';sideHdr.style.transform='';}
-      if(sideScroll){sideScroll.style.transition='transform .4s cubic-bezier(.2,.8,.2,1)';sideScroll.style.transform='';}
+      if(rubberPanel){rubberPanel.style.transition='width '+rbDurStr+' '+rbCurve;rubberPanel.style.width='0';}
+      if(sideHdr){sideHdr.style.transition='transform '+rbDurStr+' '+rbCurve;sideHdr.style.transform='';}
+      if(sideScroll){sideScroll.style.transition='transform '+rbDurStr+' '+rbCurve;sideScroll.style.transform='';}
       setTimeout(function(){
         if(rubberPanel)rubberPanel.style.transition='';
         if(sideHdr){sideHdr.style.transition='';sideHdr.style.transform='';}
         if(sideScroll){sideScroll.style.transition='';sideScroll.style.transform='';}
         clearInlineStyles();
-      },440);
+      },Math.round(rbDur*1000)+60);
       tracking=false;swiping=false;panel=null;dir=null;decided=false;startState=null;isMouse=false;
       return;
     }
 
-    // editor-only + left: 고무줄 스프링백 (패널 전환 없음)
+    // editor-only + left: 고무줄 스프링백
     if(state==='editor-only'&&swipeDir==='left'){
+      var rbDur2=Math.max(0.65,0.95*(1-Math.min(velocity,1)*0.25));
+      var rbDurStr2=rbDur2.toFixed(2)+'s';
+      var rbCurve2='cubic-bezier(.25,.46,.45,.94)';
       var edRubber=document.getElementById('editorRubber');
       var edTopbar=editorEl?editorEl.querySelector('.ed-topbar'):null;
       var edToolbar=document.getElementById('edToolbar');
@@ -707,40 +730,19 @@ window._gestureReady=false;
       var edBook=document.getElementById('editorBook');
       var edQuote=document.getElementById('editorQuote');
       var edMemo=document.getElementById('editorMemo');
-      if(edRubber){edRubber.style.transition='width .4s cubic-bezier(.2,.8,.2,1)';edRubber.style.width='0';}
+      if(edRubber){edRubber.style.transition='width '+rbDurStr2+' '+rbCurve2;edRubber.style.width='0';}
       var els=[edTopbar,edToolbar,edText,edBook,edQuote,edMemo];
-      els.forEach(function(el){if(el){el.style.transition='transform .4s cubic-bezier(.2,.8,.2,1)';el.style.transform='';}});
+      els.forEach(function(el){if(el){el.style.transition='transform '+rbDurStr2+' '+rbCurve2;el.style.transform='';}});
       setTimeout(function(){
         if(edRubber)edRubber.style.transition='';
         els.forEach(function(el){if(el){el.style.transition='';el.style.transform='';}});
         clearInlineStyles();
-      },440);
+      },Math.round(rbDur2*1000)+60);
       tracking=false;swiping=false;panel=null;dir=null;decided=false;startState=null;isMouse=false;
       return;
     }
 
-    // 목표 위치 계산: CSS 클래스가 적용했을 때의 transform 값
-    var targetSide, targetList, targetEditor;
-    if(targetState==='list-editor'){
-      targetSide=-SIDE_W; targetList=0; targetEditor=LIST_W;
-    } else if(targetState==='editor-only'){
-      targetSide=-SIDE_W; targetList=-LIST_W; targetEditor=0;
-    } else if(targetState==='side-open'){
-      targetSide=0; targetList=SIDE_W; targetEditor=SIDE_W+LIST_W;
-        } else {
-      var basePos=getTabletBasePositions(state);
-      targetSide=basePos.side; targetList=basePos.list; targetEditor=basePos.editor;
-    }
-
-    var T='transform .4s cubic-bezier(.2,.8,.2,1)';
-    allPanels.forEach(function(el){if(el){el.style.transition=T;el.style.webkitTransition=T;el.style.opacity='';}});
-
-    var setPos=function(el,x){if(el)el.style.transform='translate3d('+x+'px,0,0)';};
-    setPos(sideEl, targetSide);
-    setPos(listEl, targetList);
-    setPos(editorEl, targetEditor);
-
-    // CSS 클래스 즉시 적용 (다음 제스처 상태 판정을 위해)
+    // ── 패널 전환 / 스냅백 ──
     if(didSwipe){
       if(state==='list-editor'&&swipeDir==='right') app.classList.add('tablet-side-open');
       else if(state==='list-editor'&&swipeDir==='left') app.classList.add('tablet-list-closed');
@@ -748,27 +750,37 @@ window._gestureReady=false;
       else if(state==='editor-only'&&swipeDir==='right') app.classList.remove('tablet-list-closed');
     }
 
-    // 애니메이션 완료 후 인라인 스타일 정리
-    var cleaned=false;
-    var cleanup=function(){
-      if(cleaned) return;
-      cleaned=true;
-      clearInlineStyles();
-      if(typeof updateBackBtnIcon==='function') updateBackBtnIcon();
-    };
+    // gesture-active 제거 → !important transition:none 해제
+    app.classList.remove('gesture-active');
 
-    var fTarget=listEl||editorEl;
-    if(fTarget){
-      var onTEnd=function(ev){
-        if(ev.propertyName==='transform'){
-          fTarget.removeEventListener('transitionend',onTEnd);
-          cleanup();
+    // 다음 프레임: 인라인 transition 설정 + transform 제거 → 애니메이션 발동
+    requestAnimationFrame(function(){
+      allPanels.forEach(function(el){
+        if(el){
+          el.style.transition=transStr;
+          el.style.webkitTransition=transStr;
         }
-      };
-      fTarget.addEventListener('transitionend',onTEnd);
-    }
-    setTimeout(cleanup, 480);
+      });
+      requestAnimationFrame(function(){
+        allPanels.forEach(function(el){
+          if(el){
+            el.style.transform='';
+            el.style.opacity='';
+          }
+        });
+        setTimeout(function(){
+          allPanels.forEach(function(el){
+            if(el){
+              el.style.transition='';
+              el.style.webkitTransition='';
+            }
+          });
+          if(typeof updateBackBtnIcon==='function') updateBackBtnIcon();
+        },cleanupDelay);
+      });
+    });
   }
+
 
 
   // ═══ PC 제스처 로직 (기존 유지) ═══
@@ -827,6 +839,7 @@ window._gestureReady=false;
     sx=x;sy=y;
     panel=pn;swiping=false;dir=null;tracking=true;decided=false;
     window._itemSwiping=false;
+    window._gestureStartTime=Date.now();
 
     if(isTablet()){
       getTabletSizes();
