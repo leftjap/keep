@@ -578,54 +578,85 @@ function renderListPanel() {
 // ═══ 에디터 더보기 메뉴 ═══
 function toggleEditorMenu(e) {
   e.stopPropagation();
-  const menu = document.getElementById('editorDropdownMenu');
-  if(menu.classList.contains('open')) {
-    menu.classList.remove('open');
+
+  // 이미 팝업이 열려 있으면 닫기
+  const overlay = document.getElementById('lpPopupOverlay');
+  if(overlay && overlay.classList.contains('open')) {
+    closeLpPopup();
     return;
   }
-  // 메뉴를 body로 이동시켜 transform 영향을 받지 않게 함
-  if(menu.parentElement !== document.body) {
-    document.body.appendChild(menu);
-  }
-  const target = activeTab==='memo' ? document.getElementById('memo-body') : document.getElementById('edBody');
-  const txt = target ? target.textContent.trim() : '';
-  const chars = txt.replace(/\s/g,'').length;
-  const pages = (chars/200).toFixed(1);
 
-  const charEl = document.getElementById('menuCharCount');
-  const pageEl = document.getElementById('menuPageCount');
-  if(charEl) charEl.textContent = chars.toLocaleString()+'자';
-  if(pageEl) pageEl.textContent = pages+'매';
+  // 현재 편집 중인 문서 ID/타입 파악
+  let id = null, type = activeTab;
+  if(textTypes.includes(activeTab)) id = curIds[activeTab];
+  else if(activeTab === 'book') id = curBookId;
+  else if(activeTab === 'quote') id = curQuoteId;
+  else if(activeTab === 'memo') id = curMemoId;
+  if(!id) return;
 
-  const pinLabel = document.getElementById('menuPinLabel');
-  if(pinLabel) {
-    let isPinned = false;
-    if(textTypes.includes(activeTab) && curIds[activeTab]) {
-      const doc = allDocs().find(d=>d.id===curIds[activeTab]);
-      if(doc) isPinned = doc.pinned;
-    } else if(activeTab==='book' && curBookId) {
-      const b = getBooks().find(x=>x.id===curBookId);
-      if(b) isPinned = b.pinned;
-    } else if(activeTab==='quote' && curQuoteId) {
-      const q = getQuotes().find(x=>x.id===curQuoteId);
-      if(q) isPinned = q.pinned;
-    } else if(activeTab==='memo' && curMemoId) {
-      const m = getMemos().find(x=>x.id===curMemoId);
-      if(m) isPinned = m.pinned;
-    }
-    pinLabel.textContent = isPinned ? '고정 해제' : '고정';
-  }
+  // 항목 데이터 가져오기
+  let itemData = null;
+  if(textTypes.includes(type)) itemData = allDocs().find(d => d.id === id);
+  else if(type === 'book') itemData = getBooks().find(d => d.id === id);
+  else if(type === 'quote') itemData = getQuotes().find(d => d.id === id);
+  else if(type === 'memo') itemData = getMemos().find(d => d.id === id);
+  if(!itemData) return;
 
-  // 에디터 더보기 버튼 위치 기준으로 메뉴 위치 설정
+  // contextItem 세팅 (lpPopupAction에서 사용)
+  contextItemId = id;
+  contextItemType = type;
+
+  // 통계 계산
+  const rawText = (type === 'quote') ? (itemData.text||'') : stripHtml(itemData.content || itemData.memo || '');
+  const words = rawText.split(/\s+/).filter(w=>w).length;
+  const chars = rawText.replace(/\s/g,'').length;
+  const pages = (chars / 200).toFixed(1);
+  const isPinned = !!itemData.pinned;
+
+  // 메뉴 HTML 구성
+  const menuEl = document.getElementById('lpPopupMenu');
+  let menuHtml = '';
+  menuHtml += '<div class="lp-popup-menu-item" style="cursor:default;" onclick="event.stopPropagation()">';
+  menuHtml += '<span>단어수</span><span class="popup-menu-val">' + words.toLocaleString() + '단어</span></div>';
+  menuHtml += '<div class="lp-popup-menu-item" style="cursor:default;" onclick="event.stopPropagation()">';
+  menuHtml += '<span>원고지</span><span class="popup-menu-val">' + pages + '매</span></div>';
+  menuHtml += '<div class="lp-popup-sep"></div>';
+  menuHtml += '<div class="lp-popup-menu-item" onclick="lpPopupAction(\'pin\')">';
+  menuHtml += '<span>' + (isPinned ? '고정 해제' : '고정') + '</span>';
+  menuHtml += '<svg viewBox="0 0 24 24"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.68V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3v4.68a2 2 0 0 1-1.11 1.87l-1.78.9A2 2 0 0 0 5 15.24Z"/></svg></div>';
+  menuHtml += '<div class="lp-popup-menu-item" onclick="lpPopupAction(\'copymd\')">';
+  menuHtml += '<span>본문 복사</span>';
+  menuHtml += '<svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></div>';
+  menuHtml += '<div class="lp-popup-sep"></div>';
+  menuHtml += '<div class="lp-popup-menu-item danger" onclick="lpPopupAction(\'delete\')">';
+  menuHtml += '<span>삭제</span>';
+  menuHtml += '<svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div>';
+  menuEl.innerHTML = menuHtml;
+
+  // 더보기 버튼 위치 기준으로 팝업 카드 배치
   const moreBtn = document.querySelector('.ed-more-btn');
-  if(moreBtn) {
+  const card = document.getElementById('lpPopupCard');
+  if(moreBtn && card) {
     const btnRect = moreBtn.getBoundingClientRect();
-    menu.style.position = 'fixed';
-    menu.style.top = (btnRect.bottom + 4) + 'px';
-    menu.style.left = 'auto';
-    menu.style.right = (window.innerWidth - btnRect.right) + 'px';
+    const isMobile = window.innerWidth <= 768;
+    const cardW = isMobile ? Math.min(260, window.innerWidth - 40) : Math.min(280, window.innerWidth - 32);
+    let left = btnRect.right - cardW;
+    if(left < 16) left = 16;
+    if(left + cardW > window.innerWidth - 16) left = window.innerWidth - cardW - 16;
+    let top = btnRect.bottom + 8;
+    const estimatedH = 260;
+    if(top + estimatedH > window.innerHeight - 16) top = btnRect.top - estimatedH - 8;
+    if(top < 16) top = 16;
+    card.style.left = left + 'px';
+    card.style.top = top + 'px';
+    card.style.width = cardW + 'px';
   }
-  menu.classList.add('open');
+
+  // lifted 클론 없이 오버레이+카드만 표시
+  window._liftedOriginal = null;
+  window._liftedClone = null;
+  overlay.classList.add('open');
+  requestAnimationFrame(function() { card.classList.add('open'); });
 }
 
 function editorMenuAction(action) {
@@ -695,9 +726,7 @@ function editorMenuAction(action) {
 document.addEventListener('click', e => {
   const menu = document.getElementById('editorDropdownMenu');
   if(menu && menu.classList.contains('open')) {
-    if(!e.target.closest('.ed-more-btn') && !e.target.closest('.editor-menu')) {
-      menu.classList.remove('open');
-    }
+    menu.classList.remove('open');
   }
 });
 
@@ -791,44 +820,172 @@ function showContextMenuAt(item, x, y) {
 
   if (!contextItemId) return;
 
-  if (textTypes.includes(contextItemType)) loadDoc(contextItemType, contextItemId, true);
-  else if (contextItemType === 'book') loadBook(contextItemId, true);
-  else if (contextItemType === 'quote') loadQuote(contextItemId, true);
-  else if (contextItemType === 'memo') loadMemo(contextItemId, true);
+  // 항목 데이터 가져오기
+  let itemData = null;
+  if (textTypes.includes(contextItemType)) {
+    itemData = allDocs().find(d => d.id === contextItemId);
+  } else if (contextItemType === 'book') {
+    itemData = getBooks().find(d => d.id === contextItemId);
+  } else if (contextItemType === 'quote') {
+    itemData = getQuotes().find(d => d.id === contextItemId);
+  } else if (contextItemType === 'memo') {
+    itemData = getMemos().find(d => d.id === contextItemId);
+  }
 
-  const menu = document.getElementById('editorDropdownMenu');
-  const target = (contextItemType === 'memo') ? document.getElementById('memo-body') : document.getElementById('edBody');
-  const txt = target ? target.textContent.trim() : '';
-  const chars = txt.replace(/\s/g, '').length;
+  if (!itemData) return;
+
+  // 해당 항목 떠오르기: 클론 먼저 만들고 원본 숨기기
+  const itemRect = item.getBoundingClientRect();
+  const clone = item.cloneNode(true);
+
+  window._liftedOriginal = item;
+  item.style.visibility = 'hidden';
+  clone.className = item.className.replace(/\bswiped\b/g,'').replace(/\bon\b/g,'');
+  clone.classList.remove('swiped','on');
+  clone.classList.add('lp-lifted');
+  var inset = 24;
+  clone.style.position = 'fixed';
+  clone.style.left = (itemRect.left + inset) + 'px';
+  clone.style.top = itemRect.top + 'px';
+  clone.style.width = (itemRect.width - inset * 2) + 'px';
+  clone.style.margin = '0';
+  clone.style.padding = '16px 18px 14px';
+  clone.style.pointerEvents = 'none';
+  clone.style.borderRadius = '16px';
+  clone.style.boxShadow = '0 12px 40px rgba(0,0,0,.22), 0 4px 12px rgba(0,0,0,.12)';
+  clone.style.background = '#ffffff';
+  clone.style.maxHeight = (itemRect.height) + 'px';
+  clone.style.overflow = 'hidden';
+  clone.style.boxSizing = 'border-box';
+  clone.onclick = null;
+  // 스와이프 액션 제거
+  const sa = clone.querySelector('.swipe-actions');
+  if (sa) sa.remove();
+  document.body.appendChild(clone);
+  window._liftedClone = clone;
+
+  const overlay = document.getElementById('lpPopupOverlay');
+  const card = document.getElementById('lpPopupCard');
+  const menuEl = document.getElementById('lpPopupMenu');
+
+  // 통계 계산
+  const rawText = (contextItemType === 'quote') ? (itemData.text||'') : stripHtml(itemData.content || itemData.memo || '');
+  const words = rawText.split(/\s+/).filter(w=>w).length;
+  const chars = rawText.replace(/\s/g,'').length;
   const pages = (chars / 200).toFixed(1);
-  const words = txt.split(/\s+/).filter(x=>x).length;
-  const charEl = document.getElementById('menuCharCount');
-  const pageEl = document.getElementById('menuPageCount');
-  if (charEl) charEl.textContent = words.toLocaleString() + '단어';
-  if (pageEl) pageEl.textContent = pages + '매';
+  const isPinned = !!itemData.pinned;
 
-  const pinLabel = document.getElementById('menuPinLabel');
-  if (pinLabel) {
-    let isPinned = false;
-    let items = [];
-    if (textTypes.includes(contextItemType)) items = allDocs();
-    else if (contextItemType === 'book') items = getBooks();
-    else if (contextItemType === 'quote') items = getQuotes();
-    else if (contextItemType === 'memo') items = getMemos();
-    const found = items.find(x => x.id === contextItemId);
-    if (found) isPinned = found.pinned;
-    pinLabel.textContent = isPinned ? '고정 해제' : '고정';
+  // 메뉴 구성 (기존 에디터 메뉴와 동일)
+  let menuHtml = '';
+  menuHtml += `<div class="lp-popup-menu-item" style="cursor:default;" onclick="event.stopPropagation()">
+    <span>단어수</span><span class="popup-menu-val">${words.toLocaleString()}단어</span>
+  </div>`;
+
+  menuHtml += `<div class="lp-popup-menu-item" style="cursor:default;" onclick="event.stopPropagation()">
+    <span>원고지</span><span class="popup-menu-val">${pages}매</span>
+  </div>`;
+
+  menuHtml += `<div class="lp-popup-sep"></div>`;
+
+  menuHtml += `<div class="lp-popup-menu-item" onclick="lpPopupAction('pin')">
+    <span>${isPinned ? '고정 해제' : '고정'}</span>
+    <svg viewBox="0 0 24 24"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.68V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3v4.68a2 2 0 0 1-1.11 1.87l-1.78.9A2 2 0 0 0 5 15.24Z"/></svg>
+  </div>`;
+
+  menuHtml += `<div class="lp-popup-menu-item" onclick="lpPopupAction('copymd')">
+    <span>본문 복사</span>
+    <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+  </div>`;
+
+  menuHtml += `<div class="lp-popup-sep"></div>`;
+
+  menuHtml += `<div class="lp-popup-menu-item danger" onclick="lpPopupAction('delete')">
+    <span>삭제</span>
+    <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+  </div>`;
+
+  menuEl.innerHTML = menuHtml;
+
+  // 메뉴 위치: 떠오른 항목 바로 아래에 배치
+  const cardW = itemRect.width - 48;
+
+  let left = itemRect.left + 24;
+  if (left < 16) left = 16;
+  if (left + cardW > window.innerWidth - 16) left = window.innerWidth - cardW - 16;
+
+  let top = itemRect.bottom + 6;
+  // 아래 공간 부족하면 위로
+  const estimatedMenuH = 220;
+  if (top + estimatedMenuH > window.innerHeight - 16) {
+    top = itemRect.top - estimatedMenuH - 6;
+    if (top < 16) top = 16;
   }
 
-  // 메뉴를 body로 이동시켜 transform 영향을 받지 않게 함
-  if(menu.parentElement !== document.body) {
-    document.body.appendChild(menu);
+  card.style.left = left + 'px';
+  card.style.top = top + 'px';
+  card.style.width = cardW + 'px';
+
+  // 표시
+  overlay.classList.add('open');
+  requestAnimationFrame(() => { card.classList.add('open'); });
+}
+
+function closeLpPopup() {
+  const overlay = document.getElementById('lpPopupOverlay');
+  const card = document.getElementById('lpPopupCard');
+  if (card) card.classList.remove('open');
+  if (overlay) overlay.classList.remove('open');
+  // 클론 제거 + 원본 복원
+  if (window._liftedClone) {
+    window._liftedClone.remove();
+    window._liftedClone = null;
   }
-  menu.style.position = 'fixed';
-  menu.style.top = Math.min(y, window.innerHeight - 280) + 'px';
-  menu.style.left = Math.min(x, window.innerWidth - 230) + 'px';
-  menu.style.right = 'auto';
-  menu.classList.add('open');
+  if (window._liftedOriginal) {
+    window._liftedOriginal.style.visibility = '';
+    window._liftedOriginal = null;
+  }
+  contextItemId = null;
+  contextItemType = null;
+}
+
+function lpPopupAction(action) {
+  if (!contextItemId || !contextItemType) { closeLpPopup(); return; }
+  const id = contextItemId, type = contextItemType;
+
+  if (action === 'pin') {
+    closeLpPopup();
+    const fakeEvent = { stopPropagation: () => {} };
+    togglePin(type, id, fakeEvent);
+  } else if (action === 'copymd') {
+    // 항목 데이터에서 직접 본문 복사
+    let itemData = null;
+    if (textTypes.includes(type)) itemData = allDocs().find(d => d.id === id);
+    else if (type === 'book') itemData = getBooks().find(d => d.id === id);
+    else if (type === 'quote') itemData = getQuotes().find(d => d.id === id);
+    else if (type === 'memo') itemData = getMemos().find(d => d.id === id);
+
+    let md = '';
+    if (itemData) {
+      if (type === 'quote') {
+        md = (itemData.text || '') + (itemData.by ? '\n— ' + itemData.by : '');
+      } else if (type === 'book') {
+        md = (itemData.title || '') + '\n' + [itemData.author, itemData.publisher].filter(Boolean).join(' · ') + '\n\n' + stripHtml(itemData.memo || '');
+      } else {
+        md = stripHtml(itemData.content || '').trim();
+      }
+    }
+    navigator.clipboard.writeText(md.trim()).catch(() => {});
+    closeLpPopup();
+  } else if (action === 'delete') {
+    closeLpPopup();
+    const fakeEvent = { stopPropagation: () => {} };
+    if (textTypes.includes(type)) delDoc(type, id, fakeEvent);
+    else if (type === 'book') delBook(id, fakeEvent);
+    else if (type === 'quote') delQuote(id, fakeEvent);
+    else if (type === 'memo') delMemo(id, fakeEvent);
+  } else {
+    closeLpPopup();
+  }
 }
 
 var _lpTimer = null;
@@ -897,14 +1054,3 @@ function setupListContextMenu() {
   }, { passive: true });
 }
 
-// 메뉴 닫힐 때 위치 초기화
-const origToggleMenu = toggleEditorMenu;
-document.addEventListener('click', e => {
-  const menu = document.getElementById('editorDropdownMenu');
-  if (menu && !menu.classList.contains('open')) {
-    menu.style.position = '';
-    menu.style.top = '';
-    menu.style.left = '';
-    menu.style.right = '';
-  }
-});

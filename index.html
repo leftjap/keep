@@ -22,6 +22,11 @@
 
 <div id="swipeCaptureOverlay" class="swipe-capture-overlay"></div>
 
+<!-- 리스트 꾹누르기 팝업 -->
+<div class="lp-popup-overlay" id="lpPopupOverlay" onclick="closeLpPopup()"></div>
+<div class="lp-popup-card" id="lpPopupCard">
+  <div class="lp-popup-menu" id="lpPopupMenu"></div>
+</div>
 <div id="loadingScreen" class="hidden">  <div class="loading-wrapper">
     <div class="loading-scene">
       <img src="gio_circle_white_closeup2_512.png" alt="지오" class="bounce-avatar">
@@ -242,11 +247,11 @@
     <span class="ed-save-status" id="edSaveStatus" style="display:none">저장됨</span>
     <div class="ed-topbar-right">
       <!-- 더보기 메뉴 버튼: 가로 세 점 -->
-      <button class="ed-more-btn pc-only" onclick="toggleEditorMenu(event)" title="더보기">
+      <button class="ed-more-btn" onclick="toggleEditorMenu(event)" title="더보기">
         <svg viewBox="0 0 24 24" fill="none" stroke="none">
-          <circle cx="5" cy="12" r="1.5" fill="currentColor"/>
-          <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
-          <circle cx="19" cy="12" r="1.5" fill="currentColor"/>
+          <circle cx="12" cy="5" r="1.8" fill="currentColor"/>
+          <circle cx="12" cy="12" r="1.8" fill="currentColor"/>
+          <circle cx="12" cy="19" r="1.8" fill="currentColor"/>
         </svg>
       </button>
       <!-- + 새 글 버튼 -->
