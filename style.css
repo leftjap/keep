@@ -650,7 +650,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
     width:240px!important;max-width:240px!important;min-width:240px!important;
     background:#2c2c2e;border-right:none;
     transform:translateX(-240px);z-index:40;
-    transition:transform .32s cubic-bezier(.25,.1,.25,1);
+    transition:transform .4s cubic-bezier(.2,.8,.2,1);
     will-change:transform;
     backface-visibility:hidden;
     -webkit-backface-visibility:hidden;
@@ -664,7 +664,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
     width:300px!important;min-width:300px!important;max-width:300px!important;
     border-right:1px solid var(--border);
     transform:translateX(0);z-index:20;
-    transition:transform .32s cubic-bezier(.25,.1,.25,1);
+    transition:transform .4s cubic-bezier(.2,.8,.2,1);
     will-change:transform;
     backface-visibility:hidden;
     -webkit-backface-visibility:hidden;
@@ -684,7 +684,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
     width:calc(100vw - 300px);
     min-width:0;z-index:10;
     padding-left:0;
-    transition:transform .32s cubic-bezier(.25,.1,.25,1);
+    transition:transform .4s cubic-bezier(.2,.8,.2,1);
     will-change:transform;
     transform:translateX(300px);
     backface-visibility:hidden;
