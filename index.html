@@ -548,15 +548,27 @@ window._gestureReady=false;
 
   function clearInlineStyles(){
     app.classList.remove('gesture-active');
-    allPanels.forEach(function(el){if(el){el.style.transition='';el.style.webkitTransition='';el.style.transform='';el.style.opacity='';el.style.left='';el.style.width='';}});
+    allPanels.forEach(
+function(el){if(el){el.style.transition='';el.style.webkitTransition='';el.style.transform='';el.style.opacity='';el.style.left='';el.style.width='';}});
     var _edR=document.getElementById('editorRubber');
     var _siR=document.getElementById('sideRubber');
     if(_edR){_edR.style.transition='';_edR.style.width='0';}
     if(_siR){_siR.style.transition='';_siR.style.width='0';}
   }
 
+  function restoreFixedEls(){
+    var f=window._fixedEls;
+    if(!f)return;
+    if(f.tr){
+      f.tr.classList.remove('gesture-fixed');
+      if(f.parent&&!f.parent.contains(f.tr))f.parent.appendChild(f.tr);
+    }
+    window._fixedEls=null;
+  }
+
   function resetState(){
     clearInlineStyles();
+    restoreFixedEls();
     tracking=false;swiping=false;panel=null;dir=null;decided=false;startState=null;isMouse=false;
     window._gestureActive=false;
     var paneList=document.getElementById('pane-list');
@@ -675,15 +687,15 @@ window._gestureReady=false;
     var didSwipe=(pctMoved>0.5)||(velocity>0.5&&pctMoved>0.2);
 
     // velocity 기반 동적 duration
-    var baseDur=1.0;
-    if(velocity>0.8) baseDur=0.6;
-    else if(velocity>0.4) baseDur=0.75;
-    else if(velocity>0.2) baseDur=0.88;
+    var baseDur=1.2;
+    if(velocity>0.8) baseDur=0.7;
+    else if(velocity>0.4) baseDur=0.85;
+    else if(velocity>0.2) baseDur=1.0;
     var progress=pctMoved;
     var remainRatio=didSwipe?(1-progress):progress;
-    var dur=Math.max(0.5,baseDur*Math.max(0.5,remainRatio));
-    var springCurve='cubic-bezier(.32,.72,.40,1)';
-    var snapBackCurve='cubic-bezier(.36,.10,.28,1)';
+    var dur=Math.max(0.55,baseDur*Math.max(0.5,remainRatio));
+    var springCurve='cubic-bezier(.25,.46,.45,.94)';
+    var snapBackCurve='cubic-bezier(.25,.46,.45,.94)';
     var activeCurve=didSwipe?springCurve:snapBackCurve;
     var durStr=dur.toFixed(2)+'s';
     var transStr='transform '+durStr+' '+activeCurve;
@@ -713,6 +725,7 @@ window._gestureReady=false;
         if(sideHdr){sideHdr.style.transition='';sideHdr.style.transform='';}
         if(sideScroll){sideScroll.style.transition='';sideScroll.style.transform='';}
         clearInlineStyles();
+        restoreFixedEls();
       },Math.round(rbDur*1000)+60);
       tracking=false;swiping=false;panel=null;dir=null;decided=false;startState=null;isMouse=false;
       return;
@@ -737,23 +750,34 @@ window._gestureReady=false;
         if(edRubber)edRubber.style.transition='';
         els.forEach(function(el){if(el){el.style.transition='';el.style.transform='';}});
         clearInlineStyles();
+        restoreFixedEls();
       },Math.round(rbDur2*1000)+60);
       tracking=false;swiping=false;panel=null;dir=null;decided=false;startState=null;isMouse=false;
       return;
     }
 
     // ── 패널 전환 / 스냅백 ──
+    var pendingClass=null;
     if(didSwipe){
-      if(state==='list-editor'&&swipeDir==='right') app.classList.add('tablet-side-open');
-      else if(state==='list-editor'&&swipeDir==='left') app.classList.add('tablet-list-closed');
-      else if(state==='side-open'&&swipeDir==='left') app.classList.remove('tablet-side-open');
-      else if(state==='editor-only'&&swipeDir==='right') app.classList.remove('tablet-list-closed');
+      if(state==='list-editor'&&swipeDir==='right') pendingClass={action:'add',cls:'tablet-side-open'};
+      else if(state==='list-editor'&&swipeDir==='left') pendingClass={action:'add',cls:'tablet-list-closed'};
+      else if(state==='side-open'&&swipeDir==='left') pendingClass={action:'remove',cls:'tablet-side-open'};
+      else if(state==='editor-only'&&swipeDir==='right') pendingClass={action:'remove',cls:'tablet-list-closed'};
     }
 
-    // gesture-active 제거 → !important transition:none 해제
-    app.classList.remove('gesture-active');
+    var targets=getTabletBasePositions(didSwipe?targetState:state);
 
-    // 다음 프레임: 인라인 transition 설정 + transform 제거 → 애니메이션 발동
+    // 에디터 현재 width를 inline으로 고정 (클래스 전환 시 점프 방지)
+    var editorCurrentWidth=null;
+    if(editorEl && pendingClass){
+      editorCurrentWidth=editorEl.getBoundingClientRect().width;
+      editorEl.style.width=editorCurrentWidth+'px';
+    }
+
+    app.classList.remove('gesture-active');
+    app.classList.add('gesture-animating');
+
+    // 다음 프레임: transition 설정 + transform 애니메이션 시작
     requestAnimationFrame(function(){
       allPanels.forEach(function(el){
         if(el){
@@ -761,22 +785,46 @@ window._gestureReady=false;
           el.style.webkitTransition=transStr;
         }
       });
+      // 에디터에 width transition도 추가
+      if(editorEl && pendingClass){
+        editorEl.style.transition=transStr+', width '+durStr+' '+activeCurve;
+        editorEl.style.webkitTransition=transStr+', width '+durStr+' '+activeCurve;
+      }
+
       requestAnimationFrame(function(){
-        allPanels.forEach(function(el){
-          if(el){
-            el.style.transform='';
-            el.style.opacity='';
-          }
-        });
+        if(sideEl) sideEl.style.transform='translate3d('+targets.side+'px,0,0)';
+        if(listEl) listEl.style.transform='translate3d('+targets.list+'px,0,0)';
+        if(editorEl) editorEl.style.transform='translate3d('+targets.editor+'px,0,0)';
+
+        // 클래스를 지금 적용하되, inline width가 고정되어 있으므로 점프 없음
+        if(pendingClass){
+          if(pendingClass.action==='add') app.classList.add(pendingClass.cls);
+          else app.classList.remove(pendingClass.cls);
+        }
+
+        // inline width 제거 → CSS 클래스의 width로 transition 시작
+        if(editorEl && editorCurrentWidth!==null){
+          // 클래스 적용 직후 inline width를 제거하면 CSS width로 자연스럽게 전환
+          requestAnimationFrame(function(){
+            editorEl.style.width='';
+          });
+        }
+
+        var widthDelay=Math.max(cleanupDelay,550);
         setTimeout(function(){
           allPanels.forEach(function(el){
             if(el){
               el.style.transition='';
               el.style.webkitTransition='';
+              el.style.transform='';
+              el.style.opacity='';
+              el.style.width='';
             }
           });
+          restoreFixedEls();
+          app.classList.remove('gesture-animating');
           if(typeof updateBackBtnIcon==='function') updateBackBtnIcon();
-        },cleanupDelay);
+        },widthDelay);
       });
     });
   }
@@ -840,6 +888,7 @@ window._gestureReady=false;
     panel=pn;swiping=false;dir=null;tracking=true;decided=false;
     window._itemSwiping=false;
     window._gestureStartTime=Date.now();
+    window._fixedEls=null;
 
     if(isTablet()){
       getTabletSizes();
@@ -877,6 +926,12 @@ window._gestureReady=false;
       else if(isPC()) valid=isValidPCGesture(startState,panel,dir);
       if(!valid){tracking=false;swiping=false;decided=false;return;}
       swiping=true;
+      if(isTablet()&&editorEl&&!window._fixedEls){
+        var _gTR=editorEl.querySelector('.ed-topbar-right');
+        var _gTP=editorEl.querySelector('.col-header.ed-topbar');
+        if(_gTR){_gTR.classList.add('gesture-fixed');document.body.appendChild(_gTR);}
+        window._fixedEls={tr:_gTR,parent:_gTP};
+      }
     }
     if(swiping&&e&&e.cancelable){
       e.preventDefault();

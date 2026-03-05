@@ -650,7 +650,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
     width:240px!important;max-width:240px!important;min-width:240px!important;
     background:#2c2c2e;border-right:none;
     transform:translateX(-240px);z-index:40;
-    transition:transform .35s cubic-bezier(.25,.1,.25,1);
+    transition:transform .45s cubic-bezier(.32,.72,.40,1);
     will-change:transform;
     backface-visibility:hidden;
     -webkit-backface-visibility:hidden;
@@ -664,7 +664,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
     width:300px!important;min-width:300px!important;max-width:300px!important;
     border-right:1px solid var(--border);
     transform:translateX(0);z-index:20;
-    transition:transform .35s cubic-bezier(.25,.1,.25,1);
+    transition:transform .45s cubic-bezier(.32,.72,.40,1);
     will-change:transform;
     backface-visibility:hidden;
     -webkit-backface-visibility:hidden;
@@ -684,13 +684,14 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
     width:calc(100vw - 300px);
     min-width:0;z-index:10;
     padding-left:0;
-    transition:transform .35s cubic-bezier(.25,.1,.25,1);
-    will-change:transform;
+    transition:transform .45s cubic-bezier(.32,.72,.40,1), width .45s cubic-bezier(.32,.72,.40,1);
+    will-change:transform, width;
     transform:translateX(300px);
     backface-visibility:hidden;
     -webkit-backface-visibility:hidden;
     overflow:hidden;
   }
+
   .app.tablet-list-closed .editor{
     transform:translateX(0);
     width:100vw;
@@ -703,12 +704,54 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
     transform:translateX(0);
     width:100vw;
   }
-  /* ⚠️ 절대 수정 금지 — 이 규칙을 width:100vw 등으로 변경하면
-     태블릿에서 에디터 본문이 튕기는 고질적 버그가 재발함.
-     제스처 중 에디터 width는 CSS 상태값 그대로 유지해야 함.
-     overflow:hidden만 설정할 것. (2026-03-05 확정) */
   .app.gesture-active .editor{
     overflow:hidden !important;
+    transition:none !important;
+    -webkit-transition:none !important;
+    will-change:transform !important;
+  }
+  .ed-topbar-right.gesture-fixed{
+    position:fixed !important;
+    right:16px !important;
+    top:0 !important;
+    height:60px !important;
+    display:flex !important;
+    align-items:center !important;
+    gap:6px !important;
+    z-index:9000 !important;
+  }
+  .app.gesture-animating .editor{
+    transition:transform .45s cubic-bezier(.25,.46,.45,.94), width .45s cubic-bezier(.25,.46,.45,.94), left .45s cubic-bezier(.25,.46,.45,.94) !important;
+  }
+  .app.gesture-active .editor .editor-scroll-area,
+  .app.gesture-active .editor .ed-body,
+  .app.gesture-active .list-panel .pane-list,
+  .app.gesture-active .list-panel .pane-photo,
+  .app.gesture-active .list-panel .pane-calendar,
+  .app.gesture-active .side .side-scroll,
+  .app.gesture-animating .editor .editor-scroll-area,
+  .app.gesture-animating .editor .ed-body,
+  .app.gesture-animating .list-panel .pane-list,
+  .app.gesture-animating .list-panel .pane-photo,
+  .app.gesture-animating .list-panel .pane-calendar,
+  .app.gesture-animating .side .side-scroll{
+    overflow:hidden !important;
+    scrollbar-width:none !important;
+  }
+  .app.gesture-active .editor .editor-scroll-area::-webkit-scrollbar,
+  .app.gesture-active .editor .ed-body::-webkit-scrollbar,
+  .app.gesture-active .list-panel .pane-list::-webkit-scrollbar,
+  .app.gesture-active .list-panel .pane-photo::-webkit-scrollbar,
+  .app.gesture-active .list-panel .pane-calendar::-webkit-scrollbar,
+  .app.gesture-active .side .side-scroll::-webkit-scrollbar,
+  .app.gesture-animating .editor .editor-scroll-area::-webkit-scrollbar,
+  .app.gesture-animating .editor .ed-body::-webkit-scrollbar,
+  .app.gesture-animating .list-panel .pane-list::-webkit-scrollbar,
+  .app.gesture-animating .list-panel .pane-photo::-webkit-scrollbar,
+  .app.gesture-animating .list-panel .pane-calendar::-webkit-scrollbar,
+  .app.gesture-animating .side .side-scroll::-webkit-scrollbar{
+    display:none !important;
+    width:0 !important;
   }
 
   /* 기존 sidebar-closed/list-closed는 태블릿에서 무시 */
@@ -767,12 +810,12 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   .lp-item-title{font-size:16px}
   .lp-item-preview{font-size:14px}
   .editor-content-wrap{
-    max-width:100% !important;
-    padding:28px 24px 100px !important;
+    max-width:720px !important;
+    padding:28px 40px 100px !important;
     width:100% !important;
   }
   .editor-scroll-area{
-    align-items:stretch !important;
+    align-items:center !important;
   }
   .ed-foot{
     padding:10px 16px !important;
