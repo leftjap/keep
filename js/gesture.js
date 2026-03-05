@@ -43,17 +43,23 @@ function setupGesturesAndUI() {
   }
 
   function animateBack() {
-    const T = 'transform .25s ease, opacity .25s';
+    const elapsed = Date.now() - (window._mobileGestureStartTime || Date.now());
+    const lastDx = window._mobileLastDx || 0;
+    const mVel = elapsed > 0 ? Math.abs(lastDx) / elapsed : 0;
+    let rbDur = Math.max(0.845, 1.235 * (1 - Math.min(mVel, 1) * 0.25));
+    const durStr = rbDur.toFixed(2) + 's';
+    const curve = 'cubic-bezier(.25,.46,.45,.94)';
+    const T = 'transform ' + durStr + ' ' + curve + ', opacity ' + durStr + ' ' + curve;
     allEls.forEach(el => { if (el) { el.style.transition = T; el.style.transform = ''; el.style.opacity = ''; } });
     const rp = document.getElementById('sideRubber');
-    if (rp) { rp.style.transition = 'width .25s ease'; rp.style.width = '0'; }
+    if (rp) { rp.style.transition = 'width ' + durStr + ' ' + curve; rp.style.width = '0'; }
     if (sideEl) {
       const sh = sideEl.querySelector('.side-hdr'), ss = sideEl.querySelector('.side-scroll');
-      if (sh) { sh.style.transition = 'transform .25s ease'; sh.style.transform = ''; }
-      if (ss) { ss.style.transition = 'transform .25s ease'; ss.style.transform = ''; }
+      if (sh) { sh.style.transition = 'transform ' + durStr + ' ' + curve; sh.style.transform = ''; }
+      if (ss) { ss.style.transition = 'transform ' + durStr + ' ' + curve; ss.style.transform = ''; }
     }
     const edRubber = document.getElementById('editorRubber');
-    if (edRubber) { edRubber.style.transition = 'width .25s ease'; edRubber.style.width = '0'; }
+    if (edRubber) { edRubber.style.transition = 'width ' + durStr + ' ' + curve; edRubber.style.width = '0'; }
     const edEls = [
       editorEl ? editorEl.querySelector('.ed-topbar') : null,
       document.getElementById('edToolbar'),
@@ -62,8 +68,8 @@ function setupGesturesAndUI() {
       document.getElementById('editorQuote'),
       document.getElementById('editorMemo')
     ];
-    edEls.forEach(el => { if (el) { el.style.transition = 'transform .25s ease'; el.style.transform = ''; } });
-    setTimeout(cleanStyles, 280);
+    edEls.forEach(el => { if (el) { el.style.transition = 'transform ' + durStr + ' ' + curve; el.style.transform = ''; } });
+    setTimeout(cleanStyles, Math.round(rbDur * 1000) + 80);
   }
 
   document.addEventListener('touchstart', function(e) {
@@ -75,6 +81,7 @@ function setupGesturesAndUI() {
     startX = e.touches[0].clientX; startY = e.touches[0].clientY;
     swiping = false; swipeDir = null; decided = false;
     startState = getState();
+    window._mobileGestureStartTime = Date.now();
   }, { capture: true, passive: true });
 
   document.addEventListener('touchmove', function(e) {
@@ -96,6 +103,7 @@ function setupGesturesAndUI() {
     }
     if (!swiping) return;
     if (e.cancelable) e.preventDefault();
+    window._mobileLastDx = e.touches[0].clientX - startX;
 
     const vw   = window.innerWidth;
     const sideW = sideEl ? Math.min(sideEl.offsetWidth, vw * 0.82) : vw * 0.75;
@@ -137,13 +145,19 @@ function setupGesturesAndUI() {
   document.addEventListener('touchend', function(e) {
     if (window.innerWidth > 768 || !swiping || startState === null) { startState = null; decided = false; return; }
     const dx         = e.changedTouches[0].clientX - startX;
+    const endTime    = Date.now();
+    const elapsed    = endTime - (window._mobileGestureStartTime || endTime);
+    const mVelocity  = elapsed > 0 ? Math.abs(dx) / elapsed : 0;
     const savedState = startState, savedDir = swipeDir;
     swiping = false; swipeDir = null; decided = false; startState = null;
-    const vw = window.innerWidth, minSwipe = Math.max(80, vw * 0.25);
+    const vw = window.innerWidth;
+    const sideW = sideEl ? Math.min(sideEl.offsetWidth, vw * 0.82) : vw * 0.75;
+    const totalDist = (savedState === 'editor') ? vw : sideW;
+    const pctMoved = Math.abs(dx) / totalDist;
     let didSwipe = false;
-    if (savedState === 'side'   && dx < -minSwipe) didSwipe = true;
-    else if (savedState === 'list'   && dx >  minSwipe) didSwipe = true;
-    else if (savedState === 'editor' && dx >  minSwipe) didSwipe = true;
+    if (savedState === 'side'   && savedDir === 'left'  && (pctMoved > 0.5 || (mVelocity > 0.5 && pctMoved > 0.2))) didSwipe = true;
+    else if (savedState === 'list'   && savedDir === 'right' && (pctMoved > 0.5 || (mVelocity > 0.5 && pctMoved > 0.2))) didSwipe = true;
+    else if (savedState === 'editor' && savedDir === 'right' && (pctMoved > 0.5 || (mVelocity > 0.5 && pctMoved > 0.2))) didSwipe = true;
 
     if ((savedState === 'side' && savedDir === 'right') || (savedState === 'editor' && savedDir === 'left')) {
       animateBack();
@@ -316,6 +330,13 @@ function setupTabletPCGestures() {
     const f = window._fixedEls; if (!f) return;
     if (f.tr) { f.tr.classList.remove('gesture-fixed'); if (f.parent && !f.parent.contains(f.tr)) f.parent.appendChild(f.tr); }
     window._fixedEls = null;
+    // 안전장치: body에 남아있는 ed-topbar-right도 복원
+    const stray = document.querySelector('body > .ed-topbar-right');
+    if (stray) {
+      stray.classList.remove('gesture-fixed');
+      const topbar = document.querySelector('.col-header.ed-topbar');
+      if (topbar && !topbar.querySelector('.ed-topbar-right')) topbar.appendChild(stray);
+    }
   }
 
   function resetState() {
@@ -390,10 +411,10 @@ function setupTabletPCGestures() {
     const pctMoved  = Math.abs(dx) / totalDist;
     const didSwipe  = pctMoved > 0.5 || (velocity > 0.5 && pctMoved > 0.2);
 
-    let baseDur = 1.2;
-    if (velocity > 0.8) baseDur = 0.7; else if (velocity > 0.4) baseDur = 0.85; else if (velocity > 0.2) baseDur = 1.0;
+    let baseDur = 1.56;
+    if (velocity > 0.8) baseDur = 0.91; else if (velocity > 0.4) baseDur = 1.105; else if (velocity > 0.2) baseDur = 1.3;
     const remainRatio = didSwipe ? (1 - pctMoved) : pctMoved;
-    const dur         = Math.max(0.55, baseDur * Math.max(0.5, remainRatio));
+    const dur         = Math.max(0.715, baseDur * Math.max(0.5, remainRatio));
     const curve       = 'cubic-bezier(.25,.46,.45,.94)';
     const durStr      = dur.toFixed(2) + 's';
     const transStr    = `transform ${durStr} ${curve}`;
@@ -409,7 +430,7 @@ function setupTabletPCGestures() {
 
     // 고무줄 스프링백 처리
     if ((startState === 'side-open' && dir === 'right') || (startState === 'editor-only' && dir === 'left')) {
-      const rbDur = Math.max(0.65, 0.95 * (1 - Math.min(velocity, 1) * 0.25));
+      const rbDur = Math.max(0.845, 1.235 * (1 - Math.min(velocity, 1) * 0.25));
       const rbDurStr = rbDur.toFixed(2) + 's', rbCurve = 'cubic-bezier(.25,.46,.45,.94)';
       if (startState === 'side-open') {
         const rp = document.getElementById('sideRubber'), sh = sideEl && sideEl.querySelector('.side-hdr'), ss = sideEl && sideEl.querySelector('.side-scroll');
@@ -459,7 +480,7 @@ function setupTabletPCGestures() {
           restoreFixedEls();
           app.classList.remove('gesture-animating');
           if (typeof updateBackBtnIcon === 'function') updateBackBtnIcon();
-        }, Math.max(cleanupDelay, 550));
+        }, Math.max(cleanupDelay, 715));
       });
     });
   }
@@ -530,7 +551,7 @@ function setupTabletPCGestures() {
       const valid = isTablet() ? isValidTabletGesture(startState, panel, dir) : (isPC() ? isValidPCGesture(startState, panel, dir) : false);
       if (!valid) { tracking = false; swiping = false; decided = false; return; }
       swiping = true;
-      if (isTablet() && editorEl && !window._fixedEls) {
+      if (isTablet() && !isPC() && editorEl && !window._fixedEls) {
         const tr = editorEl.querySelector('.ed-topbar-right'), tp = editorEl.querySelector('.col-header.ed-topbar');
         if (tr) { tr.classList.add('gesture-fixed'); document.body.appendChild(tr); }
         window._fixedEls = { tr, parent: tp };

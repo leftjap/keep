@@ -47,6 +47,16 @@ async function showApp() {
   SYNC.setSyncStatus('동기화 중', 'syncing');
   await SYNC.loadDatabase();
   injectMockData();
+  // gesture-fixed로 body에 빠져나간 ed-topbar-right 복원
+  const strayTopbarRight = document.querySelector('body > .ed-topbar-right, .ed-topbar-right.gesture-fixed');
+  if (strayTopbarRight) {
+    strayTopbarRight.classList.remove('gesture-fixed');
+    const topbar = document.querySelector('.col-header.ed-topbar');
+    if (topbar) {
+      const rightContainer = topbar.querySelector('.ed-topbar-right');
+      if (!rightContainer) topbar.appendChild(strayTopbarRight);
+    }
+  }
   init();
   loading.style.opacity = '0';
   setTimeout(() => {

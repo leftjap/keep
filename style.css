@@ -348,7 +348,8 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 @media(min-width:1401px){
   .ed-tab-label-wrap{display:none!important}
 }
-.ed-topbar-right{display:flex;gap:6px;align-items:center;position:relative;z-index:5}
+.ed-topbar-right{display:flex;gap:6px;align-items:center;position:relative;z-index:5;flex-shrink:0}
+
 .ed-btn-done{display:none}
 
 .ed-more-btn{
@@ -652,7 +653,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
     width:240px!important;max-width:240px!important;min-width:240px!important;
     background:#2c2c2e;border-right:none;
     transform:translateX(-240px);z-index:40;
-    transition:transform .45s cubic-bezier(.32,.72,.40,1);
+    transition:transform .585s cubic-bezier(.32,.72,.40,1);
     will-change:transform;
     backface-visibility:hidden;
     -webkit-backface-visibility:hidden;
@@ -667,7 +668,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
     width:300px!important;min-width:300px!important;max-width:300px!important;
     border-right:1px solid var(--border);
     transform:translateX(0);z-index:20;
-    transition:transform .45s cubic-bezier(.32,.72,.40,1);
+    transition:transform .585s cubic-bezier(.32,.72,.40,1);
     will-change:transform;
     backface-visibility:hidden;
     -webkit-backface-visibility:hidden;
@@ -689,7 +690,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
     min-width:0;z-index:10;
     padding-left:0;
     padding-top:env(safe-area-inset-top, 0px);
-    transition:transform .45s cubic-bezier(.32,.72,.40,1), width .45s cubic-bezier(.32,.72,.40,1);
+    transition:transform .585s cubic-bezier(.32,.72,.40,1), width .585s cubic-bezier(.32,.72,.40,1);
     will-change:transform, width;
     transform:translateX(300px);
     backface-visibility:hidden;
@@ -726,7 +727,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
     z-index:9000 !important;
   }
   .app.gesture-animating .editor{
-    transition:transform .45s cubic-bezier(.25,.46,.45,.94), width .45s cubic-bezier(.25,.46,.45,.94), left .45s cubic-bezier(.25,.46,.45,.94) !important;
+    transition:transform .585s cubic-bezier(.25,.46,.45,.94), width .585s cubic-bezier(.25,.46,.45,.94), left .585s cubic-bezier(.25,.46,.45,.94) !important;
   }
   .app.gesture-active .editor .editor-scroll-area,
   .app.gesture-active .editor .ed-body,
@@ -779,7 +780,8 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   .vs-btn svg{width:22.5px;height:22.5px}
   .search-icon-btn{width:52px;height:52px}
   .search-icon-btn svg{width:25px;height:25px}
-  .ed-topbar{height:90px;min-height:90px;box-shadow:none;padding:0 20px}
+  .ed-topbar{height:90px;min-height:90px;box-shadow:none;padding:0 20px;overflow:visible!important}
+  .ed-topbar-right{flex-shrink:0!important;position:relative;z-index:10}
   .ed-more-btn{width:52px!important;height:52px!important;border-radius:12px!important}
   .ed-more-btn svg{width:28px!important;height:28px!important}
   .ed-aa-btn{width:52px!important;height:52px!important;border-radius:12px!important}
@@ -790,7 +792,16 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   .ed-tab-label-text{font-size:17px}
   .ed-btn-done{display:none}
   .pc-only{display:flex!important}
-  .fab-btn{display:flex!important;position:absolute;bottom:20px;right:16px}
+  .fab-btn{display:none!important}
+  .ed-new-btn{
+    display:flex!important;
+    width:44px;height:44px;
+    background:var(--tab-color);border:none;border-radius:12px;cursor:pointer;
+    color:#fff;align-items:center;justify-content:center;
+    box-shadow:0 1px 4px rgba(0,0,0,.15);flex-shrink:0;transition:.15s;
+  }
+  .ed-new-btn:hover{opacity:.85;transform:scale(1.05)}
+  .ed-new-btn svg{width:19px;height:19px;stroke:white;stroke-width:2.2;fill:none}
 
   .list-panel{touch-action:manipulation}
   .pane-list{touch-action:manipulation}
@@ -907,7 +918,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
     width:calc(100% - 72px)!important;max-width:340px!important;min-width:0!important;
 
     z-index:30;transform:translateX(-100%);
-    transition:transform .32s cubic-bezier(.2,.8,.2,1);
+    transition:transform .585s cubic-bezier(.25,.46,.45,.94);
     background:#2c2c2e;border-right:none;box-shadow:none;
   }
   .app.view-side .side{transform:translateX(0);box-shadow:4px 0 20px rgba(0,0,0,.3)}
@@ -915,7 +926,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   .list-panel{
     width:100%!important;max-width:100%!important;min-width:0!important;
     border-right:none;
-    transition:transform .35s cubic-bezier(.25,.1,.25,1),opacity .35s;
+    transition:transform .585s cubic-bezier(.25,.46,.45,.94),opacity .585s cubic-bezier(.25,.46,.45,.94);
     padding-top:env(safe-area-inset-top, 0px);
   }
   .app.view-side .list-panel{opacity:.5;pointer-events:none}  .app.view-list .list-panel{transform:translateX(0);opacity:1}
@@ -923,7 +934,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   .editor{
     position:fixed;top:0;left:0;right:0;bottom:0;z-index:20;
     transform:translateX(100%);
-    transition:transform .35s cubic-bezier(.25,.1,.25,1);
+    transition:transform .585s cubic-bezier(.25,.46,.45,.94);
     padding-top:env(safe-area-inset-top, 0px);
   }
   .app.view-editor .editor{transform:translateX(0)}
@@ -1507,7 +1518,9 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   }
   .editor{
     flex:1 !important;
-    min-width:0 !important;
+    min-width:200px !important;
+    overflow-x:visible !important;
+    overflow-y:hidden !important;
   }
 
   /* 버튼: PC 토글 보이기, 모바일 버튼 숨기기 */
@@ -1516,7 +1529,18 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   .mobile-back-btn{display:none !important}
   .ed-btn-done{display:none !important}
   .pc-only{display:flex !important}
-  .fab-btn{display:none !important}
+  .fab-btn{display:none!important}
+  .ed-new-btn{
+    display:flex!important;
+    width:40px;height:40px;
+    background:var(--tab-color);border:none;border-radius:10px;cursor:pointer;
+    color:#fff;align-items:center;justify-content:center;
+    box-shadow:0 1px 4px rgba(0,0,0,.15);flex-shrink:0;transition:.15s;
+  }
+  .ed-new-btn:hover{opacity:.85;transform:scale(1.05)}
+  .ed-new-btn svg{width:17px;height:17px;stroke:white;stroke-width:2.2;fill:none}
+  .ed-topbar{overflow:visible!important;position:relative!important;z-index:20!important;width:100%!important}
+  .ed-topbar-right{flex-shrink:0!important;position:relative!important;z-index:20!important;overflow:visible!important}
 
   /* ── 사이드바 다크 테마 (모바일과 동일) ── */
   .side .side-hdr{
@@ -1627,7 +1651,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   display:block;pointer-events:auto;
 }
 /* ═══ Bear 스타일 FAB + 에디터 새글버튼 숨김 ═══ */
-.ed-new-btn{display:none!important}
+.ed-new-btn{display:none}
 .fab-btn{
   display:flex;position:absolute;bottom:20px;right:16px;
   width:48px;height:48px;border-radius:50%;
@@ -1691,10 +1715,10 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   .aa-item{border-radius:8px}
 }
 @media(min-width:769px) and (max-width:1400px){
-  .fab-btn{display:flex;position:absolute;bottom:20px;right:16px}
+  .fab-btn{display:none!important}
 }
 @media(min-width:1401px){
-  .fab-btn{display:flex;position:absolute;bottom:20px;right:16px}
+  .fab-btn{display:none!important}
 }
 @media(max-width:768px){
   .fab-btn{
