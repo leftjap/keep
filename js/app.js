@@ -47,14 +47,12 @@ async function showApp() {
   SYNC.setSyncStatus('동기화 중', 'syncing');
   await SYNC.loadDatabase();
   injectMockData();
-  // gesture-fixed로 body에 빠져나간 ed-topbar-right 복원
-  const strayTopbarRight = document.querySelector('body > .ed-topbar-right, .ed-topbar-right.gesture-fixed');
-  if (strayTopbarRight) {
-    strayTopbarRight.classList.remove('gesture-fixed');
-    const topbar = document.querySelector('.col-header.ed-topbar');
-    if (topbar) {
-      const rightContainer = topbar.querySelector('.ed-topbar-right');
-      if (!rightContainer) topbar.appendChild(strayTopbarRight);
+  // 태블릿뷰: ed-topbar-right를 body로 이동하여 스와이프 영향 차단
+  if (window.innerWidth >= 769 && window.innerWidth <= 1400) {
+    const topbarRight = document.querySelector('.editor .ed-topbar-right');
+    if (topbarRight && topbarRight.parentElement !== document.body) {
+      topbarRight.classList.add('topbar-fixed');
+      document.body.appendChild(topbarRight);
     }
   }
   init();
@@ -75,6 +73,25 @@ async function showApp() {
     }
     // 태블릿+PC 제스처는 앱이 표시된 후에 초기화
     setupTabletPCGestures();
+
+    // 리사이즈 시 topbar-fixed 토글
+    window.addEventListener('resize', function() {
+      const tr = document.querySelector('.ed-topbar-right');
+      if (!tr) return;
+      const w = window.innerWidth;
+      if (w >= 769 && w <= 1400) {
+        if (!tr.classList.contains('topbar-fixed')) {
+          tr.classList.add('topbar-fixed');
+          document.body.appendChild(tr);
+        }
+      } else {
+        if (tr.classList.contains('topbar-fixed')) {
+          tr.classList.remove('topbar-fixed');
+          const topbar = document.querySelector('.col-header.ed-topbar');
+          if (topbar && !topbar.querySelector('.ed-topbar-right')) topbar.appendChild(tr);
+        }
+      }
+    });
   }, 400);
 }
 

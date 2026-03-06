@@ -138,13 +138,7 @@ window.addEventListener('resize', () => {
 
 function switchTab(t, keepLayout) {
   if (textTypes.includes(activeTab)) saveCurDoc(activeTab);
-  // gesture-fixed로 빠져나간 ed-topbar-right 복원
-  const stray = document.querySelector('body > .ed-topbar-right, .ed-topbar-right.gesture-fixed');
-  if (stray) {
-    stray.classList.remove('gesture-fixed');
-    const topbar = document.querySelector('.col-header.ed-topbar');
-    if (topbar && !topbar.querySelector('.ed-topbar-right')) topbar.appendChild(stray);
-  }
+  // 태블릿: topbar-fixed 버튼은 body에 유지
   activeTab = t;
   applyTabColor(t);
   updateEdTabLabel();

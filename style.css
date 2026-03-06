@@ -716,16 +716,6 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
     -webkit-transition:none !important;
     will-change:transform !important;
   }
-  .ed-topbar-right.gesture-fixed{
-    position:fixed !important;
-    right:16px !important;
-    top:0 !important;
-    height:calc(90px + env(safe-area-inset-top, 0px)) !important;
-    display:flex !important;
-    align-items:center !important;
-    gap:6px !important;
-    z-index:9000 !important;
-  }
   .app.gesture-animating .editor{
     transition:transform .585s cubic-bezier(.25,.46,.45,.94), width .585s cubic-bezier(.25,.46,.45,.94), left .585s cubic-bezier(.25,.46,.45,.94) !important;
   }
@@ -1727,6 +1717,20 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
     width:52px;height:52px;
   }
   .fab-btn svg{width:22px;height:22px}
+}
+/* ═══ 태블릿 topbar 고정 (미디어쿼리 밖) ═══ */
+.ed-topbar-right.topbar-fixed{
+  position:fixed !important;
+  right:20px !important;
+  top:0 !important;
+  height:calc(90px + env(safe-area-inset-top, 0px)) !important;
+  padding-top:env(safe-area-inset-top, 0px) !important;
+  display:flex !important;
+  align-items:center !important;
+  gap:6px !important;
+  z-index:9000 !important;
+  pointer-events:auto !important;
+  width:auto !important;
 }
 
 

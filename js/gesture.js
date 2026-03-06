@@ -366,16 +366,7 @@ function setupTabletPCGestures() {
   }
 
   function restoreFixedEls() {
-    const f = window._fixedEls; if (!f) return;
-    if (f.tr) { f.tr.classList.remove('gesture-fixed'); if (f.parent && !f.parent.contains(f.tr)) f.parent.appendChild(f.tr); }
     window._fixedEls = null;
-    // 안전장치: body에 남아있는 ed-topbar-right도 복원
-    const stray = document.querySelector('body > .ed-topbar-right');
-    if (stray) {
-      stray.classList.remove('gesture-fixed');
-      const topbar = document.querySelector('.col-header.ed-topbar');
-      if (topbar && !topbar.querySelector('.ed-topbar-right')) topbar.appendChild(stray);
-    }
   }
 
   function resetState() {
@@ -590,11 +581,7 @@ function setupTabletPCGestures() {
       const valid = isTablet() ? isValidTabletGesture(startState, panel, dir) : (isPC() ? isValidPCGesture(startState, panel, dir) : false);
       if (!valid) { tracking = false; swiping = false; decided = false; return; }
       swiping = true;
-      if (isTablet() && !isPC() && editorEl && !window._fixedEls) {
-        const tr = editorEl.querySelector('.ed-topbar-right'), tp = editorEl.querySelector('.col-header.ed-topbar');
-        if (tr) { tr.classList.add('gesture-fixed'); document.body.appendChild(tr); }
-        window._fixedEls = { tr, parent: tp };
-      }
+      // 버튼 고정은 tabletMove 내 fixBtns에서 역방향 보정으로 처리
     }
     if (swiping && e && e.cancelable) {
       e.preventDefault(); e.stopPropagation();
