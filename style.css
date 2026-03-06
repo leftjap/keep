@@ -1638,6 +1638,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 }
 @media(max-width:768px){
   .swipe-edge{top:56px;pointer-events:auto;}
+  .edge-swipe-zone.edge-left{top:56px;}
 }
 
 /* ═══ 스와이프 캡처 오버레이 ═══ */

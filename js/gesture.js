@@ -105,8 +105,8 @@ function setupGesturesAndUI() {
     if (e.cancelable) e.preventDefault();
     window._mobileLastDx = e.touches[0].clientX - startX;
 
-    const vw   = window.innerWidth;
-    const sideW = sideEl ? Math.min(sideEl.offsetWidth, vw * 0.82) : vw * 0.75;
+    var _vw   = window.innerWidth;
+    var _sideW = sideEl ? Math.min(sideEl.offsetWidth, _vw * 0.82) : _vw * 0.75;
 
     if (startState === 'side' && swipeDir === 'right') {
       const maxRubber = 80, raw = Math.max(0, dx);
@@ -117,14 +117,14 @@ function setupGesturesAndUI() {
       if (sh) sh.style.transform = `translate3d(${rubberDx}px,0,0)`;
       if (ss) ss.style.transform = `translate3d(${rubberDx}px,0,0)`;
     } else if (startState === 'side' && swipeDir === 'left') {
-      const move = Math.max(-sideW, Math.min(0, dx));
-      const prog = Math.abs(move) / sideW;
+      const move = Math.max(-_sideW, Math.min(0, dx));
+      const prog = Math.abs(move) / _sideW;
       if (sideEl) sideEl.style.transform = `translate3d(${move}px,0,0)`;
-      if (listEl) { listEl.style.transform = `translate3d(${Math.max(0, sideW + dx)}px,0,0)`; listEl.style.opacity = String(Math.min(1, 0.4 + prog * 0.6)); }
+      if (listEl) { listEl.style.transform = `translate3d(${Math.max(0, _sideW + dx)}px,0,0)`; listEl.style.opacity = String(Math.min(1, 0.4 + prog * 0.6)); }
     } else if (startState === 'list' && swipeDir === 'right') {
-      const move = Math.max(0, Math.min(dx, sideW));
-      const prog = move / sideW;
-      if (sideEl) sideEl.style.transform = `translate3d(${-sideW + move}px,0,0)`;
+      const move = Math.max(0, Math.min(dx, _sideW));
+      const prog = move / _sideW;
+      if (sideEl) sideEl.style.transform = `translate3d(${-_sideW + move}px,0,0)`;
       if (listEl) { listEl.style.transform = `translate3d(${move}px,0,0)`; listEl.style.opacity = String(Math.max(0.5, 1 - prog * 0.5)); }
     } else if (startState === 'editor' && swipeDir === 'left') {
       const maxRubber = 80, raw = Math.max(0, Math.abs(dx));
@@ -136,9 +136,9 @@ function setupGesturesAndUI() {
       const shift = `translate3d(-${rubberDx}px,0,0)`;
       edEls.forEach(el => { if (el) el.style.transform = shift; });
     } else if (startState === 'editor' && swipeDir === 'right') {
-      const move = Math.max(0, Math.min(dx, vw));
+      const move = Math.max(0, Math.min(dx, _vw));
       if (editorEl) editorEl.style.transform = `translate3d(${move}px,0,0)`;
-      if (listEl)   { listEl.style.transform = `translate3d(${-vw * 0.3 + move * 0.3}px,0,0)`; listEl.style.opacity = String(Math.min(1, 0.6 + move / vw * 0.4)); }
+      if (listEl)   { listEl.style.transform = `translate3d(${-_vw * 0.3 + move * 0.3}px,0,0)`; listEl.style.opacity = String(Math.min(1, 0.6 + move / _vw * 0.4)); }
     }
   }, { capture: true, passive: false });
 
@@ -150,22 +150,61 @@ function setupGesturesAndUI() {
     const mVelocity  = elapsed > 0 ? Math.abs(dx) / elapsed : 0;
     const savedState = startState, savedDir = swipeDir;
     swiping = false; swipeDir = null; decided = false; startState = null;
-    const vw = window.innerWidth;
-    const sideW = sideEl ? Math.min(sideEl.offsetWidth, vw * 0.82) : vw * 0.75;
-    const totalDist = (savedState === 'editor') ? vw : sideW;
-    const pctMoved = Math.abs(dx) / totalDist;
+    var _vw2 = window.innerWidth;
+    var _sideW2 = sideEl ? Math.min(sideEl.offsetWidth, _vw2 * 0.82) : _vw2 * 0.75;
+    var totalDist = (savedState === 'editor') ? _vw2 : _sideW2;
+    var pctMoved = Math.abs(dx) / totalDist;
     let didSwipe = false;
-    if (savedState === 'side'   && savedDir === 'left'  && (pctMoved > 0.5 || (mVelocity > 0.5 && pctMoved > 0.2))) didSwipe = true;
-    else if (savedState === 'list'   && savedDir === 'right' && (pctMoved > 0.5 || (mVelocity > 0.5 && pctMoved > 0.2))) didSwipe = true;
-    else if (savedState === 'editor' && savedDir === 'right' && (pctMoved > 0.5 || (mVelocity > 0.5 && pctMoved > 0.2))) didSwipe = true;
+    if (savedState === 'side'   && savedDir === 'left'  && (pctMoved > 0.4 || (mVelocity > 0.5 && pctMoved > 0.2))) didSwipe = true;
+    else if (savedState === 'list'   && savedDir === 'right' && (pctMoved > 0.4 || (mVelocity > 0.5 && pctMoved > 0.2))) didSwipe = true;
+    else if (savedState === 'editor' && savedDir === 'right' && (pctMoved > 0.4 || (mVelocity > 0.5 && pctMoved > 0.2))) didSwipe = true;
 
     if ((savedState === 'side' && savedDir === 'right') || (savedState === 'editor' && savedDir === 'left')) {
       animateBack();
     } else if (didSwipe) {
-      if (savedState === 'list')   app.classList.add('view-side');
-      else if (savedState === 'side') app.classList.remove('view-side');
-      cleanStyles();
-      if (savedState === 'editor') handleDone();
+      if (savedState === 'editor') {
+        var curEditorX = editorEl ? editorEl.getBoundingClientRect().left : 0;
+        var curListX = listEl ? listEl.getBoundingClientRect().left : 0;
+        var curListOpacity = listEl ? (listEl.style.opacity || '1') : '1';
+        allEls.forEach(function(el) { if (el) el.style.transition = 'none'; });
+        if (editorEl) {
+          editorEl.style.transform = 'translate3d(' + curEditorX + 'px,0,0)';
+          editorEl.style.visibility = 'visible';
+        }
+        if (listEl) { listEl.style.transform = 'translate3d(' + curListX + 'px,0,0)'; listEl.style.opacity = curListOpacity; }
+        if (document.activeElement) document.activeElement.blur();
+        app.classList.remove('view-side','view-list','view-editor');
+        app.classList.add('view-list');
+        void (editorEl && editorEl.offsetHeight);
+        var remainDur = Math.max(0.2, 0.4 * (1 - pctMoved));
+        var remainStr = remainDur.toFixed(2) + 's';
+        var remainCurve = 'cubic-bezier(.25,.46,.45,.94)';
+        var remainT = 'transform ' + remainStr + ' ' + remainCurve + ', opacity ' + remainStr + ' ' + remainCurve + ', visibility 0s ' + remainStr;
+        allEls.forEach(function(el) { if (el) el.style.transition = remainT; });
+        requestAnimationFrame(function() {
+          if (editorEl) editorEl.style.transform = '';
+          if (listEl) { listEl.style.transform = ''; listEl.style.opacity = ''; }
+          setTimeout(function() {
+            allEls.forEach(function(el) { if (el) { el.style.transition = ''; el.style.visibility = ''; } });
+            var vs = document.getElementById('viewSwitcher');
+            if (vs && document.getElementById('pane-routine').style.display === 'none') vs.style.display = 'flex';
+          }, Math.round(remainDur * 1000) + 50);
+        });
+      } else {
+        allEls.forEach(function(el) { if (el) el.style.transition = 'none'; });
+        cleanStyles();
+        allEls.forEach(function(el) { if (el) el.style.transition = 'none'; });
+        if (savedState === 'list') {
+          app.classList.add('view-side');
+        } else if (savedState === 'side') {
+          app.classList.remove('view-side');
+        }
+        requestAnimationFrame(function() {
+          requestAnimationFrame(function() {
+            allEls.forEach(function(el) { if (el) el.style.transition = ''; });
+          });
+        });
+      }
     } else {
       animateBack();
     }
