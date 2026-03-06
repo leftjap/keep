@@ -27,6 +27,11 @@ function toggleDay(id, dateStr) {
   S(K.checks, d);
   renderChk();
   renderRoutineRing();
+  if (document.getElementById('pane-routine') && document.getElementById('pane-routine').style.display !== 'none') {
+    renderRoutineCardBody();
+    renderStreakCard();
+    renderMonthlyCard();
+  }
   clearTimeout(_chkT);
   _chkT = setTimeout(() => {
     SYNC.saveChecksToSheet(dateStr, d[dateStr]);
