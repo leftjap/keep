@@ -1209,7 +1209,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 .streak-info{font-size:12px;color:var(--tx-m);font-family:'JetBrains Mono',monospace;order:3;white-space:nowrap}
 .streak-days{font-size:22px;font-weight:300;color:var(--tx);display:block;line-height:1;letter-spacing:-1px}
 .streak-row:not(.broken) .streak-days{color:var(--tab-color)}
-.streak-row.broken{opacity:.65}
+.streak-row.broken{opacity:.85}
 .streak-row.broken .streak-name{color:var(--tx-m)}
 .streak-row.broken .streak-info{color:var(--tx-m)}
 
