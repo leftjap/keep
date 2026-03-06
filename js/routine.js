@@ -62,6 +62,9 @@ function showRoutineCard() {
   if (!pane) return;
   pane.style.display = 'flex';
   pane.style.flexDirection = 'column';
+  document.getElementById('pane-list').style.display = 'none';
+  document.getElementById('pane-photo').style.display = 'none';
+  document.getElementById('pane-calendar').style.display = 'none';
   const vs = document.getElementById('viewSwitcher');
   if (vs) vs.style.display = 'none';
   const fab = document.querySelector('.fab-btn');
@@ -82,6 +85,9 @@ function showRoutineCard() {
 function hideRoutineCard() {
   const pane = document.getElementById('pane-routine');
   if (pane) pane.style.display = 'none';
+  if (currentListView === 'list') document.getElementById('pane-list').style.display = 'flex';
+  else if (currentListView === 'photo') document.getElementById('pane-photo').style.display = 'block';
+  else if (currentListView === 'calendar') document.getElementById('pane-calendar').style.display = 'block';
   const vs = document.getElementById('viewSwitcher');
   if (vs) vs.style.display = 'flex';
   const fab = document.querySelector('.fab-btn');
