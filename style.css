@@ -1002,14 +1002,14 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   .app.view-side .edge-swipe-zone{display:none}
   .app.view-editor .edge-swipe-zone{display:none}
   .fab-btn{
-    display:flex;position:fixed;bottom:24px;right:20px;
-    width:52px;height:52px;border-radius:50%;
+    display:flex;position:fixed;bottom:48px;right:40px;
+    width:68px;height:68px;border-radius:50%;
     background:var(--tab-color);color:white;border:none;cursor:pointer;
     align-items:center;justify-content:center;
     box-shadow:0 4px 16px rgba(0,0,0,.2);z-index:15;transition:.2s;
   }
   .fab-btn:active{transform:scale(.92)}
-  .fab-btn svg{width:22px;height:22px;stroke:currentColor;stroke-width:2.2;fill:none}
+  .fab-btn svg{width:29px;height:29px;stroke:currentColor;stroke-width:2.2;fill:none}
 
   .lp-hdr{height:56px;min-height:56px;padding:0 10px}
   .sb-toggle{width:44px;height:44px}
@@ -1762,10 +1762,10 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 }
 @media(max-width:768px){
   .fab-btn{
-    position:fixed;bottom:24px;right:20px;
-    width:52px;height:52px;
+    position:fixed;bottom:48px;right:40px;
+    width:68px;height:68px;
   }
-  .fab-btn svg{width:22px;height:22px}
+  .fab-btn svg{width:29px;height:29px}
 }
 /* ═══ 태블릿 topbar 고정 (미디어쿼리 밖) ═══ */
 .ed-topbar-right.topbar-fixed{
