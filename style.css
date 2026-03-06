@@ -980,7 +980,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   /* 기록 통계 다크 */
   .side .stats-wrap{padding:0}
   .side .stat-col{padding:8px 10px}
-  .side .stat-label{color:rgba(255,255,255,.5);font-size:14px}
+  .side .stat-label{color:rgba(255,255,255,.9);font-size:14px}
   .side .stat-big{color:rgba(255,255,255,.95);font-size:19px}
   .side .stat-big .unit{color:rgba(255,255,255,.5)}
   .side .stat-sub{color:rgba(255,255,255,.4);font-size:12px}
@@ -1597,7 +1597,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   /* 기록 통계 다크 */
   .side .stats-wrap{padding:0 !important}
   .side .stat-col{padding:8px 10px !important}
-  .side .stat-label{color:rgba(255,255,255,.5) !important;font-size:14px !important}
+  .side .stat-label{color:rgba(255,255,255,.9) !important;font-size:14px !important}
   .side .stat-big{color:rgba(255,255,255,.95) !important}
   .side .stat-big .unit{color:rgba(255,255,255,.5) !important}
   .side .stat-sub{color:rgba(255,255,255,.4) !important;font-size:12px !important}
