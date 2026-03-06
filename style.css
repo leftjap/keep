@@ -1158,7 +1158,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   background:var(--bg);border:1px solid var(--border-l);
 }
 .routine-card-body .chk-left{width:62px}
-.routine-card-body .chk-lb{font-size:16px;font-weight:500;color:var(--tx)}
+.routine-card-body .chk-lb{font-size:15px;font-weight:400;color:var(--tx)}
 .routine-card-body .chk-pct{font-size:8px;top:4px;left:6px}
 .routine-card-body .chk-week-hdr .day-lbl{font-size:10px}
 .routine-card-body .chk-week-hdr-spacer{width:62px}
@@ -1203,7 +1203,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 .streak-title span{display:none}
 .streak-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px}
 .streak-row{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:12px 6px;border-radius:10px;background:var(--bg);border:1px solid var(--border-l);text-align:center;min-height:72px}
-.streak-name{font-size:14px;color:var(--tx-m);font-weight:500;order:2}
+.streak-name{font-size:13px;color:var(--tx-m);font-weight:400;order:2}
 .streak-bar-wrap{display:none}
 .streak-bar{display:none}
 .streak-info{font-size:12px;color:var(--tx-hint);font-family:'JetBrains Mono',monospace;order:3;white-space:nowrap}
@@ -1268,7 +1268,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   flex-shrink:0;
 }
 .streak-hero-text{display:flex;flex-direction:column;gap:2px}
-.streak-hero-name{font-size:17px;font-weight:600;color:var(--tx)}
+.streak-hero-name{font-size:16px;font-weight:400;color:var(--tx)}
 .streak-hero-sub{font-size:13px;color:var(--tx-m);font-weight:400}
 
 /* ═══ 월간 리듬 차트 ═══ */
