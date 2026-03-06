@@ -1115,6 +1115,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 .pane-routine{
   padding:0;
   flex:1;
+  min-height:0;
   overflow-y:auto;
   background:var(--bg-white);
   position:relative;
