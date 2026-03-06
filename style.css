@@ -1705,6 +1705,39 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   .aa-menu{top:56px;right:50px;width:190px;padding:8px}
   .aa-item{border-radius:8px}
 }
+/* ═══ Aa 팝업 내부 그리드 (더보기 팝업과 동일 시스템 사용) ═══ */
+.aa-popup-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:6px;
+  padding:16px 18px;
+}
+.aa-popup-item{
+  display:flex;align-items:center;justify-content:center;
+  width:100%;aspect-ratio:1;
+  background:var(--bg);border:1px solid var(--border-l);border-radius:12px;
+  cursor:pointer;color:var(--tx-d);transition:.12s;
+  font-size:15px;
+}
+.aa-popup-item:hover{background:rgba(0,0,0,.06);border-color:var(--border)}
+.aa-popup-item:active{background:rgba(0,0,0,.1)}
+.aa-popup-item svg{
+  width:20px;height:20px;stroke:currentColor;stroke-width:1.6;
+  fill:none;stroke-linecap:round;stroke-linejoin:round;
+}
+.aa-popup-icon{font-family:'Noto Serif KR',serif;font-size:17px;font-weight:700;color:var(--tx-d);line-height:1}
+.aa-popup-icon sub{font-size:10px;font-weight:600;vertical-align:baseline;position:relative;top:2px}
+
+.aa-h-icon{
+  font-family:'Noto Serif KR',serif;
+  font-size:16px;font-weight:600;color:var(--tx-hint);
+  letter-spacing:-.5px;line-height:1;flex-shrink:0;
+  opacity:.45;margin-left:auto;
+}
+.aa-h-icon sub{
+  font-size:10px;font-weight:500;
+  vertical-align:baseline;position:relative;top:1px;
+  margin-left:0px;
+}
+
 @media(min-width:769px) and (max-width:1400px){
   .fab-btn{display:none!important}
 }

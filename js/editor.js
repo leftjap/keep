@@ -34,14 +34,71 @@ function setupEnterKey() {
 // ═══ Aa 서식 메뉴 ═══
 function toggleAaMenu(e) {
   e.stopPropagation();
-  const menu   = document.getElementById('aaDropdownMenu');
   const edMenu = document.getElementById('editorDropdownMenu');
   const tabDD  = document.getElementById('edTabDropdown');
-  const overlay = document.getElementById('lpPopupOverlay');
+  const oldAa  = document.getElementById('aaDropdownMenu');
   if (edMenu)  edMenu.classList.remove('open');
   if (tabDD)   tabDD.classList.remove('open');
-  if (overlay && overlay.classList.contains('open')) closeLpPopup();
-  menu.classList.toggle('open');
+  if (oldAa)   oldAa.classList.remove('open');
+
+  const overlay = document.getElementById('lpPopupOverlay');
+  if (overlay && overlay.classList.contains('open')) { closeLpPopup(); return; }
+
+  const menuEl = document.getElementById('lpPopupMenu');
+  menuEl.innerHTML = `
+    <div class="lp-popup-menu-item" onclick="aaPopupAction('h1')"><span>제목</span><div class="aa-h-icon">H<sub>1</sub></div></div>
+    <div class="lp-popup-menu-item" onclick="aaPopupAction('h2')"><span>부제목</span><div class="aa-h-icon">H<sub>2</sub></div></div>
+    <div class="lp-popup-menu-item" onclick="aaPopupAction('h3')"><span>소제목</span><div class="aa-h-icon">H<sub>3</sub></div></div>
+    <div class="lp-popup-sep"></div>
+    <div class="lp-popup-menu-item" onclick="aaPopupAction('ul')"><span>리스트</span><svg viewBox="0 0 24 24"><line x1="9" y1="6" x2="21" y2="6"/><line x1="9" y1="12" x2="21" y2="12"/><line x1="9" y1="18" x2="21" y2="18"/><circle cx="4" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1.5" fill="currentColor" stroke="none"/></svg></div>
+    <div class="lp-popup-menu-item" onclick="aaPopupAction('ol')"><span>번호</span><svg viewBox="0 0 24 24"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><text x="2" y="9" font-size="8" font-family="sans-serif" stroke="none" fill="currentColor" font-weight="700">1.</text><text x="2" y="15" font-size="8" font-family="sans-serif" stroke="none" fill="currentColor" font-weight="700">2.</text><text x="2" y="21" font-size="8" font-family="sans-serif" stroke="none" fill="currentColor" font-weight="700">3.</text></svg></div>
+    <div class="lp-popup-menu-item" onclick="aaPopupAction('check')"><span>체크박스</span><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+    <div class="lp-popup-sep"></div>
+    <div class="lp-popup-menu-item" onclick="aaPopupAction('quote')"><span>인용</span><svg viewBox="0 0 24 24"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg></div>
+    <div class="lp-popup-menu-item" onclick="aaPopupAction('hr')"><span>구분선</span><svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/></svg></div>`;
+
+  const aaBtn = e.currentTarget || e.target.closest('.ed-aa-btn');
+  const card  = document.getElementById('lpPopupCard');
+  if (aaBtn && card) {
+    const btnRect  = aaBtn.getBoundingClientRect();
+    const isMobile = window.innerWidth <= 768;
+    const cardW    = isMobile ? Math.min(260, window.innerWidth - 40) : Math.min(280, window.innerWidth - 32);
+    let left = btnRect.right - cardW;
+    if (left < 16) left = 16;
+    if (left + cardW > window.innerWidth - 16) left = window.innerWidth - cardW - 16;
+    let top = btnRect.bottom + 8;
+    if (top + 200 > window.innerHeight - 16) top = btnRect.top - 200 - 8;
+    if (top < 16) top = 16;
+    card.style.left  = left + 'px';
+    card.style.top   = top + 'px';
+    card.style.width = cardW + 'px';
+  }
+
+  window._liftedOriginal = null;
+  window._liftedClone    = null;
+  contextItemId   = null;
+  contextItemType = null;
+  overlay.classList.add('open');
+  requestAnimationFrame(() => { card.classList.add('open'); });
+}
+
+function aaPopupAction(type) {
+  closeLpPopup();
+  const target = activeTab === 'memo' ? document.getElementById('memo-body') : document.getElementById('edBody');
+  target.focus();
+  switch (type) {
+    case 'h1':    document.execCommand('formatBlock', false, '<h1>'); break;
+    case 'h2':    document.execCommand('formatBlock', false, '<h2>'); break;
+    case 'h3':    document.execCommand('formatBlock', false, '<h3>'); break;
+    case 'ul':    document.execCommand('insertUnorderedList'); break;
+    case 'ol':    document.execCommand('insertOrderedList'); break;
+    case 'check': insertChecklist(); break;
+    case 'quote': document.execCommand('formatBlock', false, '<blockquote>'); break;
+    case 'hr':    document.execCommand('insertHorizontalRule'); break;
+  }
+  updateWC();
+  if (textTypes.includes(activeTab)) saveCurDoc(activeTab);
+  else if (activeTab === 'memo') saveMemo();
 }
 
 function aaAction(type) {
