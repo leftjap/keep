@@ -486,7 +486,9 @@ function setupTabletPCGestures() {
       if (didSwipe && detailPane && detailPane.style.display !== 'none') {
         showExpenseDashboardFromDetail();
       } else if (didSwipe) {
-        if (typeof switchTab === 'function') switchTab('navi');
+        if (typeof switchTab === 'function') switchTab('navi', true);
+        app.classList.remove('tablet-list-closed');
+        app.classList.add('tablet-side-open');
       } else {
         // 스와이프 부족 — 원래 위치로
       }
