@@ -2190,7 +2190,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 
 /* ═══ 풀 대시보드 기본 스타일 ═══ */
 #expenseFullDashboard {
-  background: var(--bg);
+  background: var(--bg-white);
   overflow-y: auto;
   position: relative;
 }
@@ -2488,7 +2488,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 }
 
 .exp-two-col-card {
-  background: var(--bg);
+  background: none;
   border: 1px solid var(--border-l);
   border-radius: 14px;
   padding: 20px;

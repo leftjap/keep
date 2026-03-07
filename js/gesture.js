@@ -526,6 +526,10 @@ function setupTabletPCGestures() {
           restoreFixedEls();
           app.classList.remove('gesture-animating');
           if (typeof updateBackBtnIcon === 'function') updateBackBtnIcon();
+          // 가계부에서 스와이프로 빠져나온 경우 오늘의 네비로 복귀
+          if (typeof activeTab !== 'undefined' && activeTab === 'expense' && typeof switchTab === 'function') {
+            switchTab('navi');
+          }
         }, Math.max(cleanupDelay, 715));
       });
     });
@@ -570,8 +574,6 @@ function setupTabletPCGestures() {
   // ─── 공통 핸들러 ───
   function handleStart(x, y, target) {
     if (window.innerWidth <= 768 || window.innerWidth > 1400) return;
-    // ── 가계부 탭이면 제스처 비활성화 ──
-    if (typeof activeTab !== 'undefined' && activeTab === 'expense') return;
     window._gestureFromEditable = false;
     if (!canStartGesture(target)) return;
     const pn = findPanel(target); if (!pn) return;

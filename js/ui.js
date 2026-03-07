@@ -180,9 +180,14 @@ function switchTab(t, keepLayout) {
 
     if (w > 768) {
       // ── PC/태블릿 ──
-      // list-panel 숨기기
-      var listPanel = document.querySelector('.list-panel');
-      if (listPanel) listPanel.style.display = 'none';
+      // 가계부: list-panel을 CSS 클래스로 접어서 에디터 전체 너비
+      var app = document.getElementById('mainApp');
+      if (w >= 769 && w <= 1400) {
+        app.classList.remove('tablet-side-open');
+        app.classList.add('tablet-list-closed');
+      } else if (w > 1400) {
+        app.classList.add('list-closed');
+      }
 
       // editor 내부: 기존 에디터 패널 모두 숨기기
       document.getElementById('editorText').style.display = 'none';
@@ -231,8 +236,14 @@ function switchTab(t, keepLayout) {
     }
   } else {
     // ── 가계부에서 나올 때 복원 ──
-    var listPanel = document.querySelector('.list-panel');
-    if (listPanel) listPanel.style.display = '';
+    // 가계부에서 나올 때 list-panel 복원
+    var appEl = document.getElementById('mainApp');
+    var ww = window.innerWidth;
+    if (ww >= 769 && ww <= 1400) {
+      appEl.classList.remove('tablet-list-closed');
+    } else if (ww > 1400) {
+      appEl.classList.remove('list-closed');
+    }
 
     // 가계부 pane 숨기기
     document.getElementById('pane-expense-dashboard').style.display = 'none';
@@ -256,7 +267,7 @@ function switchTab(t, keepLayout) {
     switchListView('list');
   }
 
-  if (!keepLayout) {
+  if (!keepLayout && t !== 'expense') {
     const app = document.getElementById('mainApp');
     if (window.innerWidth >= 769 && window.innerWidth <= 1400 && app.classList.contains('tablet-side-open')) {
       app.classList.remove('tablet-side-open');
