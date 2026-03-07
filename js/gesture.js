@@ -178,13 +178,19 @@ function setupGesturesAndUI() {
     if ((savedState === 'side' && savedDir === 'right') || (savedState === 'editor' && savedDir === 'left')) {
       animateBack();
     } else if (didSwipe) {
-      // 가계부: 전체 내역(B) 보이는 상태에서 우 스와이프 → 대시보드(A)로
-      if (savedState === 'list' && savedDir === 'right'
+      // 가계부: 대시보드(A) 또는 전체 내역(B) 보이는 상태에서 우 스와이프 차단
+      if (savedDir === 'right'
           && typeof activeTab !== 'undefined' && activeTab === 'expense') {
         var mDetail = document.getElementById('pane-expense-detail');
-        if (mDetail && mDetail.style.display !== 'none') {
+        var mDetailVisible = mDetail && window.getComputedStyle(mDetail).display !== 'none';
+        if (mDetailVisible) {
+          // B→A: 전체 내역에서 대시보드로
           animateBack();
           setTimeout(function() { showExpenseDashboardFromDetailMobile(); }, 50);
+          return;
+        } else {
+          // A에서 우 스와이프: 사이드바 대신 무시
+          animateBack();
           return;
         }
       }
