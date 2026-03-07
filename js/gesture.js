@@ -636,7 +636,6 @@ function setupTabletPCGestures() {
     const pl = document.getElementById('pane-list');
     if (!tracking || !swiping || window.innerWidth <= 768) { resetState(); if (pl) pl.style.touchAction = ''; return; }
     const dx = x - sx;
-    console.log('[GESTURE END]', 'startState:', startState, 'dir:', dir, 'dx:', dx, 'tab:', typeof activeTab !== 'undefined' ? activeTab : 'N/A');
     if (isTablet()) tabletEnd(dx); else if (isPC()) pcEnd(dx);
     tracking = false; swiping = false; panel = null; dir = null; decided = false; startState = null; isMouse = false;
     if (pl) pl.style.touchAction = '';
