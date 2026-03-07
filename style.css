@@ -2471,6 +2471,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   display: flex;
   flex-direction: column;
   align-items: center;
+  background: var(--bg-white);
 }
 
 .expense-full-content {
