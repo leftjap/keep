@@ -474,6 +474,18 @@ function setupTabletPCGestures() {
       else if (startState === 'editor-only' && dir === 'right') targetState = 'list-editor';
     }
 
+    // 가계부: editor-only에서 우 스와이프 성공 시 사이드바+네비로 복귀
+    if (didSwipe && startState === 'editor-only' && dir === 'right'
+        && typeof activeTab !== 'undefined' && activeTab === 'expense') {
+      clearInlineStyles();
+      restoreFixedEls();
+      app.classList.remove('gesture-animating');
+      if (typeof switchTab === 'function') switchTab('navi');
+      app.classList.add('tablet-side-open');
+      tracking = false; swiping = false; panel = null; dir = null; decided = false; startState = null; isMouse = false;
+      return;
+    }
+
     // 고무줄 스프링백 처리
     if ((startState === 'side-open' && dir === 'right') || (startState === 'editor-only' && dir === 'left')) {
       const rbDur = Math.max(0.845, 1.235 * (1 - Math.min(velocity, 1) * 0.25));
