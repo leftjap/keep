@@ -526,9 +526,9 @@ function setupTabletPCGestures() {
           restoreFixedEls();
           app.classList.remove('gesture-animating');
           if (typeof updateBackBtnIcon === 'function') updateBackBtnIcon();
-          // 가계부에서 스와이프로 빠져나온 경우 오늘의 네비로 복귀
           if (typeof activeTab !== 'undefined' && activeTab === 'expense' && typeof switchTab === 'function') {
             switchTab('navi');
+            app.classList.add('tablet-side-open');
           }
         }, Math.max(cleanupDelay, 715));
       });

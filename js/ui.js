@@ -206,7 +206,7 @@ function switchTab(t, keepLayout) {
       if (fab) fab.style.display = 'none';
 
       // 원페이지 대시보드 렌더
-      renderExpenseFullDashboard();
+      renderExpenseDashboard('pc');
     } else {
       // ── 모바일 ──
       // editorExpense 표시, 입력 폼 렌더
