@@ -397,7 +397,8 @@ function setupTabletPCGestures() {
     if (target.closest('input') || target.closest('textarea')) return false;
     if (target.closest('.swipe-actions') || target.closest('#swipeOverlay')) return false;
     if (target.closest('.chk-dot') || target.closest('.tb-btn') || target.closest('.tb-heading-btn')) return false;
-    if (target.closest('button') || target.closest('.ed-title') || target.closest('.special-form')) return false;
+    if (target.closest('.exp-item') || target.closest('.exp-more-btn')) return false;
+    if (target.closest('button:not(.exp-month-nav-btn)') || target.closest('.ed-title') || target.closest('.special-form')) return false;
     if (target.closest('[contenteditable="true"]')) {
       if (isTablet() && !isMouse && editorEl) window._gestureFromEditable = true;
       else return false;
@@ -635,6 +636,7 @@ function setupTabletPCGestures() {
     const pl = document.getElementById('pane-list');
     if (!tracking || !swiping || window.innerWidth <= 768) { resetState(); if (pl) pl.style.touchAction = ''; return; }
     const dx = x - sx;
+    console.log('[GESTURE END]', 'startState:', startState, 'dir:', dir, 'dx:', dx, 'tab:', typeof activeTab !== 'undefined' ? activeTab : 'N/A');
     if (isTablet()) tabletEnd(dx); else if (isPC()) pcEnd(dx);
     tracking = false; swiping = false; panel = null; dir = null; decided = false; startState = null; isMouse = false;
     if (pl) pl.style.touchAction = '';
