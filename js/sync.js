@@ -63,6 +63,7 @@ const SYNC = {
         if (db[K.quotes])  S(K.quotes,  db[K.quotes]);
         if (db[K.memos])   S(K.memos,   db[K.memos]);
         if (db[K.checks])  S(K.checks,  db[K.checks]);
+        if (db[K.expenses]) S(K.expenses, db[K.expenses]);
         this.isDbLoaded = true;
         this.setSyncStatus('동기화 완료', 'ok');
       } else {
@@ -81,11 +82,12 @@ const SYNC = {
     if (!this.isDbLoaded) return;
     try {
       const dbData = {
-        [K.docs]:   L(K.docs)   || [],
-        [K.books]:  L(K.books)  || [],
-        [K.memos]:  L(K.memos)  || [],
-        [K.quotes]: L(K.quotes) || [],
-        [K.checks]: L(K.checks) || {}
+        [K.docs]:      L(K.docs)      || [],
+        [K.books]:     L(K.books)     || [],
+        [K.memos]:     L(K.memos)     || [],
+        [K.quotes]:    L(K.quotes)    || [],
+        [K.checks]:    L(K.checks)    || {},
+        [K.expenses]:  L(K.expenses)  || []
       };
       await this._post({ action: 'save_db', dbData });
     } catch (e) {

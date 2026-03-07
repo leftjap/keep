@@ -147,11 +147,37 @@ function switchTab(t, keepLayout) {
   document.getElementById('editorBook').style.display  = t === 'book'  ? 'flex' : 'none';
   document.getElementById('editorQuote').style.display = t === 'quote' ? 'flex' : 'none';
   document.getElementById('editorMemo').style.display  = t === 'memo'  ? 'flex' : 'none';
-  document.getElementById('edToolbar').style.display   = ['book','quote'].includes(t) ? 'none' : 'flex';
+  document.getElementById('editorExpense').style.display = t === 'expense' ? 'flex' : 'none';
+  document.getElementById('edToolbar').style.display   = ['book','quote','expense'].includes(t) ? 'none' : 'flex';
+
+  // 가계부 pane 숨기기 (다른 탭 진입 시)
+  document.getElementById('pane-expense-dashboard').style.display = 'none';
+  document.getElementById('pane-expense-detail').style.display = 'none';
 
   clearSearch();
   hideRoutineCard();
-  switchListView('list');
+
+  if (t === 'expense') {
+    // 기존 리스트 pane들 숨기기
+    document.getElementById('pane-list').style.display = 'none';
+    document.getElementById('pane-photo').style.display = 'none';
+    document.getElementById('pane-calendar').style.display = 'none';
+    // 뷰 스위처, 검색 숨기기
+    const vs = document.getElementById('viewSwitcher');
+    if (vs) vs.style.display = 'none';
+    const sb = document.getElementById('searchBar');
+    if (sb) sb.classList.remove('active');
+    // 가계부 대시보드 표시
+    showExpenseDashboard();
+    // 에디터: 새 입력 폼
+    newExpenseForm();
+    renderExpenseCategoryGrid();
+  } else {
+    // 다른 탭: 기존 뷰 스위처, 검색 복원
+    const vs = document.getElementById('viewSwitcher');
+    if (vs) vs.style.display = 'flex';
+    switchListView('list');
+  }
 
   if (!keepLayout) {
     const app = document.getElementById('mainApp');
@@ -178,7 +204,8 @@ function switchTab(t, keepLayout) {
     else { const m = getMemos(); if (m.length) loadMemo(m[0].id, true); else newMemoForm(); }
   }
   if (t === 'quote') newQuoteForm();
-  renderListPanel();
+
+  if (t !== 'expense') renderListPanel();
 }
 
 // ═══ 리스트 패널 헬퍼 ═══

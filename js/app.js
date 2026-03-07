@@ -138,6 +138,7 @@ function init() {
     updateBookStats();
     updateWritingStats();
     showRandomQuote();
+    updateExpenseCompact();
     setupAutoSave();
     setupEnterKey();
     setupSwipeActions();
