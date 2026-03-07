@@ -2519,3 +2519,51 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 #expFullDetailPane {
   background: var(--bg-white);
 }
+
+/* 모바일 가계부 대시보드 패딩 */
+@media (max-width: 768px) {
+  .pane-expense-dashboard {
+    padding: 0 16px;
+  }
+  .pane-expense-dashboard .exp-summary {
+    padding: 20px 0 16px;
+  }
+  .pane-expense-dashboard .exp-chart-wrap {
+    padding: 12px 0 16px;
+  }
+  .pane-expense-dashboard .exp-projection {
+    padding: 20px 0 16px;
+  }
+  .pane-expense-dashboard .exp-week-cal {
+    padding: 12px 0;
+  }
+  .pane-expense-dashboard .exp-timeline {
+    padding: 0;
+  }
+  .pane-expense-dashboard .exp-more-btn {
+    margin: 20px 0;
+    width: 100%;
+  }
+  .pane-expense-dashboard .exp-category-chart {
+    padding: 16px 0;
+  }
+  .pane-expense-detail {
+    padding: 0 16px;
+  }
+  .pane-expense-detail .exp-detail-header {
+    margin: 0 -16px;
+    padding: 16px 16px;
+    position: sticky;
+    top: 0;
+    background: var(--bg-white);
+    z-index: 10;
+    justify-content: flex-start;
+    gap: 8px;
+  }
+  .pane-expense-detail .exp-search-bar {
+    padding: 12px 0;
+  }
+  .pane-expense-detail .exp-more-btn {
+    width: 100%;
+  }
+}

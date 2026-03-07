@@ -92,8 +92,12 @@ function renderExpenseDashboard(platform) {
   // 5. 최근 7일 타임라인 — 전체 너비
   html += renderRecentExpenses(thisYM);
 
-  // 6. "내역 더 보기" 버튼 — 전체 너비
-  html += '<button class="exp-more-btn" onclick="showExpenseFullDetail(\'' + thisYM + '\')">내역 더 보기 →</button>';
+  // 6. "내역 더 보기" 버튼
+  if (platform === 'pc') {
+    html += '<button class="exp-more-btn" onclick="showExpenseFullDetail(\'' + thisYM + '\')">내역 더 보기 →</button>';
+  } else {
+    html += '<button class="exp-more-btn" onclick="showExpenseFullDetailMobile(\'' + thisYM + '\')">내역 더 보기 →</button>';
+  }
 
   container.innerHTML = html;
 }
@@ -551,5 +555,67 @@ function filterExpenseDetail(query) {
   var timelineWrap = document.querySelector('.exp-full-timeline-wrap');
   if (timelineWrap) {
     timelineWrap.innerHTML = renderExpenseFullTimeline(getExpenseViewYM(), query);
+  }
+}
+
+function showExpenseFullDetailMobile(yearMonth) {
+  var dashboard = document.getElementById('pane-expense-dashboard');
+  var detail = document.getElementById('pane-expense-detail');
+  if (dashboard) dashboard.style.display = 'none';
+  if (detail) detail.style.display = 'flex';
+  renderExpenseFullDetailMobile(yearMonth);
+}
+
+function showExpenseDashboardFromDetailMobile() {
+  var dashboard = document.getElementById('pane-expense-dashboard');
+  var detail = document.getElementById('pane-expense-detail');
+  if (detail) detail.style.display = 'none';
+  if (dashboard) dashboard.style.display = 'flex';
+}
+
+function renderExpenseFullDetailMobile(yearMonth) {
+  var container = document.getElementById('expenseDetail');
+  if (!container) return;
+
+  var d = new Date(yearMonth + '-01');
+  var monthLabel = d.getFullYear() + '년 ' + (d.getMonth() + 1) + '월';
+
+  var html = '';
+
+  // 헤더
+  html += '<div class="exp-detail-header">';
+  html += '<button class="exp-detail-back-btn" onclick="showExpenseDashboardFromDetailMobile()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--tx-d);padding:4px 8px;">‹</button>';
+  html += '<span class="exp-detail-title">' + monthLabel + ' 전체 내역</span>';
+  html += '</div>';
+
+  // 검색
+  html += '<div class="exp-search-bar">';
+  html += '<input type="text" class="exp-search-input" placeholder="검색" oninput="filterExpenseDetailMobile(this.value, \'' + yearMonth + '\')">';
+  html += '</div>';
+
+  // 월 캘린더
+  html += renderMonthCalendar(yearMonth);
+
+  // 타임라인
+  html += '<div id="expMobileTimeline">';
+  html += renderExpenseFullTimeline(yearMonth, '');
+  html += '</div>';
+
+  // 이전 월 버튼
+  var prevD = new Date(yearMonth + '-01');
+  prevD.setMonth(prevD.getMonth() - 1);
+  var prevYM = prevD.getFullYear() + '-' + String(prevD.getMonth() + 1).padStart(2, '0');
+  var prevLabel = prevD.getFullYear() + '년 ' + (prevD.getMonth() + 1) + '월';
+  html += '<div style="padding:20px 0;text-align:center">';
+  html += '<button class="exp-more-btn" onclick="showExpenseFullDetailMobile(\'' + prevYM + '\')">' + prevLabel + ' 내역 →</button>';
+  html += '</div>';
+
+  container.innerHTML = html;
+}
+
+function filterExpenseDetailMobile(query, yearMonth) {
+  var wrap = document.getElementById('expMobileTimeline');
+  if (wrap) {
+    wrap.innerHTML = renderExpenseFullTimeline(yearMonth, query);
   }
 }
