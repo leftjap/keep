@@ -179,6 +179,7 @@ function switchTab(t, keepLayout) {
     _expenseViewYM = null;
 
     if (w > 768) {
+      console.log('[EXPENSE] w:', w, 'before classList:', document.getElementById('mainApp').classList.toString());
       // ── PC/태블릿 ──
       // 가계부: list-panel을 CSS 클래스로 접어서 에디터 전체 너비
       var app = document.getElementById('mainApp');
@@ -188,6 +189,7 @@ function switchTab(t, keepLayout) {
       } else if (w > 1400) {
         app.classList.add('list-closed');
       }
+      console.log('[EXPENSE] after classList:', document.getElementById('mainApp').classList.toString());
 
       // editor 내부: 기존 에디터 패널 모두 숨기기
       document.getElementById('editorText').style.display = 'none';
@@ -268,6 +270,7 @@ function switchTab(t, keepLayout) {
   }
 
   if (!keepLayout && t !== 'expense') {
+    console.log('[KEEPLAYOUT] triggered for tab:', t);
     const app = document.getElementById('mainApp');
     if (window.innerWidth >= 769 && window.innerWidth <= 1400 && app.classList.contains('tablet-side-open')) {
       app.classList.remove('tablet-side-open');
