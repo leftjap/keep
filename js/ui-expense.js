@@ -464,9 +464,8 @@ function renderExpenseFullDetail(yearMonth) {
 
   var html = '';
 
-  // B-1. 상단 헤더 (돌아가기 + 월 라벨)
+  // B-1. 상단 헤더 (제목 가운데 정렬, 뒤로가기는 topbar < 버튼 사용)
   html += '<div class="exp-detail-header">';
-  html += '<button class="exp-detail-back-btn" onclick="showExpenseDashboardFromDetail()">← 돌아가기</button>';
   html += '<span class="exp-detail-title">' + monthLabel + ' 전체 내역</span>';
   html += '</div>';
 

@@ -474,14 +474,21 @@ function setupTabletPCGestures() {
       else if (startState === 'editor-only' && dir === 'right') targetState = 'list-editor';
     }
 
-    // 가계부: editor-only에서 우 스와이프 성공 시 사이드바+네비로 복귀
+    // 가계부: editor-only에서 우 스와이프 성공 시
     if (didSwipe && startState === 'editor-only' && dir === 'right'
         && typeof activeTab !== 'undefined' && activeTab === 'expense') {
       clearInlineStyles();
       restoreFixedEls();
       app.classList.remove('gesture-animating');
-      if (typeof switchTab === 'function') switchTab('navi');
-      app.classList.add('tablet-side-open');
+      // 전체 내역(B)이면 대시보드(A)로 돌아가기
+      var detailPane = document.getElementById('expFullDetailPane');
+      if (detailPane && detailPane.style.display !== 'none') {
+        if (typeof showExpenseDashboardFromDetail === 'function') showExpenseDashboardFromDetail();
+      } else {
+        // 대시보드(A)이면 네비로 복귀
+        if (typeof switchTab === 'function') switchTab('navi');
+        app.classList.add('tablet-side-open');
+      }
       tracking = false; swiping = false; panel = null; dir = null; decided = false; startState = null; isMouse = false;
       return;
     }
