@@ -2259,4 +2259,76 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   }
 }
 
+/* ═══ 월 이동 헤더 ═══ */
+.exp-month-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 16px 20px 8px;
+}
+
+.exp-month-nav-btn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border-l);
+  border-radius: 8px;
+  background: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: var(--tx-d);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: .12s;
+}
+
+.exp-month-nav-btn:hover {
+  background: rgba(0,0,0,.04);
+  border-color: var(--border);
+}
+
+.exp-month-nav-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--tx);
+  min-width: 120px;
+  text-align: center;
+}
+
+/* ═══ 카테고리 스택 바 (컴팩트) ═══ */
+.exp-cat-stack-bar {
+  display: flex;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.exp-cat-stack-seg {
+  min-width: 4px;
+  transition: width .3s ease;
+}
+
+.exp-cat-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  font-size: 11px;
+  color: var(--tx-m);
+}
+
+.exp-cat-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.exp-cat-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
 

@@ -319,53 +319,39 @@ function filterExpenseDetail() {
 // PC/태블릿용 풀 대시보드 (2+3단 통합)
 // ═══════════════════════════════════════
 function showExpenseFullDashboard() {
-  const container = document.getElementById('expenseDashboardWrap');
+  var container = document.getElementById('expenseDashboardWrap');
   if (!container) return;
 
-  const thisYM = today().slice(0, 7);
-  const pace = getExpensePace();
-  const projected = getProjectedMonthTotal();
-  const trend = getMonthlyTrend();
-  const catBreakdown = getCategoryBreakdown(thisYM);
+  var thisYM = getExpenseViewYM();
+  var pace = getExpensePace();
+  var projected = getProjectedMonthTotal();
+  var trend = getMonthlyTrend();
+  var catBreakdown = getCategoryBreakdown(thisYM);
 
-  let html = '';
+  var html = '';
 
-  // ① 이달 요약
-  const thisMonthTotal = getMonthTotal(thisYM);
-  const totalDisplay = thisMonthTotal > 0 ? formatAmount(thisMonthTotal) : '0';
-  html += `<div class="exp-summary">
-    <div class="exp-summary-title">이달 총액: ${totalDisplay}원</div>`;
+  // 페이스 요약
   if (pace) {
-    const paceText = pace.isLess
-      ? `지난달보다 ${formatAmount(Math.abs(pace.diff))}원 덜 쓰는 중`
-      : `지난달보다 ${formatAmount(pace.diff)}원 더 쓰는 중`;
-    const paceClass = pace.isLess ? '' : 'over';
-    html += `<div class="exp-summary-sub ${paceClass}">${paceText}</div>`;
+    var paceText = pace.isLess
+      ? '지난달보다 ' + formatAmount(Math.abs(pace.diff)) + '원 덜 쓰는 중'
+      : '지난달보다 ' + formatAmount(pace.diff) + '원 더 쓰는 중';
+    html += '<div class="exp-summary" style="padding:24px 0 16px">';
+    html += '<div class="exp-summary-sub ' + (pace.isLess ? '' : 'over') + '" style="font-size:14px">' + paceText + '</div>';
+    html += '</div>';
   }
-  html += '</div>';
 
-  // ② 2열 구간: 누적 차트 + 카테고리 비율
-  html += '<div class="expense-dashboard-grid">';
-  html += '<div class="exp-grid-card">';
+  // 누적 차트
   html += renderCumulativeChart(thisYM);
-  html += '</div>';
-  html += '<div class="exp-grid-card">';
-  html += renderCategoryChart(catBreakdown);
-  html += '</div>';
-  html += '</div>';
 
-  // ③ 예상 지출 + 막대 차트
-  html += `<div class="exp-projection">
-    <div class="exp-projection-title">이번 달엔 ${formatAmount(projected)}원 쓸 것 같아요</div>
-    <div class="exp-projection-sub">한 달에 평균 ${formatAmount(getMonthlyAverage())}원 정도 써요</div>`;
+  // 예상 지출 + 막대 차트
+  html += '<div class="exp-projection">';
+  html += '<div class="exp-projection-title">이번 달엔 ' + formatAmount(projected) + '원 쓸 것 같아요</div>';
+  html += '<div class="exp-projection-sub">한 달에 평균 ' + formatAmount(getMonthlyAverage()) + '원 정도 써요</div>';
   html += renderMonthlyBarChart(trend);
   html += '</div>';
 
-  // ④ 월간 캘린더
+  // 월간 캘린더
   html += renderMonthCalendar(thisYM);
-
-  // ⑤ 일별 타임라인 (모달 모드: PC에서는 항목 클릭 시 모달)
-  html += renderExpenseTimeline(thisYM, true);
 
   container.innerHTML = html;
 }
@@ -423,5 +409,164 @@ function closeExpenseModal() {
 function onExpenseModalOverlayClick(e) {
   if (e.target.id === 'expenseModalOverlay') {
     closeExpenseModal();
+  }
+}
+
+// ═══════════════════════════════════════
+// 월 이동 상태 관리
+// ═══════════════════════════════════════
+var _expenseViewYM = null;
+
+function getExpenseViewYM() {
+  if (!_expenseViewYM) _expenseViewYM = today().slice(0, 7);
+  return _expenseViewYM;
+}
+
+// ═══════════════════════════════════════
+// renderExpenseDashboardList() — list-panel용 (PC/태블릿)
+// ═══════════════════════════════════════
+function renderExpenseDashboardList() {
+  var container = document.getElementById('expenseDashboard');
+  if (!container) return;
+
+  var thisYM = getExpenseViewYM();
+  var thisMonthTotal = getMonthTotal(thisYM);
+  var catBreakdown = getCategoryBreakdown(thisYM);
+  var d = new Date(thisYM + '-01');
+  var monthLabel = d.getFullYear() + '년 ' + (d.getMonth() + 1) + '월';
+
+  var html = '';
+
+  // 월 이동 헤더
+  html += '<div class="exp-month-nav">';
+  html += '<button class="exp-month-nav-btn" onclick="changeExpenseMonth(-1)">‹</button>';
+  html += '<span class="exp-month-nav-label">' + monthLabel + '</span>';
+  html += '<button class="exp-month-nav-btn" onclick="changeExpenseMonth(1)">›</button>';
+  html += '</div>';
+
+  // 이달 총액
+  html += '<div class="exp-summary" style="padding:16px 20px 12px">';
+  html += '<div class="exp-summary-title" style="font-size:18px">' + (thisMonthTotal > 0 ? thisMonthTotal.toLocaleString() + '원' : '0원') + '</div>';
+  html += '</div>';
+
+  // 카테고리 비율 (컴팩트)
+  if (catBreakdown.length > 0) {
+    html += '<div style="padding:0 20px 16px">';
+    html += renderCategoryBarCompact(catBreakdown, thisMonthTotal);
+    html += '</div>';
+  }
+
+  // 타임라인 (항목 클릭 시 모달)
+  html += renderExpenseTimeline(thisYM, true);
+
+  // + 추가 버튼
+  html += '<div style="padding:20px;text-align:center">';
+  html += '<button class="exp-more-btn" onclick="openExpenseModal()">+ 지출 추가</button>';
+  html += '</div>';
+
+  container.innerHTML = html;
+}
+
+// ═══════════════════════════════════════
+// renderExpenseDashboardMobile() — 모바일용
+// ═══════════════════════════════════════
+function renderExpenseDashboardMobile() {
+  var container = document.getElementById('expenseDashboard');
+  if (!container) return;
+
+  var thisYM = getExpenseViewYM();
+  var pace = getExpensePace();
+  var projected = getProjectedMonthTotal();
+  var trend = getMonthlyTrend();
+  var catBreakdown = getCategoryBreakdown(thisYM);
+  var thisMonthTotal = getMonthTotal(thisYM);
+  var d = new Date(thisYM + '-01');
+  var monthLabel = d.getFullYear() + '년 ' + (d.getMonth() + 1) + '월';
+
+  var html = '';
+
+  // 월 이동 헤더
+  html += '<div class="exp-month-nav">';
+  html += '<button class="exp-month-nav-btn" onclick="changeExpenseMonth(-1)">‹</button>';
+  html += '<span class="exp-month-nav-label">' + monthLabel + '</span>';
+  html += '<button class="exp-month-nav-btn" onclick="changeExpenseMonth(1)">›</button>';
+  html += '</div>';
+
+  // 이달 총액
+  html += '<div class="exp-summary">';
+  html += '<div class="exp-summary-title">이달 총액: ' + formatAmount(thisMonthTotal) + '원</div>';
+  if (pace) {
+    var paceText = pace.isLess
+      ? '지난달보다 ' + formatAmount(Math.abs(pace.diff)) + '원 덜 쓰는 중'
+      : '지난달보다 ' + formatAmount(pace.diff) + '원 더 쓰는 중';
+    html += '<div class="exp-summary-sub ' + (pace.isLess ? '' : 'over') + '">' + paceText + '</div>';
+  }
+  html += '</div>';
+
+  // 누적 차트
+  html += renderCumulativeChart(thisYM);
+
+  // 카테고리
+  html += renderCategoryChart(catBreakdown);
+
+  // 예상 지출
+  html += '<div class="exp-projection">';
+  html += '<div class="exp-projection-title">이번 달엔 ' + formatAmount(projected) + '원 쓸 것 같아요</div>';
+  html += '<div class="exp-projection-sub">한 달에 평균 ' + formatAmount(getMonthlyAverage()) + '원 정도 써요</div>';
+  html += renderMonthlyBarChart(trend);
+  html += '</div>';
+
+  // 주간 캘린더
+  html += renderWeeklyCalendar(thisYM);
+
+  // 타임라인
+  html += renderRecentExpenses(thisYM);
+
+  container.innerHTML = html;
+}
+
+// ═══════════════════════════════════════
+// showExpenseFullDashboard() 수정 — editor용 (PC/태블릿)
+// ═══════════════════════════════════════
+// (기존 함수 updateExpenseCompact는 유지, 아래 코드로 함수 수정)
+// renderCumulativeChart, renderMonthlyBarChart, renderMonthCalendar 호출 및 _expenseViewYM 사용
+
+// ═══════════════════════════════════════
+// renderCategoryBarCompact() — 카테고리 스택 바 (list-panel용)
+// ═══════════════════════════════════════
+function renderCategoryBarCompact(catBreakdown, total) {
+  if (!catBreakdown || catBreakdown.length === 0 || total <= 0) return '';
+  var html = '<div class="exp-cat-stack-bar">';
+  catBreakdown.forEach(function(cat) {
+    var pct = (cat.amount / total) * 100;
+    if (pct < 1) return;
+    html += '<div class="exp-cat-stack-seg" style="width:' + pct + '%;background:' + cat.color + '" title="' + cat.name + ' ' + cat.amount.toLocaleString() + '원"></div>';
+  });
+  html += '</div>';
+
+  // 범례
+  html += '<div class="exp-cat-legend">';
+  catBreakdown.slice(0, 5).forEach(function(cat) {
+    html += '<span class="exp-cat-legend-item"><span class="exp-cat-legend-dot" style="background:' + cat.color + '"></span>' + cat.name + '</span>';
+  });
+  html += '</div>';
+  return html;
+}
+
+// ═══════════════════════════════════════
+// changeExpenseMonth() — 월 이동
+// ═══════════════════════════════════════
+function changeExpenseMonth(delta) {
+  var current = getExpenseViewYM();
+  var d = new Date(current + '-01');
+  d.setMonth(d.getMonth() + delta);
+  _expenseViewYM = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+
+  // 다시 렌더
+  if (window.innerWidth > 768) {
+    renderExpenseDashboardList();
+    showExpenseFullDashboard();
+  } else {
+    renderExpenseDashboardMobile();
   }
 }

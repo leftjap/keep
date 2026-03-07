@@ -155,101 +155,99 @@ function switchTab(t, keepLayout) {
     expCompact.classList.toggle('on', t === 'expense');
   }
 
-  document.getElementById('editorText').style.display  = textTypes.includes(t) ? 'flex' : 'none';
-  document.getElementById('editorBook').style.display  = t === 'book'  ? 'flex' : 'none';
-  document.getElementById('editorQuote').style.display = t === 'quote' ? 'flex' : 'none';
-  document.getElementById('editorMemo').style.display  = t === 'memo'  ? 'flex' : 'none';
-  document.getElementById('editorExpense').style.display = (t === 'expense' && window.innerWidth <= 768) ? 'flex' : 'none';
-  document.getElementById('edToolbar').style.display   = ['book','quote'].includes(t) ? 'none' : (t === 'expense' && window.innerWidth > 768 ? 'none' : 'flex');
-
-  // 가계부 전용 대시보드 (PC/태블릿)
-  const expFullDb = document.getElementById('expenseFullDashboard');
-  if (expFullDb) {
-    expFullDb.style.display = (t === 'expense' && window.innerWidth > 768) ? 'flex' : 'none';
-  }
-
-  // 가계부 pane 숨기기 (다른 탭 진입 시)
-  document.getElementById('pane-expense-dashboard').style.display = 'none';
-  document.getElementById('pane-expense-detail').style.display = 'none';
-
   clearSearch();
   hideRoutineCard();
 
   if (t === 'expense') {
     const w = window.innerWidth;
+
+    // 가계부 pane 표시
+    document.getElementById('pane-expense-dashboard').style.display = 'flex';
+    document.getElementById('pane-expense-detail').style.display = 'none';
+
+    // 일반 pane 숨기기
+    document.getElementById('pane-list').style.display = 'none';
+    document.getElementById('pane-photo').style.display = 'none';
+    document.getElementById('pane-calendar').style.display = 'none';
+
+    // 뷰 스위처 숨기기, 검색 닫기
+    const vs = document.getElementById('viewSwitcher');
+    if (vs) vs.style.display = 'none';
+    const sb = document.getElementById('searchBar');
+    if (sb) sb.classList.remove('active');
+
+    // FAB 숨기기 (PC/태블릿에서)
+    const fab = document.querySelector('.fab-btn');
+
     if (w > 768) {
-      // PC/태블릿: list-panel 숨기기 (list-closed/tablet-list-closed 클래스 사용)
-      const app = document.getElementById('mainApp');
-      const fullDb = document.getElementById('expenseFullDashboard');
-
-      if (w >= 769 && w <= 1400) {
-        // 태블릿: tablet-list-closed 클래스
-        app.classList.add('tablet-list-closed');
-        app.classList.remove('tablet-side-open');
-      } else {
-        // PC: list-closed 클래스
-        app.classList.add('list-closed');
-      }
-
-      // editor 내부: 기존 에디터 모두 숨기고 풀 대시보드만 표시
+      // ── PC/태블릿 ──
+      // editor 내부: 기존 에디터 패널 숨기고 풀 대시보드 표시
       document.getElementById('editorText').style.display = 'none';
       document.getElementById('editorBook').style.display = 'none';
       document.getElementById('editorQuote').style.display = 'none';
       document.getElementById('editorMemo').style.display = 'none';
       document.getElementById('editorExpense').style.display = 'none';
-      document.getElementById('editorDayList').style.display = 'none';
+      var dayList = document.getElementById('editorDayList');
+      if (dayList) dayList.style.display = 'none';
       document.getElementById('edToolbar').style.display = 'none';
 
+      var fullDb = document.getElementById('expenseFullDashboard');
       if (fullDb) fullDb.style.display = 'flex';
 
-      // 풀 대시보드 렌더링
+      if (fab) fab.style.display = 'none';
+
+      // 월 뷰 리셋
+      _expenseViewYM = null;
+
+      // list-panel에 대시보드 타임라인 렌더
+      renderExpenseDashboardList();
+      // editor에 대시보드 상세 렌더
       showExpenseFullDashboard();
     } else {
-      // 모바일: 기존 구조 유지 (pane-list에 대시보드, editor에 폼)
-      document.getElementById('pane-list').style.display = 'none';
-      document.getElementById('pane-photo').style.display = 'none';
-      document.getElementById('pane-calendar').style.display = 'none';
-      // 뷰 스위처, 검색 숨기기
-      const vs = document.getElementById('viewSwitcher');
-      if (vs) vs.style.display = 'none';
-      const sb = document.getElementById('searchBar');
-      if (sb) sb.classList.remove('active');
-      // 가계부 대시보드 표시
-      showExpenseDashboard();
-      // 에디터: 새 입력 폼
+      // ── 모바일 ──
+      if (fab) fab.style.display = '';
+
+      // 에디터: 입력 폼
+      document.getElementById('editorText').style.display = 'none';
+      document.getElementById('editorBook').style.display = 'none';
+      document.getElementById('editorQuote').style.display = 'none';
+      document.getElementById('editorMemo').style.display = 'none';
+      document.getElementById('editorExpense').style.display = 'flex';
+      var dayList2 = document.getElementById('editorDayList');
+      if (dayList2) dayList2.style.display = 'none';
+      document.getElementById('edToolbar').style.display = 'none';
+
+      var fullDb2 = document.getElementById('expenseFullDashboard');
+      if (fullDb2) fullDb2.style.display = 'none';
+
+      // 월 뷰 리셋
+      _expenseViewYM = null;
+
+      // 대시보드 렌더
+      renderExpenseDashboardMobile();
       newExpenseForm();
       renderExpenseCategoryGrid();
     }
   } else {
-    // 다른 탭: 레이아웃 복원
-    const app = document.getElementById('mainApp');
-    const w = window.innerWidth;
-    const fullDb = document.getElementById('expenseFullDashboard');
-
-    // list-closed/tablet-list-closed 제거
-    if (w >= 769 && w <= 1400) {
-      if (app.classList.contains('tablet-list-closed')) {
-        app.classList.remove('tablet-list-closed');
-      }
-    } else if (w > 1400) {
-      if (app.classList.contains('list-closed')) {
-        app.classList.remove('list-closed');
-      }
-    }
-
-    // 풀 대시보드 숨기기
-    if (fullDb) fullDb.style.display = 'none';
-
     // 가계부 pane 숨기기
     document.getElementById('pane-expense-dashboard').style.display = 'none';
     document.getElementById('pane-expense-detail').style.display = 'none';
 
+    // 풀 대시보드 숨기기
+    var fullDb = document.getElementById('expenseFullDashboard');
+    if (fullDb) fullDb.style.display = 'none';
+
     // 모달 닫기
     if (typeof closeExpenseModal === 'function') closeExpenseModal();
 
-    // 뷰 스위처, 검색 복원
-    const vs = document.getElementById('viewSwitcher');
+    // FAB 복원
+    var fab = document.querySelector('.fab-btn');
+    if (fab) fab.style.display = '';
+
+    // 뷰 스위처 복원
+    var vs = document.getElementById('viewSwitcher');
     if (vs) vs.style.display = 'flex';
+
     switchListView('list');
   }
 

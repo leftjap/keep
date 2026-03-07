@@ -748,7 +748,11 @@ function saveExpenseForm(mode = 'normal') {
   if (mode === 'modal') {
     // 모달: 닫고 대시보드 갱신
     closeExpenseModal();
-    showExpenseFullDashboard();
+    if (window.innerWidth > 768) {
+      renderExpenseDashboardList();
+      showExpenseFullDashboard();
+    }
+    return;
   } else if (window.innerWidth <= 768) {
     // 모바일: 대시보드 화면으로 전환
     renderExpenseDashboard();
