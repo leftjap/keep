@@ -1961,7 +1961,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   display: flex;
   align-items: baseline;
   gap: 4px;
-  padding: 16px 0;
+  padding: 12px 0;
   border-bottom: 1.5px solid var(--border-l);
 }
 .expense-amount-input {
@@ -1970,7 +1970,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   border: none;
   background: none;
   outline: none;
-  font-size: 28px;
+  font-size: 22px;
   font-weight: 300;
   color: var(--tx);
   font-family: 'Pretendard', -apple-system, sans-serif;
@@ -1983,7 +1983,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 }
 .expense-amount-unit {
   flex-shrink: 0;
-  font-size: 28px;
+  font-size: 22px;
   font-weight: 300;
   color: var(--tx-m);
   font-family: 'Pretendard', -apple-system, sans-serif;
@@ -1992,12 +1992,13 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 
 /* 지출처 입력 */
 .expense-merchant-field {
-  padding-bottom: 12px; border-bottom: 1.5px solid var(--border-l);
+  padding: 12px 0;
+  border-bottom: 1.5px solid var(--border-l);
   margin-bottom: 24px;
 }
 .expense-merchant-input {
   width: 100%; border: none; background: none; outline: none;
-  font-size: 16px; color: var(--tx); font-family: 'Pretendard', sans-serif;
+  font-size: 18px; color: var(--tx); font-family: 'Pretendard', sans-serif;
 }
 .expense-merchant-input::placeholder { color: var(--tx-hint); }
 
