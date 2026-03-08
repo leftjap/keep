@@ -2261,48 +2261,55 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   }
 }
 
-/* ═══ 월 이동 헤더 ═══ */
 .exp-month-nav {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: 0;
   padding: 16px 20px 8px;
 }
 
 .exp-month-nav-btn {
-  width: 32px;
-  height: 32px;
-  border: 1px solid var(--border-l);
-  border-radius: 8px;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
   background: none;
   cursor: pointer;
   font-size: 18px;
-  color: var(--tx-d);
+  color: var(--tx-m);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: .12s;
+  transition: color .12s, background .12s;
+  flex-shrink: 0;
+  padding: 0;
+  margin: 0;
 }
 
 .exp-month-nav-btn:hover {
-  background: rgba(0,0,0,.04);
-  border-color: var(--border);
+  background: rgba(0,0,0,.05);
+  color: var(--tx);
 }
-.exp-month-nav-btn:disabled {
-  color: var(--border);
-  border-color: var(--border-l);
-  cursor: default;
-  pointer-events: none;
-  opacity: 0.4;
+
+.exp-nav-disabled {
+  color: #ccc !important;
+  cursor: default !important;
+  pointer-events: none !important;
+}
+
+.exp-nav-disabled:hover {
+  background: none !important;
 }
 
 .exp-month-nav-label {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 17px;
+  font-weight: 700;
   color: var(--tx);
-  min-width: 120px;
+  min-width: auto;
   text-align: center;
+  padding: 0 4px;
+  line-height: 1;
 }
 
 /* ═══ 카테고리 스택 바 (컴팩트) ═══ */

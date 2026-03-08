@@ -39,7 +39,11 @@ function renderExpenseDashboard(platform) {
   html += '<div class="exp-month-nav">';
   html += '<button class="exp-month-nav-btn" onclick="changeExpenseMonth(-1)">‹</button>';
   html += '<span class="exp-month-nav-label">' + monthLabel + '</span>';
-  html += '<button class="exp-month-nav-btn"' + (isCurrentMonth ? ' disabled' : '') + ' onclick="changeExpenseMonth(1)">›</button>';
+  if (isCurrentMonth) {
+    html += '<button class="exp-month-nav-btn exp-nav-disabled">›</button>';
+  } else {
+    html += '<button class="exp-month-nav-btn" onclick="changeExpenseMonth(1)">›</button>';
+  }
   html += '</div>';
 
   // 페이스 텍스트 준비
