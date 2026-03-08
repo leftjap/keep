@@ -3061,3 +3061,6 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 .routine-item:hover { border-color: var(--tab-color); background: color-mix(in srgb, var(--tab-color) 5%, var(--bg)); }
 .routine-item-name { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
 .routine-item-stats { display: flex; gap: 16px; font-size: 13px; color: var(--tx-m); }
+
+/* ═══ 패널 2 최적화 — 상세는 3단에서 ═══ */
+.routine-streak, .routine-monthly { display: none; }
