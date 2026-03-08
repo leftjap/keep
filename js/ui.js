@@ -50,6 +50,7 @@ function setMobileView(view) {
       renderListPanel();
     }
     if (view === 'side')   toggleSidebar();
+    if (activeTab === 'expense') { const vs = document.getElementById('viewSwitcher'); if (vs) vs.style.display = 'none'; }
     return;
   }
   if (w > 1400) {
@@ -58,6 +59,7 @@ function setMobileView(view) {
       renderListPanel();
     }
     if (view === 'side') toggleSidebar();
+    if (activeTab === 'expense') { const vs = document.getElementById('viewSwitcher'); if (vs) vs.style.display = 'none'; }
     return;
   }
   // 모바일
@@ -65,6 +67,7 @@ function setMobileView(view) {
   app.classList.remove('view-side','view-list','view-editor');
   app.classList.add('view-' + view);
   if (view === 'list') renderListPanel();
+  if (activeTab === 'expense') { const vs = document.getElementById('viewSwitcher'); if (vs) vs.style.display = 'none'; }
 }
 
 // ═══ 검색 ═══
