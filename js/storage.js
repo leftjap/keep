@@ -97,6 +97,22 @@ function fixDriveImageUrls(html) {
 
 // ═══ 모의 데이터 주입 ═══
 function injectMockData() {
+  // 루틴 체크 데이터는 항상 보충 (전월 데이터가 없으면 추가)
+  var _existingChk = L(K.checks) || {};
+  var _now3 = new Date();
+  var _prevM = new Date(_now3.getFullYear(), _now3.getMonth() - 1, 1);
+  var _prevYMKey = _prevM.getFullYear() + '-' + String(_prevM.getMonth() + 1).padStart(2, '0') + '-15';
+  if (!_existingChk[_prevYMKey]) {
+    var _rids = ['exercise','vitamin','english','japanese','drawing','ukulele','nodrink'];
+    var _prevDays = new Date(_prevM.getFullYear(), _prevM.getMonth() + 1, 0).getDate();
+    for (var _i = 1; _i <= _prevDays; _i++) {
+      var _key = _prevM.getFullYear() + '-' + String(_prevM.getMonth() + 1).padStart(2, '0') + '-' + String(_i).padStart(2, '0');
+      if (!_existingChk[_key]) _existingChk[_key] = {};
+      _rids.forEach(function(rid) { if (Math.random() < 0.45) _existingChk[_key][rid] = true; });
+    }
+    S(K.checks, _existingChk);
+  }
+
   if (L(K.docs) && L(K.docs).length > 3) return;
 
   const sampleImg1 = 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=600';
@@ -184,6 +200,34 @@ function injectMockData() {
     { id:'q5', text:'매일 조금씩, 꾸준히. 그것이 가장 강력한 마법이다.', by:'무라카미 하루키', created: new Date(now - day*7).toISOString(), pinned: false }
   ];
   S(K.quotes, quotes);
+
+  // 루틴 체크 더미 데이터 (이번달 + 전월)
+  var chkData = L(K.checks) || {};
+  var _now2 = new Date();
+  var _routineIds = ['exercise','vitamin','english','japanese','drawing','ukulele','nodrink'];
+
+  // 전월 데이터 생성
+  var _prevMonth = new Date(_now2.getFullYear(), _now2.getMonth() - 1, 1);
+  var _prevDim = new Date(_prevMonth.getFullYear(), _prevMonth.getMonth() + 1, 0).getDate();
+  for (var _pd = 1; _pd <= _prevDim; _pd++) {
+    var _pk = _prevMonth.getFullYear() + '-' + String(_prevMonth.getMonth() + 1).padStart(2, '0') + '-' + String(_pd).padStart(2, '0');
+    if (!chkData[_pk]) chkData[_pk] = {};
+    _routineIds.forEach(function(rid) {
+      if (Math.random() < 0.45) chkData[_pk][rid] = true;
+    });
+  }
+
+  // 이번달 과거 날짜 데이터 생성
+  var _thisYM2 = _now2.getFullYear() + '-' + String(_now2.getMonth() + 1).padStart(2, '0');
+  for (var _td = 1; _td < _now2.getDate(); _td++) {
+    var _tk = _thisYM2 + '-' + String(_td).padStart(2, '0');
+    if (!chkData[_tk]) chkData[_tk] = {};
+    _routineIds.forEach(function(rid) {
+      if (Math.random() < 0.55) chkData[_tk][rid] = true;
+    });
+  }
+
+  S(K.checks, chkData);
 }
 
 // ═══════════════════════════════════════

@@ -243,6 +243,9 @@
     </div>
     <div class="routine-streak"  id="routineStreak"></div>
     <div class="routine-monthly" id="routineMonthly"></div>
+    <div class="routine-more-wrap">
+      <button class="routine-more-btn" onclick="showRoutineCalendarView()">통계 더보기 →</button>
+    </div>
   </div>
 
   <!-- 리스트 패널 -->
@@ -447,12 +450,17 @@
     </div>
   </div>
 
-  <!-- 루틴 상세 분석 -->
-  <div id="editorRoutineDetail" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+  <!-- 루틴 월간 캘린더 뷰 -->
+  <div id="editorRoutineCal" style="display:none;flex-direction:column;flex:1;overflow:hidden">
     <div class="editor-scroll-area">
-      <div class="editor-content-wrap" id="routineDetailWrap">
+      <div class="editor-content-wrap" id="routineCalWrap">
       </div>
     </div>
+  </div>
+
+  <!-- 루틴 상세 분석 패널 (PC/태블릿) -->
+  <div id="editorRoutineDetail" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+    <div class="editor-scroll-area"></div>
   </div>
 
   <!-- 가계부 입력/수정 에디터 (모바일) -->
@@ -524,15 +532,6 @@
         <div id="expFullDetailPane" style="display:none">
           <!-- B. 전체 내역 — JS에서 렌더링 -->
         </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 루틴 상세 분석 (PC/태블릿 — editor 내부) -->
-  <div id="editorRoutineDetail" style="display:none;flex-direction:column;flex:1;overflow-y:auto">
-    <div class="routine-detail-scroll">
-      <div class="routine-detail-content">
-        <!-- JS에서 renderRoutineDetail(routineId) 또는 renderRoutineOverview()로 렌더링 -->
       </div>
     </div>
   </div>
@@ -622,11 +621,21 @@
   </div>
 </div>
 
+<!-- 루틴 월간 선택 모달 -->
+<div id="routineMonthPickerModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:var(--bg-white);border-radius:12px;padding:20px;max-width:400px;width:90%;max-height:80vh;overflow-y:auto;">
+    <div style="font-size:16px;font-weight:600;margin-bottom:16px;">월 선택</div>
+    <div id="routineMonthPickerContent"></div>
+    <button onclick="closeRoutineMonthPicker()" style="width:100%;margin-top:12px;padding:10px;background:var(--btn-bg);border:none;border-radius:6px;cursor:pointer;">닫기</button>
+  </div>
+</div>
+
 </div><!-- /#mainApp -->
 
 <!-- ═══ JS 로드 순서: 의존성 순서대로 ═══ -->
 <script src="js/storage.js?v=64"></script>   <!-- 1. 기본 유틸, LocalStorage, 날짜 -->
 <script src="js/routine.js?v=64"></script>   <!-- 2. 루틴 데이터 + 렌더링 -->
+<script src="js/routine-cal.js?v=1"></script> <!-- 2-1. 루틴 캘린더 뷰 -->
 <script src="js/data.js?v=64"></script>      <!-- 3. 문서/책/어구/메모/가계부 CRUD -->
 <script src="js/sms-parser.js?v=64"></script> <!-- 3-1. SMS 파싱 -->
 <script src="js/ui.js?v=64"></script>        <!-- 4. UI 전환, 리스트 렌더링 -->
