@@ -236,7 +236,7 @@ function renderMonthlyBarChart(trend) {
     var isCurrentClass = t.isCurrent ? 'current' : '';
     html += '<div class="exp-bar-item ' + isCurrentClass + '">'
       + (t.isCurrent ? '<div class="exp-bar-projected">예상</div>' : '')
-      + '<div class="exp-bar-value">' + formatAmount(t.total) + '</div>'
+      + '<div class="exp-bar-value">' + Math.round(t.total / 10000) + '</div>'
       + '<div class="exp-bar-fill" style="height:' + Math.max(pct, 4) + '%"></div>'
       + '<div class="exp-bar-label">' + t.label + '</div>'
       + '</div>';
@@ -261,10 +261,11 @@ function renderWeeklyCalendar(yearMonth) {
     const dateStr = getLocalYMD(d);
     const total = getDayTotal(dateStr);
     const isToday = dateStr === getLocalYMD(now) ? 'today' : '';
-    const amountClass = total > 50000 ? 'high' : '';
+    const avgDaily = getMonthTotal(today().slice(0, 7)) / new Date().getDate();
+    const amountClass = total > avgDaily * 1.5 ? 'high' : '';
     html += `<div class="exp-week-day ${isToday}">
       <div class="exp-week-day-num">${d.getDate()}</div>
-      ${total > 0 ? `<div class="exp-week-day-amount ${amountClass}">${formatAmountShort(total)}</div>` : ''}
+      ${total > 0 ? `<div class="exp-week-day-amount ${amountClass}">${total.toLocaleString()}</div>` : ''}
     </div>`;
   }
   html += '</div></div>';
@@ -358,14 +359,17 @@ function renderMonthCalendar(yearMonth) {
   // 날짜
   const now = new Date();
   const today = getLocalYMD(now);
+  const monthExpenses = getMonthExpenses(yearMonth);
+  const totalDaysWithExpense = new Set(monthExpenses.map(e => e.date)).size;
+  const avgDaily = totalDaysWithExpense > 0 ? monthExpenses.reduce((s, e) => s + e.amount, 0) / totalDaysWithExpense : 0;
   for (let i = 1; i <= daysInMonth; i++) {
     const dateStr = `${yearMonth}-${String(i).padStart(2,'0')}`;
     const total = getDayTotal(dateStr);
     const isToday = dateStr === today ? 'today' : '';
-    const amountClass = total > 50000 ? 'high' : '';
+    const amountClass = total > avgDaily * 1.5 ? 'high' : '';
     html += `<div class="exp-month-day ${isToday}">
       <div class="exp-month-day-num">${i}</div>
-      ${total > 0 ? `<div class="exp-month-day-amount ${amountClass}">${formatAmountShort(total)}</div>` : ''}
+      ${total > 0 ? `<div class="exp-month-day-amount ${amountClass}">${total.toLocaleString()}</div>` : ''}
     </div>`;
   }
 

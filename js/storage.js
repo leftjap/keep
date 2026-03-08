@@ -215,25 +215,7 @@ function formatAmount(n) {
 }
 
 function formatAmountShort(n) {
-  if (n >= 100000) {
-    var man = Math.floor(n / 10000);
-    var chun = Math.round((n % 10000) / 1000);
-    if (chun > 0) return '-' + man + '만' + chun + '천';
-    return '-' + man + '만';
-  }
-  if (n >= 10000) {
-    var man = Math.floor(n / 10000);
-    var chun = Math.round((n % 10000) / 1000);
-    if (chun > 0) return '-' + man + '만' + chun + '천';
-    return '-' + man + '만';
-  }
-  if (n >= 1000) {
-    var chun = Math.floor(n / 1000);
-    var baek = Math.round((n % 1000) / 100);
-    if (baek > 0) return '-' + chun + '천' + baek + '백';
-    return '-' + chun + '천';
-  }
-  return '-' + n;
+  return n.toLocaleString();
 }
 
 // ═══════════════════════════════════════
