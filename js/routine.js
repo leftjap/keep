@@ -505,3 +505,91 @@ function getRoutineStats(routineId) {
     })
   };
 }
+
+// ═══ 루틴 상세 분석 UI 렌더링 ═══
+
+function renderRoutineDetail(routineId) {
+  var routines = getRoutines();
+  var routine = routines.find(function(r) { return r.id === routineId; });
+  if (!routine) return;
+
+  var stats = getRoutineStats(routineId);
+  var streak = getRoutineStreak(routineId);
+  var now = new Date();
+  var heatmap = getRoutineMonthlyHeatmap(routineId, now.getFullYear(), now.getMonth() + 1);
+  var weeklyTrend = getRoutineWeeklyTrend(routineId, 8);
+
+  var html = '<div class="routine-detail-wrapper">';
+
+  // 제목 + 뒤로가기
+  html += '<div class="routine-detail-header">';
+  html += '<button class="routine-detail-back" onclick="renderRoutineOverview()">← 목록</button>';
+  html += '<h2 class="routine-detail-title">' + routine.name + '</h2>';
+  html += '</div>';
+
+  // 주요 통계
+  html += '<div class="routine-detail-stats">';
+  html += '<div class="stat-card"><div class="stat-label">이번 달</div><div class="stat-value">' + stats.monthPct + '%</div></div>';
+  html += '<div class="stat-card"><div class="stat-label">90일</div><div class="stat-value">' + stats.totalPct + '%</div></div>';
+  html += '<div class="stat-card"><div class="stat-label">현재</div><div class="stat-value">' + streak.current + '일</div></div>';
+  html += '<div class="stat-card"><div class="stat-label">최고</div><div class="stat-value">' + streak.best + '일</div></div>';
+  html += '</div>';
+
+  // 최고/최악 요일
+  html += '<div class="routine-detail-dow">';
+  html += '<div class="dow-card best"><div class="dow-label">최고 요일</div><div class="dow-name">' + stats.bestDow + '</div><div class="dow-pct">' + stats.bestDowPct + '%</div></div>';
+  html += '<div class="dow-card worst"><div class="dow-label">최악 요일</div><div class="dow-name">' + stats.worstDow + '</div><div class="dow-pct">' + stats.worstDowPct + '%</div></div>';
+  html += '</div>';
+
+  // 요일별 차트
+  html += '<div class="routine-detail-chart">';
+  html += '<h3 class="chart-title">요일별 달성률</h3>';
+  html += '<div class="dow-chart">';
+  stats.dowData.forEach(function(d) {
+    html += '<div class="dow-bar-wrapper"><div class="dow-bar-label">' + d.name + '</div><div class="dow-bar-container"><div class="dow-bar" style="height:' + d.pct + '%"></div></div><div class="dow-bar-value">' + d.pct + '%</div></div>';
+  });
+  html += '</div>';
+  html += '</div>';
+
+  // 주간 추이
+  html += '<div class="routine-detail-trend">';
+  html += '<h3 class="chart-title">8주 추이</h3>';
+  html += '<div class="weekly-trend">';
+  weeklyTrend.forEach(function(w) {
+    html += '<div class="week-item"><div class="week-label">' + w.label + '</div><div class="week-pct">' + w.pct + '%</div><div class="week-bar" style="height:' + w.pct + '%"></div></div>';
+  });
+  html += '</div>';
+  html += '</div>';
+
+  html += '</div>';
+
+  var container = document.querySelector('.routine-detail-content');
+  if (container) container.innerHTML = html;
+}
+
+function renderRoutineOverview() {
+  var routines = getRoutines();
+  if (!routines || routines.length === 0) return;
+
+  var html = '<div class="routine-overview-wrapper">';
+  html += '<h2 class="routine-overview-title">데일리 루틴</h2>';
+  html += '<div class="routine-list">';
+
+  routines.forEach(function(routine) {
+    var stats = getRoutineStats(routine.id);
+    var streak = getRoutineStreak(routine.id);
+    html += '<div class="routine-item" onclick="renderRoutineDetail(\'' + routine.id + '\')">';
+    html += '<div class="routine-item-name">' + routine.name + '</div>';
+    html += '<div class="routine-item-stats">';
+    html += '<span class="routine-item-stat">이번 달 ' + stats.monthPct + '%</span>';
+    html += '<span class="routine-item-stat">연속 ' + streak.current + '일</span>';
+    html += '</div>';
+    html += '</div>';
+  });
+
+  html += '</div>';
+  html += '</div>';
+
+  var container = document.querySelector('.routine-detail-content');
+  if (container) container.innerHTML = html;
+}
