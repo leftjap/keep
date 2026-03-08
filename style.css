@@ -2289,6 +2289,13 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   background: rgba(0,0,0,.04);
   border-color: var(--border);
 }
+.exp-month-nav-btn:disabled {
+  color: var(--border);
+  border-color: var(--border-l);
+  cursor: default;
+  pointer-events: none;
+  opacity: 0.4;
+}
 
 .exp-month-nav-label {
   font-size: 16px;
