@@ -35,16 +35,12 @@ function renderExpenseDashboard(platform) {
   var html = '';
 
   // 1. 월 이동 헤더 — 전체 너비, 가운데 정렬
-  var isCurrentMonth = (thisYM === today().slice(0, 7));
-  html += '<div class="exp-month-nav">';
-  html += '<button class="exp-month-nav-btn" onclick="changeExpenseMonth(-1)">';
-  html += '<svg width="10" height="16" viewBox="0 0 10 16" fill="none"><path d="M8.5 1L1.5 8L8.5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-  html += '</button>';
-  html += '<span class="exp-month-nav-label">' + monthLabel + '</span>';
-  html += '<button class="exp-month-nav-btn' + (isCurrentMonth ? ' exp-nav-disabled' : '') + '"' + (isCurrentMonth ? '' : ' onclick="changeExpenseMonth(1)"') + '>';
-  html += '<svg width="10" height="16" viewBox="0 0 10 16" fill="none"><path d="M1.5 1L8.5 8L1.5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-  html += '</button>';
-  html += '</div>';
+  var _isNowMonth = (thisYM === today().slice(0, 7));
+  html += '<div class="exp-month-nav">'
+    + '<button class="exp-month-nav-btn" onclick="changeExpenseMonth(-1)"><svg width="10" height="16" viewBox="0 0 10 16" fill="none"><path d="M8.5 1L1.5 8L8.5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'
+    + '<span class="exp-month-nav-label">' + monthLabel + '</span>'
+    + '<button class="exp-month-nav-btn' + (_isNowMonth ? ' exp-nav-disabled' : '') + '"' + (_isNowMonth ? '' : ' onclick="changeExpenseMonth(1)"') + '><svg width="10" height="16" viewBox="0 0 10 16" fill="none"><path d="M1.5 1L8.5 8L1.5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'
+    + '</div>';
 
   // 페이스 텍스트 준비
   var paceHtml = '';
