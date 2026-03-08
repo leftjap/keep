@@ -174,6 +174,14 @@ function switchTab(t, keepLayout) {
     if (vs) vs.style.display = 'none';
     const sb = document.getElementById('searchBar');
     if (sb) sb.classList.remove('active');
+    var searchBtn = document.querySelector('.lp-search-btn');
+    if (searchBtn) searchBtn.style.display = 'none';
+
+    // 더보기, Aa 버튼 숨기기
+    var moreBtn = document.querySelector('.ed-more-btn');
+    var aaBtn = document.querySelector('.ed-aa-btn');
+    if (moreBtn) moreBtn.style.display = 'none';
+    if (aaBtn) aaBtn.style.display = 'none';
 
     // FAB 처리
     const fab = document.querySelector('.fab-btn');
@@ -265,6 +273,12 @@ function switchTab(t, keepLayout) {
     // 모달 닫기
     if (typeof closeExpenseModal === 'function') closeExpenseModal();
 
+    // 더보기, Aa 버튼 복원
+    var moreBtn = document.querySelector('.ed-more-btn');
+    var aaBtn = document.querySelector('.ed-aa-btn');
+    if (moreBtn) moreBtn.style.display = '';
+    if (aaBtn) aaBtn.style.display = '';
+
     // FAB 복원
     var fab = document.querySelector('.fab-btn');
     if (fab) fab.style.display = '';
@@ -272,6 +286,13 @@ function switchTab(t, keepLayout) {
     // 뷰 스위처 복원
     var vs = document.getElementById('viewSwitcher');
     if (vs) vs.style.display = 'flex';
+    var searchBtn = document.querySelector('.lp-search-btn');
+    if (searchBtn) searchBtn.style.display = '';
+    // 월 네비 모두 제거
+    document.querySelectorAll('.exp-month-nav-inline').forEach(function(el) { el.remove(); });
+    // 탭 라벨 복원
+    var tabLabel = document.getElementById('edTabLabel');
+    if (tabLabel) tabLabel.style.display = '';
 
     switchListView('list');
   }
@@ -986,6 +1007,16 @@ function setupListContextMenu() {
 // ═══ 네비게이션 버튼 ═══
 function handleNew() {
   const t = activeTab;
+  if (t === 'expense') {
+    if (window.innerWidth > 768) {
+      openExpenseModal();
+    } else {
+      newExpenseForm();
+      renderExpenseCategoryGrid();
+      setMobileView('editor');
+    }
+    return;
+  }
   if (textTypes.includes(t))  { const nd = newDoc(t); loadDoc(t, nd.id, true); }
   else if (t === 'book')  newBook();
   else if (t === 'quote') newQuoteForm();
