@@ -229,9 +229,13 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 
 /* ═══ 리스트 항목 — v5.2: flex-start 정렬 ═══ */
 .lp-item{
-  display:flex;flex-direction:column;padding:14px 16px 12px;gap:4px;cursor:pointer;
-  border-bottom:1px solid var(--border-l);border-left:none;
-  transition:.1s;position:relative;min-height:0;background:var(--bg-white);overflow:visible;
+  display:flex;flex-direction:column;padding:14px 16px 12px;gap:5px;cursor:pointer;
+  border-bottom:none;border-left:none;
+  transition:.1s;position:relative;min-height:0;height:auto;max-height:none;background:var(--bg-white);overflow:visible;
+}
+.lp-item::after{
+  content:'';position:absolute;bottom:0;left:16px;right:16px;height:1px;
+  background:var(--border-l);pointer-events:none;display:block;
 }
 .lp-item:hover{background:var(--bg)}
 .lp-item.on{background:#e9e9ea}
@@ -254,14 +258,11 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   visibility:hidden;
   position:relative;
 }
-.lp-item.on{background:#e9e9ea}
-
-
 .lp-text-wrap{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;justify-content:center}
-.lp-item-title{font-size:15px;font-weight:400;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.5;-webkit-font-smoothing:antialiased;max-height:1.5em}
-.lp-item-tags{font-size:11px;color:var(--tab-color);font-weight:500;letter-spacing:-.2px;display:flex;flex-wrap:nowrap;gap:4px;overflow:hidden;max-height:1.4em}
-.lp-item-preview{font-size:13px;color:var(--tx-m);overflow:hidden !important;text-overflow:ellipsis;display:-webkit-box !important;-webkit-line-clamp:2 !important;-webkit-box-orient:vertical !important;line-height:1.45;font-weight:400;max-height:2.9em !important;word-break:break-all}
-.lp-item-meta{font-size:11px;color:var(--tx-hint);margin-top:2px;font-weight:400;flex-shrink:0;line-height:1.4;max-height:1.4em;overflow:hidden}
+.lp-item-title{font-size:15px;font-weight:400;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.5;-webkit-font-smoothing:antialiased;max-height:1.5em;flex-shrink:0}
+.lp-item-tags{font-size:11px;color:var(--tab-color);font-weight:500;letter-spacing:-.2px;display:flex;flex-wrap:nowrap;gap:4px;overflow:hidden;max-height:1.4em;flex-shrink:0}
+.lp-item-preview{font-size:13px;color:var(--tx-m);overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.45;font-weight:400;max-height:2.9em;word-break:break-all;flex-shrink:0}
+.lp-item-meta{font-size:11px;color:var(--tx-hint);margin-top:1px;font-weight:400;flex-shrink:0;line-height:1.4;max-height:1.4em;overflow:hidden;padding-bottom:0}
 .lp-thumb{
   display:none;
 }
@@ -272,7 +273,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   scrollbar-width:none;
   flex-wrap:nowrap;
   flex-shrink:0;
-  max-height:72px;
+  height:72px;max-height:none;
 }
 .lp-thumbs::-webkit-scrollbar{display:none}
 .lp-thumbs img{
@@ -1324,50 +1325,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   .routine-streak{margin:0}
   .routine-monthly{margin:0}
 }
-.lp-item:has(.lp-thumbs){max-height:240px}
-/* ═══ 리스트 항목 패치 v5 — 최종 ═══ */
-
-.lp-item{
-  max-height:none !important;
-  overflow:visible !important;
-  padding:14px 16px 12px !important;  border-bottom:none !important;
-  gap:5px !important;
-  height:auto !important;
-  min-height:auto !important;
-}
-    .pane-list{background:var(--bg-white);padding-top:0;overflow-x:hidden}
-.lp-item::after{
-  content:'' !important;
-  position:absolute !important;
-  bottom:0 !important;
-  left:16px !important;
-  right:16px !important;
-  height:1px !important;
-  background:var(--border-l) !important;
-  pointer-events:none !important;
-  display:block !important;
-}
-.lp-item-title{
-  flex-shrink:0 !important;
-}
-.lp-item-tags{
-  flex-shrink:0 !important;
-}
-.lp-item-preview{
-  flex-shrink:0 !important;
-}
-.lp-item-meta{
-  flex-shrink:0 !important;
-  margin-top:1px !important;
-  padding-bottom:0 !important;
-}
-.lp-thumbs{
-  flex-shrink:0 !important;
-  height:72px !important;
-}
-.lp-item:has(.lp-thumbs){
-  max-height:none !important;
-}
+.lp-item:has(.lp-thumbs){max-height:none}
 
 /* ═══ 캘린더 날짜별 리스트 ═══ */
 .day-list-wrap{
@@ -2146,22 +2104,6 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 
 .modal-body {
   padding: 20px;
-}
-
-/* FAB 버튼 */
-.fab-btn {
-  width: 56px; height: 56px; border-radius: 50%; border: none;
-  background: var(--tab-color); color: white; font-size: 24px;
-  cursor: pointer; display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 4px 12px rgba(0,0,0,.15); transition: .15s;
-}
-
-.fab-btn:hover {
-  transform: scale(1.1); box-shadow: 0 6px 16px rgba(0,0,0,.2);
-}
-
-.fab-btn:active {
-  transform: scale(0.95);
 }
 
 /* ═══ 풀 대시보드 기본 스타일 ═══ */

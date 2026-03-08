@@ -124,7 +124,7 @@ function renderExpenseDashboard(platform) {
   if (platform === 'pc') {
     html += '<button class="exp-more-btn" onclick="showExpenseFullDetail(\'' + thisYM + '\')">내역 더 보기 →</button>';
   } else {
-    html += '<button class="exp-more-btn" onclick="showExpenseFullDetailMobile(\'' + thisYM + '\')">내역 더 보기 →</button>';
+    html += '<button class="exp-more-btn" onclick="showExpenseFullDetail(\'' + thisYM + '\')">내역 더 보기 →</button>';
   }
 
   container.innerHTML = html;
@@ -281,6 +281,42 @@ function renderWeeklyCalendar(thisYM) {
   return html;
 }
 
+// ═══════════════════════════════════════
+// 타임라인 공통 헬퍼
+// ═══════════════════════════════════════
+
+// 지출 항목 하나를 HTML로 생성
+function renderExpenseItem(item, clickAction) {
+  var html = '<div class="exp-tl-item" onclick="' + clickAction + '">';
+  html += '<div class="exp-tl-item-icon" style="background:' + getCategoryBg(item) + '">' + getCategoryIcon(item) + '</div>';
+  html += '<div class="exp-tl-item-left">';
+  html += '<span class="exp-tl-item-amount">' + item.amount.toLocaleString() + '원</span>';
+  html += '<span class="exp-tl-item-sub">' + (item.merchant || '미분류');
+  if (item.card) html += ' | ' + item.card;
+  html += '</span>';
+  html += '</div>';
+  html += '</div>';
+  return html;
+}
+
+// 날짜 그룹(헤더 + 항목 목록)을 HTML로 생성
+function renderExpenseDateGroup(dateStr, items, getClickAction) {
+  var dateObj = new Date(dateStr + 'T00:00:00');
+  var dayNames = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+  var month = dateObj.getMonth() + 1;
+  var day = dateObj.getDate();
+  var dayName = dayNames[dateObj.getDay()];
+
+  var html = '<div class="exp-tl-date-group">';
+  html += '<div class="exp-tl-date-header">' + month + '월 ' + day + '일 ' + dayName + '</div>';
+  items.forEach(function(item, idx) {
+    html += renderExpenseItem(item, getClickAction(item));
+    if (idx < items.length - 1) html += '<div class="exp-tl-item-divider"></div>';
+  });
+  html += '</div>';
+  return html;
+}
+
 function renderRecentExpenses(yearMonth) {
   const now = new Date();
   const sevenDaysAgo = new Date(now);
@@ -312,38 +348,12 @@ function renderRecentExpenses(yearMonth) {
   // 날짜 내림차순 정렬
   dateOrder.sort(function(a, b) { return b.localeCompare(a); });
 
-  var dayNames = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
   var html = '';
 
   dateOrder.forEach(function(dateStr) {
-    var items = grouped[dateStr];
-    var dateObj = new Date(dateStr + 'T00:00:00');
-    var month = dateObj.getMonth() + 1;
-    var day = dateObj.getDate();
-    var dayName = dayNames[dateObj.getDay()];
-
-    html += '<div class="exp-tl-date-group">';
-    html += '<div class="exp-tl-date-header">' + month + '월 ' + day + '일 ' + dayName + '</div>';
-
-    items.forEach(function(item, idx) {
-      html += '<div class="exp-tl-item" onclick="loadExpense(\'' + item.id + '\'); setMobileView(\'editor\');">';
-      html += '<div class="exp-tl-item-icon" style="background:' + getCategoryBg(item) + '">' + getCategoryIcon(item) + '</div>';
-      html += '<div class="exp-tl-item-left">';
-      html += '<span class="exp-tl-item-amount">' + item.amount.toLocaleString() + '원</span>';
-      html += '<span class="exp-tl-item-sub">' + (item.merchant || '미분류');
-      if (item.card) {
-        html += ' | ' + item.card;
-      }
-      html += '</span>';
-      html += '</div>';
-      html += '</div>';
-
-      if (idx < items.length - 1) {
-        html += '<div class="exp-tl-item-divider"></div>';
-      }
+    html += renderExpenseDateGroup(dateStr, grouped[dateStr], function(item) {
+      return 'loadExpense(\'' + item.id + '\'); setMobileView(\'editor\');';
     });
-
-    html += '</div>';
   });
 
   return html;
@@ -377,8 +387,7 @@ function renderMonthCalendar(yearMonth) {
     const isToday = dateStr === today ? 'today' : '';
     const amountClass = total > avgDaily * 1.5 ? 'high' : '';
     var selectedClass = (_selectedExpenseDate === dateStr) ? ' exp-day-selected' : '';
-    var reRenderFnName = window.innerWidth > 768 ? 'reRenderDetailPC' : 'reRenderDetailMobile';
-    html += `<div class="exp-month-day ${isToday}${selectedClass}" onclick="toggleExpenseDaySelect('${dateStr}', ${reRenderFnName})">
+    html += `<div class="exp-month-day ${isToday}${selectedClass}" onclick="toggleExpenseDaySelect('${dateStr}', reRenderDetail)">
       <div class="exp-month-day-num">${i}</div>
       ${total > 0 ? `<div class="exp-month-day-amount ${amountClass}">${total.toLocaleString()}</div>` : ''}
     </div>`;
@@ -417,42 +426,14 @@ function renderExpenseTimeline(yearMonth, useModal) {
   // 날짜 내림차순 정렬
   dateOrder.sort(function(a, b) { return b.localeCompare(a); });
 
-  var dayNames = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
   var html = '';
 
   dateOrder.forEach(function(dateStr) {
-    var items = grouped[dateStr];
-    var dateObj = new Date(dateStr + 'T00:00:00');
-    var month = dateObj.getMonth() + 1;
-    var day = dateObj.getDate();
-    var dayName = dayNames[dateObj.getDay()];
-
-    html += '<div class="exp-tl-date-group">';
-    html += '<div class="exp-tl-date-header">' + month + '월 ' + day + '일 ' + dayName + '</div>';
-
-    items.forEach(function(item, idx) {
-      var clickAction = useModal
+    html += renderExpenseDateGroup(dateStr, grouped[dateStr], function(item) {
+      return useModal
         ? 'openExpenseModal(\'' + item.id + '\')'
         : 'loadExpense(\'' + item.id + '\'); setMobileView(\'editor\');';
-
-      html += '<div class="exp-tl-item" onclick="' + clickAction + '">';
-      html += '<div class="exp-tl-item-icon" style="background:' + getCategoryBg(item) + '">' + getCategoryIcon(item) + '</div>';
-      html += '<div class="exp-tl-item-left">';
-      html += '<span class="exp-tl-item-amount">' + item.amount.toLocaleString() + '원</span>';
-      html += '<span class="exp-tl-item-sub">' + (item.merchant || '미분류');
-      if (item.card) {
-        html += ' | ' + item.card;
-      }
-      html += '</span>';
-      html += '</div>';
-      html += '</div>';
-
-      if (idx < items.length - 1) {
-        html += '<div class="exp-tl-item-divider"></div>';
-      }
     });
-
-    html += '</div>';
   });
 
   return html;
@@ -576,10 +557,10 @@ function changeExpenseMonth(delta) {
     }
   } else {
     if (isNow) {
-      showExpenseDashboardFromDetailMobile();
+      showExpenseDashboardFromDetail();
       renderExpenseDashboard('mobile');
     } else {
-      showExpenseFullDetailMobile(_expenseViewYM);
+      showExpenseFullDetail(_expenseViewYM);
     }
   }
 }
@@ -588,24 +569,41 @@ function changeExpenseMonth(delta) {
 // A ↔ B 전환 함수
 // ═══════════════════════════════════════
 function showExpenseFullDetail(yearMonth) {
-  // B(전체 내역) 표시, A 숨김
-  var dashPane = document.getElementById('expFullDashboardPane');
-  var detailPane = document.getElementById('expFullDetailPane');
-
-  if (dashPane) dashPane.style.display = 'none';
-  if (detailPane) detailPane.style.display = 'block';
-
-  renderExpenseFullDetail(yearMonth);
+  if (window.innerWidth > 768) {
+    var dashPane = document.getElementById('expFullDashboardPane');
+    var detailPane = document.getElementById('expFullDetailPane');
+    if (dashPane) dashPane.style.display = 'none';
+    if (detailPane) detailPane.style.display = 'block';
+    renderExpenseFullDetail(yearMonth);
+  } else {
+    var dashboard = document.getElementById('pane-expense-dashboard');
+    var detail = document.getElementById('pane-expense-detail');
+    if (dashboard) dashboard.style.display = 'none';
+    if (detail) detail.style.display = 'flex';
+    renderExpenseFullDetailMobile(yearMonth);
+  }
 }
+// gesture.js 호환 래퍼
+function showExpenseFullDetailMobile(ym) { showExpenseFullDetail(ym); }
 
 function showExpenseDashboardFromDetail() {
   _expenseViewYM = today().slice(0, 7);
-  var dashPane = document.getElementById('expFullDashboardPane');
-  var detailPane = document.getElementById('expFullDetailPane');
-  if (dashPane) dashPane.style.display = 'block';
-  if (detailPane) detailPane.style.display = 'none';
-  renderExpenseDashboard('pc');
+  if (window.innerWidth > 768) {
+    var dashPane = document.getElementById('expFullDashboardPane');
+    var detailPane = document.getElementById('expFullDetailPane');
+    if (dashPane) dashPane.style.display = 'block';
+    if (detailPane) detailPane.style.display = 'none';
+    renderExpenseDashboard('pc');
+  } else {
+    var dashboard = document.getElementById('pane-expense-dashboard');
+    var detail = document.getElementById('pane-expense-detail');
+    if (detail) detail.style.display = 'none';
+    if (dashboard) dashboard.style.display = 'flex';
+    renderExpenseDashboard('mobile');
+  }
 }
+// gesture.js 호환 래퍼
+function showExpenseDashboardFromDetail() { showExpenseDashboardFromDetail(); }
 
 // ═══════════════════════════════════════
 // B. 전체 내역 렌더 (전체 내역 페이지)
@@ -686,45 +684,14 @@ function renderExpenseFullTimeline(yearMonth, query = '') {
   // 날짜 내림차순 정렬 (최신 먼저)
   dateOrder.sort(function(a, b) { return b.localeCompare(a); });
 
-  var dayNames = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
   var html = '';
 
   dateOrder.forEach(function(dateStr) {
-    var items = grouped[dateStr];
-    var dateObj = new Date(dateStr + 'T00:00:00');
-    var month = dateObj.getMonth() + 1;
-    var day = dateObj.getDate();
-    var dayName = dayNames[dateObj.getDay()];
-
-    // 날짜 헤더
-    html += '<div class="exp-tl-date-group">';
-    html += '<div class="exp-tl-date-header">' + month + '월 ' + day + '일 ' + dayName + '</div>';
-
-    // 해당 날짜의 항목들
-    items.forEach(function(item, idx) {
-      var clickAction = window.innerWidth > 768
+    html += renderExpenseDateGroup(dateStr, grouped[dateStr], function(item) {
+      return window.innerWidth > 768
         ? 'openExpenseModal(\'' + item.id + '\')'
         : 'loadExpense(\'' + item.id + '\'); setMobileView(\'editor\');';
-
-      html += '<div class="exp-tl-item" onclick="' + clickAction + '">';
-      html += '<div class="exp-tl-item-icon" style="background:' + getCategoryBg(item) + '">' + getCategoryIcon(item) + '</div>';
-      html += '<div class="exp-tl-item-left">';
-      html += '<span class="exp-tl-item-amount">' + item.amount.toLocaleString() + '원</span>';
-      html += '<span class="exp-tl-item-sub">' + (item.merchant || '미분류');
-      if (item.card) {
-        html += ' | ' + item.card;
-      }
-      html += '</span>';
-      html += '</div>';
-      html += '</div>';
-
-      // 같은 날짜 내 항목 사이 구분선 (마지막 항목 제외)
-      if (idx < items.length - 1) {
-        html += '<div class="exp-tl-item-divider"></div>';
-      }
     });
-
-    html += '</div>'; // .exp-tl-date-group 닫기
   });
 
   return html;
@@ -732,28 +699,15 @@ function renderExpenseFullTimeline(yearMonth, query = '') {
 
 function filterExpenseDetail(query) {
   _expenseDetailSearchQuery = query;
-  var timelineWrap = document.querySelector('.exp-full-timeline-wrap');
-  if (timelineWrap) {
-    timelineWrap.innerHTML = renderExpenseFullTimeline(getExpenseViewYM(), query);
+  if (window.innerWidth > 768) {
+    var timelineWrap = document.querySelector('.exp-full-timeline-wrap');
+    if (timelineWrap) timelineWrap.innerHTML = renderExpenseFullTimeline(getExpenseViewYM(), query);
+  } else {
+    var wrap = document.getElementById('expMobileTimeline');
+    if (wrap) wrap.innerHTML = renderExpenseFullTimeline(getExpenseViewYM(), query);
   }
 }
 
-function showExpenseFullDetailMobile(yearMonth) {
-  var dashboard = document.getElementById('pane-expense-dashboard');
-  var detail = document.getElementById('pane-expense-detail');
-  if (dashboard) dashboard.style.display = 'none';
-  if (detail) detail.style.display = 'flex';
-  renderExpenseFullDetailMobile(yearMonth);
-}
-
-function showExpenseDashboardFromDetailMobile() {
-  _expenseViewYM = today().slice(0, 7);
-  var dashboard = document.getElementById('pane-expense-dashboard');
-  var detail = document.getElementById('pane-expense-detail');
-  if (detail) detail.style.display = 'none';
-  if (dashboard) dashboard.style.display = 'flex';
-  renderExpenseDashboard('mobile');
-}
 
 function renderExpenseFullDetailMobile(yearMonth) {
   var container = document.getElementById('expenseDetail');
@@ -788,18 +742,12 @@ function renderExpenseFullDetailMobile(yearMonth) {
   var prevYM = prevD.getFullYear() + '-' + String(prevD.getMonth() + 1).padStart(2, '0');
   var prevLabel = prevD.getFullYear() + '년 ' + (prevD.getMonth() + 1) + '월';
   html += '<div style="padding:20px 0;text-align:center">';
-  html += '<button class="exp-more-btn" onclick="showExpenseFullDetailMobile(\'' + prevYM + '\')">' + prevLabel + ' 내역 →</button>';
+  html += '<button class="exp-more-btn" onclick="showExpenseFullDetail(\'' + prevYM + '\')">' + prevLabel + ' 내역 →</button>';
   html += '</div>';
 
   container.innerHTML = html;
 }
 
-function filterExpenseDetailMobile(query, yearMonth) {
-  var wrap = document.getElementById('expMobileTimeline');
-  if (wrap) {
-    wrap.innerHTML = renderExpenseFullTimeline(yearMonth, query);
-  }
-}
 
 // ═══════════════════════════════════════
 // 월 선택 모달
@@ -873,10 +821,10 @@ function selectMonth(ym) {
     }
   } else {
     if (isNow) {
-      showExpenseDashboardFromDetailMobile();
+      showExpenseDashboardFromDetail();
       renderExpenseDashboard('mobile');
     } else {
-      showExpenseFullDetailMobile(ym);
+      showExpenseFullDetail(ym);
     }
   }
 }
@@ -975,20 +923,8 @@ function renderSelectedDayExpenses(dateStr) {
     var clickAction = window.innerWidth > 768
       ? 'openExpenseModal(\'' + item.id + '\')'
       : 'loadExpense(\'' + item.id + '\'); setMobileView(\'editor\');';
-
-    html += '<div class="exp-tl-item" onclick="' + clickAction + '">';
-    html += '<div class="exp-tl-item-icon" style="background:' + getCategoryBg(item) + '">' + getCategoryIcon(item) + '</div>';
-    html += '<div class="exp-tl-item-left">';
-    html += '<span class="exp-tl-item-amount">' + item.amount.toLocaleString() + '원</span>';
-    html += '<span class="exp-tl-item-sub">' + (item.merchant || '미분류');
-    if (item.card) html += ' | ' + item.card;
-    html += '</span>';
-    html += '</div>';
-    html += '</div>';
-
-    if (idx < expenses.length - 1) {
-      html += '<div class="exp-tl-item-divider"></div>';
-    }
+    html += renderExpenseItem(item, clickAction);
+    if (idx < expenses.length - 1) html += '<div class="exp-tl-item-divider"></div>';
   });
 
   html += '</div>';
@@ -1010,15 +946,17 @@ function reRenderDashboardA() {
   renderExpenseDashboard(platform);
 }
 
-function reRenderDetailPC() {
+function reRenderDetail() {
   var ym = getExpenseViewYM();
-  renderExpenseFullDetail(ym);
+  if (window.innerWidth > 768) {
+    renderExpenseFullDetail(ym);
+  } else {
+    renderExpenseFullDetailMobile(ym);
+  }
 }
-
-function reRenderDetailMobile() {
-  var ym = getExpenseViewYM();
-  renderExpenseFullDetailMobile(ym);
-}
+// gesture.js 호환 래퍼
+function reRenderDetailPC()     { reRenderDetail(); }
+function reRenderDetailMobile() { reRenderDetail(); }
 
 // ═══════════════════════════════════════
 // 가계부 입력 폼 로직 (editor.js에서 이동)

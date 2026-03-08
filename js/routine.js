@@ -104,39 +104,24 @@ function hideRoutineCard() {
 }
 
 // ═══ 블롭 헬퍼 ═══
+// 사전 계산된 룩업 테이블 (W=240/H=52 기준, cx/W·cy/H·rr/√(W*H) 비율로 저장)
+// doneCount 1~6에 대해 [cx비율, cy비율, rr비율] 저장
+const _BLOB_LUT = {
+  // [cxRatio(W기준), cyRatio(H기준), rrRatio(sqrt(W*H)기준)]
+  1: [-0.0625, -0.1538, 0.740],
+  2: [0,       1.0,     0.670],
+  3: [0,       0.5,     0.930],
+  4: [0.15,    0,       0.950],
+  5: [-0.0417, 0,       1.650],
+  6: [0,       0.3,     1.850]
+};
 function _makeBlobParams(W, H, doneCount) {
-  const CENTER_MAP = {
-    1: { cx: -15, cy: -8 },
-    2: { cx: 0, cy: H },
-    3: { cx: 0, cy: H / 2 },
-    4: { cx: W * 0.15, cy: 0 },
-    5: { cx: -10, cy: 0 },
-    6: { cx: 0, cy: H * 0.3 }
+  const t = _BLOB_LUT[doneCount];
+  return {
+    cx: t[0] * W,
+    cy: t[1] * H,
+    rr: t[2] * Math.sqrt(W * H)
   };
-
-  function circleRectArea(cx, cy, r) {
-    const steps = 200, dy = H / steps; let area = 0;
-    for (let i = 0; i < steps; i++) {
-      const y = (i + 0.5) * dy, d2 = r * r - (y - cy) * (y - cy);
-      if (d2 <= 0) continue;
-      const hw = Math.sqrt(d2), x0 = Math.max(0, cx - hw), x1 = Math.min(W, cx + hw);
-      if (x1 > x0) area += (x1 - x0) * dy;
-    }
-    return area;
-  }
-  function findRadius(cx, cy, targetArea) {
-    let lo = 0, hi = W * 3;
-    for (let i = 0; i < 60; i++) {
-      const mid = (lo + hi) / 2;
-      if (circleRectArea(cx, cy, mid) < targetArea) lo = mid; else hi = mid;
-    }
-    return (lo + hi) / 2;
-  }
-
-  const target = (doneCount === 1) ? (1.7 / 7) * W * H : (doneCount / 7) * W * H;
-  const { cx, cy } = CENTER_MAP[doneCount];
-  const rr = findRadius(cx, cy, target);
-  return { cx, cy, rr };
 }
 
 function _buildBlobHtml(r, doneCount, W, H) {
