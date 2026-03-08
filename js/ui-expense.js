@@ -277,6 +277,7 @@ function renderWeeklyCalendar(thisYM) {
     html += renderSelectedDayExpenses(_selectedExpenseDate);
   }
   html += '</div>';
+  html += '<div class="exp-section-gap"></div>';
 
   return html;
 }
@@ -388,6 +389,7 @@ function renderMonthCalendar(yearMonth) {
   html += '<div id="expMonthDaySlot">';
   if (_selectedExpenseDate && _selectedExpenseDate.startsWith(yearMonth)) {
     html += renderSelectedDayExpenses(_selectedExpenseDate);
+    html += '<div class="exp-section-gap"></div>';
   }
   html += '</div>';
   return html;
