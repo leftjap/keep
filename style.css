@@ -2583,3 +2583,13 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
     width: 100%;
   }
 }
+
+.exp-month-nav-btn {
+  color: #333 !important;
+}
+
+.exp-nav-disabled {
+  color: #ddd !important;
+  cursor: default !important;
+  pointer-events: none !important;
+}
