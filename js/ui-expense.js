@@ -277,7 +277,6 @@ function renderWeeklyCalendar(thisYM) {
     html += renderSelectedDayExpenses(_selectedExpenseDate);
   }
   html += '</div>';
-  html += '<div class="exp-section-gap"></div>';
 
   return html;
 }
