@@ -2911,3 +2911,55 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   text-align: center;
   white-space: nowrap;
 }
+
+/* ═══ 캘린더 날짜 선택 + 일별 내역 ═══ */
+.exp-month-day.exp-day-selected {
+  background: var(--tab-color) !important;
+  border-radius: 10px;
+}
+.exp-month-day.exp-day-selected .exp-month-day-num {
+  color: #fff !important;
+  font-weight: 700;
+}
+.exp-month-day.exp-day-selected .exp-month-day-amount {
+  color: rgba(255,255,255,.8) !important;
+}
+
+.exp-week-day.exp-day-selected {
+  background: var(--tab-color) !important;
+  border-radius: 10px;
+  box-shadow: none !important;
+  transform: none !important;
+}
+.exp-week-day.exp-day-selected .exp-week-day-num {
+  color: #fff !important;
+  font-weight: 700;
+}
+.exp-week-day.exp-day-selected .exp-week-day-amount {
+  color: rgba(255,255,255,.8) !important;
+}
+
+.exp-day-detail {
+  padding: 16px 20px 8px;
+  animation: expDaySlideIn .2s ease;
+}
+@keyframes expDaySlideIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.exp-day-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+}
+.exp-day-detail-date {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--tx);
+}
+.exp-day-detail-total {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--tab-color);
+}

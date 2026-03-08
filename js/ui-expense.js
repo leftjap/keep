@@ -245,7 +245,7 @@ function renderMonthlyBarChart(trend) {
   return html;
 }
 
-function renderWeeklyCalendar(yearMonth) {
+function renderWeeklyCalendar(thisYM) {
   const now = new Date();
   const dayOfWeek = now.getDay();
   const weekStart = new Date(now);
@@ -263,12 +263,21 @@ function renderWeeklyCalendar(yearMonth) {
     const isToday = dateStr === getLocalYMD(now) ? 'today' : '';
     const avgDaily = getMonthTotal(today().slice(0, 7)) / new Date().getDate();
     const amountClass = total > avgDaily * 1.5 ? 'high' : '';
-    html += `<div class="exp-week-day ${isToday}">
+    const selectedClass = (_selectedExpenseDate === dateStr) ? ' exp-day-selected' : '';
+    html += `<div class="exp-week-day ${isToday}${selectedClass}" onclick="toggleExpenseDaySelect('${dateStr}', function(){ reRenderDashboardA(); })">
       <div class="exp-week-day-num">${d.getDate()}</div>
       ${total > 0 ? `<div class="exp-week-day-amount ${amountClass}">${total.toLocaleString()}</div>` : ''}
     </div>`;
   }
   html += '</div></div>';
+
+  // 주간 캘린더 아래 일별 내역 슬롯
+  html += '<div id="expWeekDaySlot">';
+  if (_selectedExpenseDate) {
+    html += renderSelectedDayExpenses(_selectedExpenseDate);
+  }
+  html += '</div>';
+
   return html;
 }
 
@@ -367,13 +376,20 @@ function renderMonthCalendar(yearMonth) {
     const total = getDayTotal(dateStr);
     const isToday = dateStr === today ? 'today' : '';
     const amountClass = total > avgDaily * 1.5 ? 'high' : '';
-    html += `<div class="exp-month-day ${isToday}">
+    var selectedClass = (_selectedExpenseDate === dateStr) ? ' exp-day-selected' : '';
+    var reRenderFnName = window.innerWidth > 768 ? 'reRenderDetailPC' : 'reRenderDetailMobile';
+    html += `<div class="exp-month-day ${isToday}${selectedClass}" onclick="toggleExpenseDaySelect('${dateStr}', ${reRenderFnName})">
       <div class="exp-month-day-num">${i}</div>
       ${total > 0 ? `<div class="exp-month-day-amount ${amountClass}">${total.toLocaleString()}</div>` : ''}
     </div>`;
   }
 
   html += '</div></div>';
+  html += '<div id="expMonthDaySlot">';
+  if (_selectedExpenseDate && _selectedExpenseDate.startsWith(yearMonth)) {
+    html += renderSelectedDayExpenses(_selectedExpenseDate);
+  }
+  html += '</div>';
   return html;
 }
 
@@ -536,6 +552,7 @@ function renderCategoryBarCompact(catBreakdown, total) {
 // changeExpenseMonth() — 월 이동
 // ═══════════════════════════════════════
 function changeExpenseMonth(delta) {
+  _selectedExpenseDate = null;
   var current = getExpenseViewYM();
   if (delta > 0 && current >= today().slice(0, 7)) return;
   var d = new Date(current + '-01');
@@ -589,66 +606,21 @@ function showExpenseDashboardFromDetail() {
 // B. 전체 내역 렌더 (전체 내역 페이지)
 // ═══════════════════════════════════════
 var _expenseDetailSearchQuery = '';
+var _selectedExpenseDate = null;
 
 function renderExpenseFullDetail(yearMonth) {
   var container = document.getElementById('expFullDetailPane');
   if (!container) return;
-
-  var d = new Date(yearMonth + '-01');
-  var monthNum = d.getMonth() + 1;
-  var fullMonthLabel = d.getFullYear() + '년 ' + monthNum + '월';
-  var nowYM = today().slice(0, 7);
-  var isCurrentMonth = (yearMonth === nowYM);
-  var monthTotal = getMonthTotal(yearMonth);
-  var catBreakdown = getCategoryBreakdown(yearMonth);
 
   // 월 헤더를 상단 네비에 렌더링
   renderExpenseMonthNav(yearMonth);
 
   var html = '';
 
-  if (!isCurrentMonth) {
-    var totalDisplay = monthTotal > 0 ? formatAmount(monthTotal) + '원' : '0원';
-    html += '<div class="exp-summary" style="padding:8px 20px 16px;">';
-    html += '<div class="exp-summary-title">' + monthNum + '월에 ' + totalDisplay + ' 썼어요</div>';
-    html += '</div>';
+  // 월간 캘린더
+  html += renderMonthCalendar(yearMonth);
 
-    html += renderMonthCalendar(yearMonth);
-    html += '<div class="exp-section-gap"></div>';
-
-    if (catBreakdown.length > 0) {
-      html += renderCategoryChart(catBreakdown);
-      html += '<div class="exp-section-gap"></div>';
-    }
-
-    var pastTrend = getMonthlyTrendAround(yearMonth);
-    var pastAvg = pastTrend.filter(function(t) { return !t.isCurrent && t.total > 0; });
-    var pastAvgAmount = pastAvg.length > 0 ? Math.round(pastAvg.reduce(function(s, t) { return s + t.total; }, 0) / pastAvg.length) : 0;
-    html += '<div class="exp-projection">';
-    html += '<div class="exp-projection-title">' + monthNum + '월에는 ' + formatAmount(monthTotal) + '원 썼어요</div>';
-    if (pastAvgAmount > 0) {
-      var diffFromAvg = monthTotal - pastAvgAmount;
-      if (diffFromAvg > 0) {
-        html += '<div class="exp-projection-sub">평균보다 ' + formatAmount(diffFromAvg) + '원 더 쓴 달이에요</div>';
-      } else if (diffFromAvg < 0) {
-        html += '<div class="exp-projection-sub">평균보다 ' + formatAmount(Math.abs(diffFromAvg)) + '원 덜 쓴 달이에요</div>';
-      } else {
-        html += '<div class="exp-projection-sub">평균과 비슷하게 썼어요</div>';
-      }
-    }
-    html += renderMonthlyBarChart(pastTrend);
-    html += '</div>';
-    html += '<div class="exp-section-gap"></div>';
-  } else {
-    // 현재 월 전체 내역: 기존 헤더
-    html += '<div class="exp-detail-header">';
-    html += '<span class="exp-detail-title">' + fullMonthLabel + ' 전체 내역</span>';
-    html += '</div>';
-
-    html += renderMonthCalendar(yearMonth);
-  }
-
-  // 타임라인
+  // 전체 타임라인
   html += '<div class="exp-full-timeline-wrap">';
   html += renderExpenseFullTimeline(yearMonth, _expenseDetailSearchQuery);
   html += '</div>';
@@ -772,60 +744,15 @@ function renderExpenseFullDetailMobile(yearMonth) {
   var container = document.getElementById('expenseDetail');
   if (!container) return;
 
-  var d = new Date(yearMonth + '-01');
-  var monthNum = d.getMonth() + 1;
-  var fullMonthLabel = d.getFullYear() + '년 ' + monthNum + '월';
-  var nowYM = today().slice(0, 7);
-  var isCurrentMonth = (yearMonth === nowYM);
-  var monthTotal = getMonthTotal(yearMonth);
-  var catBreakdown = getCategoryBreakdown(yearMonth);
-
   // 월 헤더를 상단 네비에 렌더링
   renderExpenseMonthNav(yearMonth);
 
   var html = '';
 
-  if (!isCurrentMonth) {
-    var totalDisplay = monthTotal > 0 ? formatAmount(monthTotal) + '원' : '0원';
-    html += '<div class="exp-summary" style="padding:8px 20px 16px;">';
-    html += '<div class="exp-summary-title">' + monthNum + '월에 ' + totalDisplay + ' 썼어요</div>';
-    html += '</div>';
+  // 월간 캘린더
+  html += renderMonthCalendar(yearMonth);
 
-    html += renderMonthCalendar(yearMonth);
-    html += '<div class="exp-section-gap"></div>';
-
-    if (catBreakdown.length > 0) {
-      html += renderCategoryChart(catBreakdown);
-      html += '<div class="exp-section-gap"></div>';
-    }
-
-    var pastTrend = getMonthlyTrendAround(yearMonth);
-    var pastAvg = pastTrend.filter(function(t) { return !t.isCurrent && t.total > 0; });
-    var pastAvgAmount = pastAvg.length > 0 ? Math.round(pastAvg.reduce(function(s, t) { return s + t.total; }, 0) / pastAvg.length) : 0;
-    html += '<div class="exp-projection">';
-    html += '<div class="exp-projection-title">' + monthNum + '월에는 ' + formatAmount(monthTotal) + '원 썼어요</div>';
-    if (pastAvgAmount > 0) {
-      var diffFromAvg = monthTotal - pastAvgAmount;
-      if (diffFromAvg > 0) {
-        html += '<div class="exp-projection-sub">평균보다 ' + formatAmount(diffFromAvg) + '원 더 쓴 달이에요</div>';
-      } else if (diffFromAvg < 0) {
-        html += '<div class="exp-projection-sub">평균보다 ' + formatAmount(Math.abs(diffFromAvg)) + '원 덜 쓴 달이에요</div>';
-      } else {
-        html += '<div class="exp-projection-sub">평균과 비슷하게 썼어요</div>';
-      }
-    }
-    html += renderMonthlyBarChart(pastTrend);
-    html += '</div>';
-    html += '<div class="exp-section-gap"></div>';
-  } else {
-    html += '<div class="exp-detail-header">';
-    html += '<span class="exp-detail-title">' + fullMonthLabel + ' 전체 내역</span>';
-    html += '</div>';
-
-    html += renderMonthCalendar(yearMonth);
-  }
-
-  // 타임라인
+  // 전체 타임라인
   html += '<div id="expMobileTimeline">';
   html += renderExpenseFullTimeline(yearMonth, '');
   html += '</div>';
@@ -1000,4 +927,71 @@ function renderIconPalette() {
   });
   html += '</div>';
   return html;
+}
+
+function renderSelectedDayExpenses(dateStr) {
+  var expenses = getDayExpenses(dateStr).sort(function(a, b) {
+    return (b.time || '').localeCompare(a.time || '');
+  });
+  if (expenses.length === 0) return '';
+
+  var dateObj = new Date(dateStr + 'T00:00:00');
+  var dayNames = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+  var month = dateObj.getMonth() + 1;
+  var day = dateObj.getDate();
+  var dayName = dayNames[dateObj.getDay()];
+  var dayTotal = expenses.reduce(function(s, e) { return s + e.amount; }, 0);
+
+  var html = '<div class="exp-day-detail">';
+  html += '<div class="exp-day-detail-header">';
+  html += '<span class="exp-day-detail-date">' + month + '월 ' + day + '일 ' + dayName + '</span>';
+  html += '<span class="exp-day-detail-total">' + dayTotal.toLocaleString() + '원</span>';
+  html += '</div>';
+
+  expenses.forEach(function(item, idx) {
+    var clickAction = window.innerWidth > 768
+      ? 'openExpenseModal(\'' + item.id + '\')'
+      : 'loadExpense(\'' + item.id + '\'); setMobileView(\'editor\');';
+
+    html += '<div class="exp-tl-item" onclick="' + clickAction + '">';
+    html += '<div class="exp-tl-item-icon" style="background:' + getCategoryBg(item) + '">' + getCategoryIcon(item) + '</div>';
+    html += '<div class="exp-tl-item-left">';
+    html += '<span class="exp-tl-item-amount">' + item.amount.toLocaleString() + '원</span>';
+    html += '<span class="exp-tl-item-sub">' + (item.merchant || '미분류');
+    if (item.card) html += ' | ' + item.card;
+    html += '</span>';
+    html += '</div>';
+    html += '</div>';
+
+    if (idx < expenses.length - 1) {
+      html += '<div class="exp-tl-item-divider"></div>';
+    }
+  });
+
+  html += '</div>';
+  return html;
+}
+
+function toggleExpenseDaySelect(dateStr, rerenderFn) {
+  if (_selectedExpenseDate === dateStr) {
+    _selectedExpenseDate = null;
+  } else {
+    _selectedExpenseDate = dateStr;
+  }
+  rerenderFn();
+}
+
+function reRenderDashboardA() {
+  var platform = window.innerWidth > 768 ? 'pc' : 'mobile';
+  renderExpenseDashboard(platform);
+}
+
+function reRenderDetailPC() {
+  var ym = getExpenseViewYM();
+  renderExpenseFullDetail(ym);
+}
+
+function reRenderDetailMobile() {
+  var ym = getExpenseViewYM();
+  renderExpenseFullDetailMobile(ym);
 }
