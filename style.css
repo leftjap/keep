@@ -2945,11 +2945,21 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 
 .exp-day-detail {
   margin: 0;
-  padding: 0;
+  padding: 0 0 12px;
   background: none;
   border: none;
   border-radius: 0;
   animation: expDaySlideIn .2s ease;
+  position: relative;
+}
+.exp-day-detail::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 20px;
+  right: 20px;
+  height: 1px;
+  background: var(--border);
 }
 @keyframes expDaySlideIn {
   from { opacity: 0; transform: translateY(-8px); }
