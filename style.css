@@ -1878,7 +1878,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 }
 
 /* 주간 캘린더 */
-.exp-week-cal { padding: 16px 20px; border-bottom: 1px solid var(--border-l); margin-bottom: 16px; }
+.exp-week-cal { padding: 16px 20px; border-bottom: none; margin-bottom: 0; }
 .exp-week-grid {
   display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
 }
@@ -2752,6 +2752,10 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 
 .exp-tl-date-group + .exp-tl-date-group {
   margin-top: 20px;
+}
+
+.exp-tl-date-group:first-child {
+  margin-top: 12px;
 }
 
 .exp-tl-date-header {
