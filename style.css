@@ -1978,7 +1978,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 }
 
 .expense-amount-input::placeholder {
-  color: var(--border);
+  color: var(--tx-hint);
   font-weight: 300;
 }
 .expense-amount-unit {
