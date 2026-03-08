@@ -2802,9 +2802,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 }
 
 .exp-tl-item-divider {
-  height: 1px;
-  background: var(--border-l);
-  margin: 0 20px 0 68px;
+  display: none;
 }
 
 
