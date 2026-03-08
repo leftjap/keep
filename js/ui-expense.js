@@ -37,9 +37,9 @@ function renderExpenseDashboard(platform) {
   // 1. 월 이동 헤더 — 전체 너비, 가운데 정렬
   var _isNowMonth = (thisYM === today().slice(0, 7));
   html += '<div class="exp-month-nav">'
-    + '<button class="exp-month-nav-btn" onclick="changeExpenseMonth(-1)"><svg width="10" height="16" viewBox="0 0 10 16" fill="none"><path d="M8.5 1L1.5 8L8.5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'
+    + '<button class="exp-month-nav-btn" onclick="changeExpenseMonth(-1)"><svg width="8" height="14" viewBox="0 0 8 14"><polygon points="7,0.5 1,7 7,13.5" fill="currentColor"/></svg></button>'
     + '<span class="exp-month-nav-label">' + monthLabel + '</span>'
-    + '<button class="exp-month-nav-btn' + (_isNowMonth ? ' exp-nav-disabled' : '') + '"' + (_isNowMonth ? '' : ' onclick="changeExpenseMonth(1)"') + '><svg width="10" height="16" viewBox="0 0 10 16" fill="none"><path d="M1.5 1L8.5 8L1.5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'
+    + '<button class="exp-month-nav-btn' + (_isNowMonth ? ' exp-nav-disabled' : '') + '"' + (_isNowMonth ? '' : ' onclick="changeExpenseMonth(1)"') + '><svg width="8" height="14" viewBox="0 0 8 14"><polygon points="1,0.5 7,7 1,13.5" fill="currentColor"/></svg></button>'
     + '</div>';
 
   // 페이스 텍스트 준비
