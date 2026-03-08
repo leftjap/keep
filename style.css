@@ -2916,6 +2916,9 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 .exp-month-day.exp-day-selected {
   background: var(--tab-color) !important;
   border-radius: 10px;
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(229, 86, 67, 0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 .exp-month-day.exp-day-selected .exp-month-day-num {
   color: #fff !important;
@@ -2928,8 +2931,9 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 .exp-week-day.exp-day-selected {
   background: var(--tab-color) !important;
   border-radius: 10px;
-  box-shadow: none !important;
-  transform: none !important;
+  transform: translateY(-3px) !important;
+  box-shadow: 0 4px 12px rgba(229, 86, 67, 0.3) !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 .exp-week-day.exp-day-selected .exp-week-day-num {
   color: #fff !important;
