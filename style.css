@@ -1978,7 +1978,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 }
 
 .expense-amount-input::placeholder {
-  color: var(--tx-hint);
+  color: var(--border);
   font-weight: 300;
 }
 .expense-amount-unit {
@@ -2001,7 +2001,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   font-size: 18px; color: var(--tx); font-family: 'Pretendard', sans-serif;
   font-weight: 300;
 }
-.expense-merchant-input::placeholder { color: var(--tx-hint); }
+.expense-merchant-input::placeholder { color: var(--border); }
 
 /* 날짜 */
 .expense-date-field {
@@ -2044,7 +2044,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   transition: border-color .2s;
 }
 .expense-optional-input:focus { border-bottom-color: var(--tab-color); }
-.expense-optional-input::placeholder { color: var(--tx-hint); }
+.expense-optional-input::placeholder { color: var(--border); }
 
 /* 문자 붙여넣기 버튼 */
 .expense-paste-btn {
