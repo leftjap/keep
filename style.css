@@ -2804,13 +2804,13 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  background: #f5f5f5;
+  background: #F2F2F2;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   margin-right: 12px;
-  color: var(--tx-m, #888);
+  color: #999;
 }
 
 /* 항목 레이아웃에 아이콘 반영 */
