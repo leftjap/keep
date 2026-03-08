@@ -35,17 +35,11 @@ function renderExpenseDashboard(platform) {
   var html = '';
 
   // 1. 월 이동 헤더 — 전체 너비, 가운데 정렬
-  var currentYM = today().slice(0, 7);
-  var isCurrentMonth = (thisYM === currentYM);
-
+  var isCurrentMonth = (thisYM === today().slice(0, 7));
   html += '<div class="exp-month-nav">';
   html += '<button class="exp-month-nav-btn" onclick="changeExpenseMonth(-1)">‹</button>';
   html += '<span class="exp-month-nav-label">' + monthLabel + '</span>';
-  if (isCurrentMonth) {
-    html += '<button class="exp-month-nav-btn" disabled>›</button>';
-  } else {
-    html += '<button class="exp-month-nav-btn" onclick="changeExpenseMonth(1)">›</button>';
-  }
+  html += '<button class="exp-month-nav-btn"' + (isCurrentMonth ? ' disabled' : '') + ' onclick="changeExpenseMonth(1)">›</button>';
   html += '</div>';
 
   // 페이스 텍스트 준비
@@ -420,10 +414,7 @@ function renderCategoryBarCompact(catBreakdown, total) {
 // ═══════════════════════════════════════
 function changeExpenseMonth(delta) {
   var current = getExpenseViewYM();
-  if (delta > 0) {
-    var currentYMCheck = today().slice(0, 7);
-    if (current >= currentYMCheck) return;
-  }
+  if (delta > 0 && current >= today().slice(0, 7)) return;
   var d = new Date(current + '-01');
   d.setMonth(d.getMonth() + delta);
   _expenseViewYM = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
