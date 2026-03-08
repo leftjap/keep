@@ -1903,34 +1903,6 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 .exp-week-day-amount.high { color: #e87461; }
 
 /* 지출 타임라인 */
-.exp-timeline { padding: 0; }
-.exp-date-header {
-  font-size: 13px; font-weight: 600; color: var(--tx-hint);
-  padding: 16px 20px 8px; letter-spacing: -.2px;
-}
-.exp-item {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 10px 20px; cursor: pointer; transition: background .1s;
-  position: relative;
-}
-.exp-item:hover { background: var(--bg); }
-.exp-item::after {
-  content: ''; position: absolute; bottom: 0; left: 20px; right: 20px;
-  height: 1px; background: var(--border-l);
-}
-.exp-item-merchant {
-  font-size: 15px; color: var(--tx); font-weight: 400;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  flex: 1; min-width: 0;
-}
-.exp-item-amount {
-  font-size: 15px; font-family: 'JetBrains Mono', monospace;
-  color: var(--tx); font-weight: 500; flex-shrink: 0; margin-left: 12px;
-}
-.exp-day-total {
-  text-align: right; padding: 6px 20px 16px; font-size: 12px;
-  color: var(--tx-hint); font-family: 'JetBrains Mono', monospace;
-}
 
 /* 내역 더 보기 버튼 */
 .exp-more-btn {
@@ -2597,4 +2569,240 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 .pane-expense-dashboard .exp-month-nav,
 .pane-expense-detail .exp-month-nav {
   padding-top: 0;
+}
+
+.pane-expense-dashboard .exp-summary,
+#expFullDashboardPane .exp-summary {
+  padding-top: 8px;
+}
+
+.exp-chart-wrap {
+  padding: 0 20px 16px;
+  border-bottom: 1px solid var(--border-l);
+}
+
+.exp-chart-wrap svg.exp-chart-svg {
+  width: 100% !important;
+  height: 220px !important;
+  display: block;
+}
+
+.exp-mp-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.4);
+  z-index: 9999;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity .25s ease;
+}
+
+.exp-mp-overlay.open {
+  opacity: 1;
+}
+
+.exp-mp-sheet {
+  width: 100%;
+  max-width: 420px;
+  max-height: 70vh;
+  background: #fff;
+  border-radius: 16px 16px 0 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(100%);
+  transition: transform .3s cubic-bezier(.25,.46,.45,.94);
+}
+
+.exp-mp-overlay.open .exp-mp-sheet {
+  transform: translateY(0);
+}
+
+.exp-mp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--border-l);
+}
+
+.exp-mp-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--tx);
+}
+
+.exp-mp-close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: var(--bg);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--tx-m);
+  transition: .12s;
+}
+
+.exp-mp-close:hover {
+  background: var(--border-l);
+}
+
+.exp-mp-list {
+  overflow-y: auto;
+  padding: 8px 0;
+  padding-bottom: env(safe-area-inset-bottom, 20px);
+}
+
+.exp-mp-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  font-size: 16px;
+  color: var(--tx);
+  cursor: pointer;
+  transition: background .1s;
+}
+
+.exp-mp-item:hover {
+  background: rgba(0,0,0,.03);
+}
+
+.exp-mp-item:active {
+  background: rgba(0,0,0,.06);
+}
+
+.exp-mp-selected {
+  color: var(--tx);
+  font-weight: 600;
+}
+
+@media (min-width: 769px) {
+  .exp-mp-sheet {
+    border-radius: 16px;
+    margin-bottom: 10vh;
+    max-height: 60vh;
+  }
+}
+
+.exp-category-name {
+  color: var(--tx-d) !important;
+}
+
+.exp-bar-chart {
+  gap: 12px;
+}
+
+.exp-bar-fill {
+  max-width: 32px;
+  margin: 0 auto;
+  border-radius: 4px 4px 0 0;
+}
+
+.exp-bar-item {
+  align-items: center;
+}
+
+.exp-bar-label {
+  color: var(--tx) !important;
+  font-weight: 500;
+}
+
+.exp-section-gap {
+  height: 10px;
+  background: #f3f4f6;
+}
+
+
+.exp-month-day.empty {
+  height: 36px;
+}
+
+
+/* === 타임라인 (토스 스타일) === */
+
+.exp-tl-empty {
+  text-align: center;
+  color: var(--tx-l);
+  padding: 40px 20px;
+  font-size: 14px;
+}
+
+.exp-tl-date-group {
+  padding: 0 20px;
+  margin-bottom: 0;
+}
+
+.exp-tl-date-group + .exp-tl-date-group {
+  margin-top: 24px;
+}
+
+.exp-tl-date-header {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--tx-l);
+  padding: 0 0 10px 0;
+  letter-spacing: -0.2px;
+}
+
+.exp-tl-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.exp-tl-item:active {
+  background: rgba(0,0,0,0.03);
+  border-radius: 8px;
+}
+
+.exp-tl-item-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.exp-tl-item-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--tx);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.exp-tl-item-memo {
+  font-size: 12px;
+  color: var(--tx-l);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.exp-tl-item-right {
+  flex-shrink: 0;
+  margin-left: 12px;
+}
+
+.exp-tl-item-amount {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--tx);
+  font-variant-numeric: tabular-nums;
+}
+
+.exp-tl-item-divider {
+  height: 1px;
+  background: var(--border-l);
+  margin-left: 0;
 }

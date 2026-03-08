@@ -30,7 +30,7 @@ function renderExpenseDashboard(platform) {
   var thisMonthTotal = getMonthTotal(thisYM);
   var d = new Date(thisYM + '-01');
   var monthLabel = (d.getMonth() + 1) + '월';
-  var totalDisplay = thisMonthTotal > 0 ? thisMonthTotal.toLocaleString() + '원' : '0원';
+  var totalDisplay = thisMonthTotal > 0 ? formatAmount(thisMonthTotal) + '원' : '0원';
 
   var html = '';
 
@@ -38,17 +38,20 @@ function renderExpenseDashboard(platform) {
   var _isNowMonth = (thisYM === today().slice(0, 7));
   html += '<div class="exp-month-nav">'
     + '<button class="exp-month-nav-btn" onclick="changeExpenseMonth(-1)"><svg width="8" height="14" viewBox="0 0 8 14"><polygon points="7,0.5 1,7 7,13.5" fill="currentColor"/></svg></button>'
-    + '<span class="exp-month-nav-label">' + monthLabel + '</span>'
+    + '<span class="exp-month-nav-label" onclick="openMonthPicker()" style="cursor:pointer;">' + monthLabel + '</span>'
     + '<button class="exp-month-nav-btn' + (_isNowMonth ? ' exp-nav-disabled' : '') + '"' + (_isNowMonth ? '' : ' onclick="changeExpenseMonth(1)"') + '><svg width="8" height="14" viewBox="0 0 8 14"><polygon points="1,0.5 7,7 1,13.5" fill="currentColor"/></svg></button>'
     + '</div>';
 
-  // 페이스 텍스트 준비
+  var summaryTitle = '오늘까지 ' + totalDisplay + ' 썼어요';
+
   var paceHtml = '';
   if (pace) {
-    var paceText = pace.isLess
-      ? '지난달보다 ' + formatAmount(Math.abs(pace.diff)) + '원 덜 쓰는 중'
-      : '지난달보다 ' + formatAmount(pace.diff) + '원 더 쓰는 중';
-    paceHtml = '<div class="exp-summary-sub ' + (pace.isLess ? '' : 'over') + '">' + paceText + '</div>';
+    var diffAmount = formatAmount(Math.abs(pace.diff)) + '원';
+    if (pace.isLess) {
+      paceHtml = '<div class="exp-summary-sub">지난달보다 <span style="color:#E55643;font-weight:600;">' + diffAmount + ' 덜</span> 쓰는 중</div>';
+    } else {
+      paceHtml = '<div class="exp-summary-sub over">지난달보다 <span style="font-weight:600;">' + diffAmount + ' 더</span> 쓰는 중</div>';
+    }
   }
 
   if (platform === 'pc') {
@@ -58,7 +61,7 @@ function renderExpenseDashboard(platform) {
     // 좌측 카드: 이달 총액 + 페이스 + 누적 차트
     html += '<div class="exp-two-col-card">';
     html += '<div class="exp-summary" style="padding:0 0 16px;">';
-    html += '<div class="exp-summary-title">이달 총액: ' + totalDisplay + '</div>';
+    html += '<div class="exp-summary-title">' + summaryTitle + '</div>';
     html += paceHtml;
     html += '</div>';
     html += renderCumulativeChart(thisYM);
@@ -73,14 +76,16 @@ function renderExpenseDashboard(platform) {
   } else {
     // 모바일: 1열 순차
     html += '<div class="exp-summary">';
-    html += '<div class="exp-summary-title">이달 총액: ' + totalDisplay + '</div>';
+    html += '<div class="exp-summary-title">' + summaryTitle + '</div>';
     html += paceHtml;
     html += '</div>';
     html += renderCumulativeChart(thisYM);
+    html += '<div class="exp-section-gap"></div>';
     html += renderCategoryChart(catBreakdown);
   }
 
   // 3. 예상 지출 + 월별 막대 차트 — 전체 너비
+  html += '<div class="exp-section-gap"></div>';
   html += '<div class="exp-projection">';
   html += '<div class="exp-projection-title">이번 달엔 ' + formatAmount(projected) + '원 쓸 것 같아요</div>';
   html += '<div class="exp-projection-sub">한 달에 평균 ' + formatAmount(getMonthlyAverage()) + '원 정도 써요</div>';
@@ -88,9 +93,11 @@ function renderExpenseDashboard(platform) {
   html += '</div>';
 
   // 4. 주간 캘린더 — 전체 너비
+  html += '<div class="exp-section-gap"></div>';
   html += renderWeeklyCalendar(thisYM);
 
   // 5. 최근 7일 타임라인 — 전체 너비
+  html += '<div class="exp-section-gap"></div>';
   html += renderRecentExpenses(thisYM);
 
   // 6. "내역 더 보기" 버튼
@@ -104,71 +111,115 @@ function renderExpenseDashboard(platform) {
 }
 
 function renderCumulativeChart(yearMonth) {
-  const thisMonthExpenses = getMonthExpenses(yearMonth);
-  const prevMonth = new Date(yearMonth + '-01');
+  var thisMonthExpenses = getMonthExpenses(yearMonth);
+  var prevMonth = new Date(yearMonth + '-01');
   prevMonth.setMonth(prevMonth.getMonth() - 1);
-  const prevYM = `${prevMonth.getFullYear()}-${String(prevMonth.getMonth()+1).padStart(2,'0')}`;
-  const prevMonthExpenses = getMonthExpenses(prevYM);
+  var prevYM = prevMonth.getFullYear() + '-' + String(prevMonth.getMonth()+1).padStart(2,'0');
+  var prevMonthExpenses = getMonthExpenses(prevYM);
 
-  const daysInMonth = new Date(new Date(yearMonth + '-01').getFullYear(), new Date(yearMonth + '-01').getMonth() + 1, 0).getDate();
-  const today_d = new Date().getDate();
+  var monthNum = new Date(yearMonth + '-01').getMonth() + 1;
+  var daysInMonth = new Date(new Date(yearMonth + '-01').getFullYear(), new Date(yearMonth + '-01').getMonth() + 1, 0).getDate();
+  var todayDate = new Date().getDate();
+  var isCurrentMonth = (yearMonth === today().slice(0, 7));
+  var lastDataDay = isCurrentMonth ? Math.min(todayDate, daysInMonth) : daysInMonth;
 
-  // 누적 합산 계산
-  const thisMonthCumulative = {};
-  const prevMonthCumulative = {};
-  let thisSum = 0, prevSum = 0;
+  var thisMonthCumulative = {};
+  var prevMonthCumulative = {};
+  var thisSum = 0, prevSum = 0;
 
-  for (let i = 1; i <= daysInMonth; i++) {
-    const d = `${yearMonth}-${String(i).padStart(2,'0')}`;
-    const dayTotal = getDayTotal(d);
-    thisSum += dayTotal;
+  for (var i = 1; i <= daysInMonth; i++) {
+    var d = yearMonth + '-' + String(i).padStart(2,'0');
+    thisSum += getDayTotal(d);
     thisMonthCumulative[i] = thisSum;
 
-    const prevD = `${prevYM}-${String(i).padStart(2,'0')}`;
-    const prevDayTotal = prevMonthExpenses.reduce((s, e) => e.date === prevD ? s + e.amount : s, 0);
+    var prevD = prevYM + '-' + String(i).padStart(2,'0');
+    var prevDayTotal = prevMonthExpenses.reduce(function(s, e) { return e.date === prevD ? s + e.amount : s; }, 0);
     prevSum += prevDayTotal;
     prevMonthCumulative[i] = prevSum;
   }
 
-  // SVG 좌표 계산
-  const maxY = Math.max(...Object.values(thisMonthCumulative), ...Object.values(prevMonthCumulative), 1);
-  const width = 260, height = 140, padding = 20;
-  const graphWidth = width - padding * 2;
-  const graphHeight = height - padding * 2;
+  var allVals = Object.values(thisMonthCumulative).concat(Object.values(prevMonthCumulative)).concat([1]);
+  var maxY = Math.max.apply(null, allVals);
+  var width = 260, height = 170, padding = 20;
+  var graphWidth = width - padding * 2;
+  var graphHeight = height - padding * 2 - 18;
+  var bottom = padding + graphHeight;
 
-  let thisPoints = '', prevPoints = '';
-  for (let i = 1; i <= daysInMonth; i++) {
-    const x = padding + (i - 1) / (daysInMonth - 1) * graphWidth;
-    const thisY = padding + graphHeight - (thisMonthCumulative[i] / maxY) * graphHeight;
-    const prevY = padding + graphHeight - (prevMonthCumulative[i] / maxY) * graphHeight;
-    thisPoints += `${x},${thisY} `;
-    prevPoints += `${x},${prevY} `;
+  var thisPoints = '', prevPoints = '';
+  var thisFill = padding + ',' + bottom + ' ';
+  var prevFill = padding + ',' + bottom + ' ';
+  var dotX = 0, dotY = 0;
+
+  for (var j = 1; j <= daysInMonth; j++) {
+    var x = padding + (j - 1) / (daysInMonth - 1) * graphWidth;
+    var thisY = padding + graphHeight - (thisMonthCumulative[j] / maxY) * graphHeight;
+    var prevY = padding + graphHeight - (prevMonthCumulative[j] / maxY) * graphHeight;
+
+    if (j <= lastDataDay) {
+      thisPoints += x + ',' + thisY + ' ';
+      thisFill += x + ',' + thisY + ' ';
+      dotX = x;
+      dotY = thisY;
+    }
+
+    prevPoints += x + ',' + prevY + ' ';
+    prevFill += x + ',' + prevY + ' ';
   }
 
-  return `<div class="exp-chart-wrap">
-    <svg class="exp-chart-svg" viewBox="0 0 ${width} ${height}">
-      <polyline points="${prevPoints}" fill="none" stroke="var(--border)" stroke-width="2"/>
-      <polyline points="${thisPoints}" fill="none" stroke="var(--tab-color)" stroke-width="2.5"/>
-    </svg>
-    <div class="exp-chart-legend">
-      <span><span class="exp-chart-legend-dot" style="background:var(--border);"></span>${new Date(prevYM + '-01').getMonth() + 1}월</span>
-      <span><span class="exp-chart-legend-dot" style="background:var(--tab-color);"></span>${new Date(yearMonth + '-01').getMonth() + 1}월</span>
-    </div>
-  </div>`;
+  var lastThisX = padding + (lastDataDay - 1) / (daysInMonth - 1) * graphWidth;
+  thisFill += lastThisX + ',' + bottom;
+  var lastPrevX = padding + graphWidth;
+  prevFill += lastPrevX + ',' + bottom;
+
+  var labelY = bottom + 16;
+  var startLabel = monthNum + '.1';
+  var endLabel = monthNum + '.' + daysInMonth;
+  var todayLabel = monthNum + '.' + lastDataDay;
+  var todayLabelX = dotX;
+  var startX = padding;
+  var endX = padding + graphWidth;
+
+  return '<div class="exp-chart-wrap">'
+    + '<svg class="exp-chart-svg" viewBox="0 0 ' + width + ' ' + height + '">'
+    + '<defs>'
+    + '<linearGradient id="thisMonthGrad" x1="0" y1="0" x2="0" y2="1">'
+    + '<stop offset="0%" stop-color="#E55643" stop-opacity="0.25"/>'
+    + '<stop offset="100%" stop-color="#E55643" stop-opacity="0.02"/>'
+    + '</linearGradient>'
+    + '<linearGradient id="prevMonthGrad" x1="0" y1="0" x2="0" y2="1">'
+    + '<stop offset="0%" stop-color="#C8C8C8" stop-opacity="0.2"/>'
+    + '<stop offset="100%" stop-color="#C8C8C8" stop-opacity="0.02"/>'
+    + '</linearGradient>'
+    + '</defs>'
+    + '<polygon points="' + prevFill + '" fill="url(#prevMonthGrad)"/>'
+    + '<polyline points="' + prevPoints + '" fill="none" stroke="#D0D0D0" stroke-width="1.5"/>'
+    + '<polygon points="' + thisFill + '" fill="url(#thisMonthGrad)"/>'
+    + '<polyline points="' + thisPoints + '" fill="none" stroke="#E55643" stroke-width="2"/>'
+    + '<circle cx="' + dotX + '" cy="' + dotY + '" r="7" fill="#E55643" opacity="0.2"/>'
+    + '<circle cx="' + dotX + '" cy="' + dotY + '" r="4" fill="#E55643"/>'
+    + '<text x="' + startX + '" y="' + labelY + '" font-size="10" fill="#aaa" font-family="Pretendard,sans-serif" text-anchor="start">' + startLabel + '</text>'
+    + (isCurrentMonth && lastDataDay < daysInMonth ? '<text x="' + todayLabelX + '" y="' + labelY + '" font-size="10" fill="#E55643" font-weight="600" font-family="Pretendard,sans-serif" text-anchor="middle">' + todayLabel + '</text>' : '')
+    + '<text x="' + endX + '" y="' + labelY + '" font-size="10" fill="#aaa" font-family="Pretendard,sans-serif" text-anchor="end">' + endLabel + '</text>'
+    + '</svg>'
+    + '<div class="exp-chart-legend">'
+    + '<span><span class="exp-chart-legend-dot" style="background:#E55643;"></span>' + monthNum + '월</span>'
+    + '<span><span class="exp-chart-legend-dot" style="background:#D0D0D0;"></span>' + (new Date(prevYM + '-01').getMonth() + 1) + '월</span>'
+    + '</div>'
+    + '</div>';
 }
 
 function renderMonthlyBarChart(trend) {
-  const maxTotal = Math.max(...trend.map(t => t.total), 1);
-  let html = '<div class="exp-bar-chart">';
-  trend.forEach(t => {
-    const pct = (t.total / maxTotal) * 100;
-    const isCurrentClass = t.isCurrent ? 'current' : '';
-    html += `<div class="exp-bar-item ${isCurrentClass}">
-      ${t.isCurrent ? '<div class="exp-bar-projected">예상</div>' : ''}
-      <div class="exp-bar-fill" style="height:${Math.max(pct, 2)}%"></div>
-      <div class="exp-bar-value">${formatAmount(t.total)}</div>
-      <div class="exp-bar-label">${t.label}</div>
-    </div>`;
+  var maxTotal = Math.max.apply(null, trend.map(function(t) { return t.total; }).concat([1]));
+  var html = '<div class="exp-bar-chart">';
+  trend.forEach(function(t) {
+    var pct = (t.total / maxTotal) * 100;
+    var isCurrentClass = t.isCurrent ? 'current' : '';
+    html += '<div class="exp-bar-item ' + isCurrentClass + '">'
+      + (t.isCurrent ? '<div class="exp-bar-projected">예상</div>' : '')
+      + '<div class="exp-bar-value">' + formatAmount(t.total) + '</div>'
+      + '<div class="exp-bar-fill" style="height:' + Math.max(pct, 4) + '%"></div>'
+      + '<div class="exp-bar-label">' + t.label + '</div>'
+      + '</div>';
   });
   html += '</div>';
   return html;
@@ -205,41 +256,66 @@ function renderRecentExpenses(yearMonth) {
   const sevenDaysAgo = new Date(now);
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-  const expenses = getExpenses()
+  const entries = getExpenses()
     .filter(e => {
       const eDate = new Date(e.date);
       return eDate >= sevenDaysAgo && eDate <= now;
     })
     .sort((a, b) => new Date(b.date + ' ' + b.time) - new Date(a.date + ' ' + a.time));
 
-  let html = '<div class="exp-timeline">';
-
-  let currentDate = '';
-  let daySum = 0;
-
-  expenses.forEach(e => {
-    if (e.date !== currentDate) {
-      if (currentDate) {
-        html += `<div class="exp-day-total">소계: ${daySum.toLocaleString()}</div>`;
-      }
-      currentDate = e.date;
-      daySum = 0;
-      const d = new Date(e.date);
-      const dayName = ['일','월','화','수','목','금','토'][d.getDay()];
-      html += `<div class="exp-date-header">${dayName} · ${d.getMonth() + 1}월 ${d.getDate()}일</div>`;
-    }
-    daySum += e.amount;
-    html += `<div class="exp-item" onclick="loadExpense('${e.id}'); setMobileView('editor');">
-      <div class="exp-item-merchant">${e.merchant}</div>
-      <div class="exp-item-amount">${e.amount.toLocaleString()}</div>
-    </div>`;
-  });
-
-  if (currentDate && daySum > 0) {
-    html += `<div class="exp-day-total">소계: ${daySum.toLocaleString()}</div>`;
+  if (!entries || entries.length === 0) {
+    return '<div class="exp-tl-empty">내역이 없습니다</div>';
   }
 
-  html += '</div>';
+  // 날짜별 그룹핑
+  var grouped = {};
+  var dateOrder = [];
+  entries.forEach(function(e) {
+    var d = e.date;
+    if (!grouped[d]) {
+      grouped[d] = [];
+      dateOrder.push(d);
+    }
+    grouped[d].push(e);
+  });
+
+  // 날짜 내림차순 정렬
+  dateOrder.sort(function(a, b) { return b.localeCompare(a); });
+
+  var dayNames = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+  var html = '';
+
+  dateOrder.forEach(function(dateStr) {
+    var items = grouped[dateStr];
+    var dateObj = new Date(dateStr + 'T00:00:00');
+    var month = dateObj.getMonth() + 1;
+    var day = dateObj.getDate();
+    var dayName = dayNames[dateObj.getDay()];
+
+    html += '<div class="exp-tl-date-group">';
+    html += '<div class="exp-tl-date-header">' + month + '월 ' + day + '일 ' + dayName + '</div>';
+
+    items.forEach(function(item, idx) {
+      html += '<div class="exp-tl-item" onclick="loadExpense(\'' + item.id + '\'); setMobileView(\'editor\');">';
+      html += '<div class="exp-tl-item-left">';
+      html += '<span class="exp-tl-item-name">' + (item.merchant || '미분류') + '</span>';
+      if (item.memo) {
+        html += '<span class="exp-tl-item-memo">' + item.memo + '</span>';
+      }
+      html += '</div>';
+      html += '<div class="exp-tl-item-right">';
+      html += '<span class="exp-tl-item-amount">' + item.amount.toLocaleString() + '</span>';
+      html += '</div>';
+      html += '</div>';
+
+      if (idx < items.length - 1) {
+        html += '<div class="exp-tl-item-divider"></div>';
+      }
+    });
+
+    html += '</div>';
+  });
+
   return html;
 }
 
@@ -254,7 +330,7 @@ function renderMonthCalendar(yearMonth) {
   html += '<div class="exp-month-dow">일</div><div class="exp-month-dow">월</div><div class="exp-month-dow">화</div>';
   html += '<div class="exp-month-dow">수</div><div class="exp-month-dow">목</div><div class="exp-month-dow">금</div><div class="exp-month-dow">토</div>';
 
-  // 빈 셀
+  // 빈 셀 (월 시작 전)
   for (let i = 0; i < firstDay; i++) {
     html += '<div class="exp-month-day empty"></div>';
   }
@@ -278,43 +354,66 @@ function renderMonthCalendar(yearMonth) {
 }
 
 function renderExpenseTimeline(yearMonth, useModal) {
-  const expenses = getMonthExpenses(yearMonth)
+  var entries = getMonthExpenses(yearMonth)
     .sort((a, b) => new Date(b.date + ' ' + b.time) - new Date(a.date + ' ' + a.time));
 
-  let html = '<div class="exp-timeline">';
-
-  let currentDate = '';
-  let daySum = 0;
-
-  expenses.forEach(e => {
-    if (e.date !== currentDate) {
-      if (currentDate) {
-        html += `<div class="exp-day-total">소계: ${daySum.toLocaleString()}</div>`;
-      }
-      currentDate = e.date;
-      daySum = 0;
-      const d = new Date(e.date);
-      const dayName = ['일','월','화','수','목','금','토'][d.getDay()];
-      html += `<div class="exp-date-header">${dayName} · ${d.getMonth() + 1}월 ${d.getDate()}일</div>`;
-    }
-    daySum += e.amount;
-
-    // useModal=true이면 모달 열기, 아니면 화면 전환
-    const clickAction = useModal
-      ? `openExpenseModal('${e.id}')`
-      : `loadExpense('${e.id}'); setMobileView('editor');`;
-
-    html += `<div class="exp-item" onclick="${clickAction}">
-      <div class="exp-item-merchant">${e.merchant}</div>
-      <div class="exp-item-amount">${e.amount.toLocaleString()}</div>
-    </div>`;
-  });
-
-  if (currentDate && daySum > 0) {
-    html += `<div class="exp-day-total">소계: ${daySum.toLocaleString()}</div>`;
+  if (!entries || entries.length === 0) {
+    return '<div class="exp-tl-empty">내역이 없습니다</div>';
   }
 
-  html += '</div>';
+  // 날짜별 그룹핑
+  var grouped = {};
+  var dateOrder = [];
+  entries.forEach(function(e) {
+    var d = e.date;
+    if (!grouped[d]) {
+      grouped[d] = [];
+      dateOrder.push(d);
+    }
+    grouped[d].push(e);
+  });
+
+  // 날짜 내림차순 정렬
+  dateOrder.sort(function(a, b) { return b.localeCompare(a); });
+
+  var dayNames = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+  var html = '';
+
+  dateOrder.forEach(function(dateStr) {
+    var items = grouped[dateStr];
+    var dateObj = new Date(dateStr + 'T00:00:00');
+    var month = dateObj.getMonth() + 1;
+    var day = dateObj.getDate();
+    var dayName = dayNames[dateObj.getDay()];
+
+    html += '<div class="exp-tl-date-group">';
+    html += '<div class="exp-tl-date-header">' + month + '월 ' + day + '일 ' + dayName + '</div>';
+
+    items.forEach(function(item, idx) {
+      var clickAction = useModal
+        ? 'openExpenseModal(\'' + item.id + '\')'
+        : 'loadExpense(\'' + item.id + '\'); setMobileView(\'editor\');';
+
+      html += '<div class="exp-tl-item" onclick="' + clickAction + '">';
+      html += '<div class="exp-tl-item-left">';
+      html += '<span class="exp-tl-item-name">' + (item.merchant || '미분류') + '</span>';
+      if (item.memo) {
+        html += '<span class="exp-tl-item-memo">' + item.memo + '</span>';
+      }
+      html += '</div>';
+      html += '<div class="exp-tl-item-right">';
+      html += '<span class="exp-tl-item-amount">' + item.amount.toLocaleString() + '</span>';
+      html += '</div>';
+      html += '</div>';
+
+      if (idx < items.length - 1) {
+        html += '<div class="exp-tl-item-divider"></div>';
+      }
+    });
+
+    html += '</div>';
+  });
+
   return html;
 }
 
@@ -322,22 +421,22 @@ function renderExpenseTimeline(yearMonth, useModal) {
 // 카테고리별 비율 차트 (수평 바)
 // ═══════════════════════════════════════
 function renderCategoryChart(catBreakdown) {
-  const maxAmount = Math.max(...catBreakdown.map(c => c.amount), 1);
-  let html = '<div class="exp-category-chart">';
+  if (!catBreakdown || catBreakdown.length === 0) return '';
+  var maxAmount = catBreakdown[0].amount;
+  var html = '<div class="exp-category-chart">';
   html += '<div class="exp-category-title">카테고리별 지출</div>';
 
-  catBreakdown.forEach(cat => {
-    const pct = (cat.amount / maxAmount) * 100;
-    const catName = cat.name;
-    const catColor = cat.color;
+  catBreakdown.forEach(function(cat, i) {
+    var pct = (cat.amount / maxAmount) * 100;
+    var opacity = Math.max(0.2, 1 - i * 0.12);
 
-    html += `<div class="exp-category-row">
-      <div class="exp-category-name" style="color:${catColor}">${catName}</div>
-      <div class="exp-category-bar-wrap">
-        <div class="exp-category-bar" style="width:${Math.max(pct, 5)}%;background:${catColor}"></div>
-      </div>
-      <div class="exp-category-amount">${formatAmount(cat.amount)}</div>
-    </div>`;
+    html += '<div class="exp-category-row">'
+      + '<div class="exp-category-name">' + cat.name + '</div>'
+      + '<div class="exp-category-bar-wrap">'
+      + '<div class="exp-category-bar" style="width:' + Math.max(pct, 3) + '%;background:#E55643;opacity:' + opacity + '"></div>'
+      + '</div>'
+      + '<div class="exp-category-amount">' + formatAmount(cat.amount) + '</div>'
+      + '</div>';
   });
 
   html += '</div>';
@@ -419,17 +518,23 @@ function changeExpenseMonth(delta) {
   d.setMonth(d.getMonth() + delta);
   _expenseViewYM = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
 
-  var dashPane = document.getElementById('expFullDashboardPane');
-  var detailPane = document.getElementById('expFullDetailPane');
+  var nowYM = today().slice(0, 7);
+  var isNow = (_expenseViewYM === nowYM);
 
   if (window.innerWidth > 768) {
-    if (detailPane && detailPane.style.display !== 'none') {
-      renderExpenseFullDetail(getExpenseViewYM());
-    } else {
+    if (isNow) {
+      showExpenseDashboardFromDetail();
       renderExpenseDashboard('pc');
+    } else {
+      showExpenseFullDetail(_expenseViewYM);
     }
   } else {
-    renderExpenseDashboard('mobile');
+    if (isNow) {
+      showExpenseDashboardFromDetailMobile();
+      renderExpenseDashboard('mobile');
+    } else {
+      showExpenseFullDetailMobile(_expenseViewYM);
+    }
   }
 }
 
@@ -448,12 +553,12 @@ function showExpenseFullDetail(yearMonth) {
 }
 
 function showExpenseDashboardFromDetail() {
-  // A(대시보드) 표시, B 숨김
+  _expenseViewYM = today().slice(0, 7);
   var dashPane = document.getElementById('expFullDashboardPane');
   var detailPane = document.getElementById('expFullDetailPane');
-
   if (dashPane) dashPane.style.display = 'block';
   if (detailPane) detailPane.style.display = 'none';
+  renderExpenseDashboard('pc');
 }
 
 // ═══════════════════════════════════════
@@ -466,30 +571,61 @@ function renderExpenseFullDetail(yearMonth) {
   if (!container) return;
 
   var d = new Date(yearMonth + '-01');
-  var monthLabel = d.getFullYear() + '년 ' + (d.getMonth() + 1) + '월';
+  var monthNum = d.getMonth() + 1;
+  var monthLabel = monthNum + '월';
+  var fullMonthLabel = d.getFullYear() + '년 ' + monthNum + '월';
+  var nowYM = today().slice(0, 7);
+  var isCurrentMonth = (yearMonth === nowYM);
+  var isFutureDisabled = (yearMonth >= nowYM);
+  var monthTotal = getMonthTotal(yearMonth);
+  var catBreakdown = getCategoryBreakdown(yearMonth);
 
   var html = '';
 
-  // B-1. 상단 헤더 (제목 가운데 정렬, 뒤로가기는 topbar < 버튼 사용)
-  html += '<div class="exp-detail-header">';
-  html += '<span class="exp-detail-title">' + monthLabel + ' 전체 내역</span>';
+  // 월 이동 헤더
+  var _leftSvg = '<svg width="8" height="14" viewBox="0 0 8 14"><polygon points="7,0.5 1,7 7,13.5" fill="currentColor"/></svg>';
+  var _rightSvg = '<svg width="8" height="14" viewBox="0 0 8 14"><polygon points="1,0.5 7,7 1,13.5" fill="currentColor"/></svg>';
+
+  html += '<div class="exp-month-nav">';
+  html += '<button class="exp-month-nav-btn" onclick="changeExpenseMonth(-1)">' + _leftSvg + '</button>';
+  html += '<span class="exp-month-nav-label" onclick="openMonthPicker()" style="cursor:pointer;">' + monthLabel + '</span>';
+  html += '<button class="exp-month-nav-btn' + (isFutureDisabled ? '' : '') + '" onclick="changeExpenseMonth(1)">' + _rightSvg + '</button>';
   html += '</div>';
 
-  // B-2. 검색 바
+  if (!isCurrentMonth) {
+    var totalDisplay = monthTotal > 0 ? formatAmount(monthTotal) + '원' : '0원';
+    html += '<div class="exp-summary" style="padding:8px 20px 16px;">';
+    html += '<div class="exp-summary-title">' + monthNum + '월에 ' + totalDisplay + ' 썼어요</div>';
+    html += '</div>';
+
+    html += renderMonthCalendar(yearMonth);
+    html += '<div class="exp-section-gap"></div>';
+
+    if (catBreakdown.length > 0) {
+      html += renderCategoryChart(catBreakdown);
+      html += '<div class="exp-section-gap"></div>';
+    }
+  } else {
+    // 현재 월 전체 내역: 기존 헤더
+    html += '<div class="exp-detail-header">';
+    html += '<span class="exp-detail-title">' + fullMonthLabel + ' 전체 내역</span>';
+    html += '</div>';
+
+    html += renderMonthCalendar(yearMonth);
+  }
+
+  // 검색
   html += '<div class="exp-search-bar">';
   html += '<input type="text" class="exp-search-input" id="expenseSearchInput" placeholder="검색" ';
   html += 'onkeyup="filterExpenseDetail(this.value)">';
   html += '</div>';
 
-  // B-3. 월 캘린더 그리드
-  html += renderMonthCalendar(yearMonth);
-
-  // B-4. 타임라인 (검색 필터 지원)
+  // 타임라인
   html += '<div class="exp-full-timeline-wrap">';
   html += renderExpenseFullTimeline(yearMonth, _expenseDetailSearchQuery);
   html += '</div>';
 
-  // B-5. 이전 월 버튼
+  // 이전 월 버튼
   var prevMonthD = new Date(yearMonth + '-01');
   prevMonthD.setMonth(prevMonthD.getMonth() - 1);
   var prevYM = prevMonthD.getFullYear() + '-' + String(prevMonthD.getMonth() + 1).padStart(2, '0');
@@ -505,50 +641,77 @@ function renderExpenseFullDetail(yearMonth) {
 }
 
 function renderExpenseFullTimeline(yearMonth, query = '') {
-  var expenses = getMonthExpenses(yearMonth)
+  var entries = getMonthExpenses(yearMonth)
     .sort((a, b) => new Date(b.date + ' ' + b.time) - new Date(a.date + ' ' + a.time));
 
   // 검색 필터
-  if (query.trim()) {
-    expenses = expenses.filter(e =>
+  if (query && query.trim()) {
+    entries = entries.filter(e =>
       e.merchant.toLowerCase().includes(query.toLowerCase()) ||
       (e.memo && e.memo.toLowerCase().includes(query.toLowerCase()))
     );
   }
 
-  var html = '<div class="exp-timeline">';
-  var currentDate = '';
-  var daySum = 0;
-
-  expenses.forEach(e => {
-    if (e.date !== currentDate) {
-      if (currentDate) {
-        html += '<div class="exp-day-total">소계: ' + daySum.toLocaleString() + '</div>';
-      }
-      currentDate = e.date;
-      daySum = 0;
-      var d = new Date(e.date);
-      var dayName = ['일','월','화','수','목','금','토'][d.getDay()];
-      html += '<div class="exp-date-header">' + dayName + ' · ' + (d.getMonth() + 1) + '월 ' + d.getDate() + '일</div>';
-    }
-    daySum += e.amount;
-
-    // PC/태블릿은 모달, 모바일은 에디터
-    var clickAction = window.innerWidth > 768
-      ? 'openExpenseModal(\'' + e.id + '\')'
-      : 'loadExpense(\'' + e.id + '\'); setMobileView(\'editor\');';
-
-    html += '<div class="exp-item" onclick="' + clickAction + '">';
-    html += '<div class="exp-item-merchant">' + e.merchant + '</div>';
-    html += '<div class="exp-item-amount">' + e.amount.toLocaleString() + '</div>';
-    html += '</div>';
-  });
-
-  if (currentDate && daySum > 0) {
-    html += '<div class="exp-day-total">소계: ' + daySum.toLocaleString() + '</div>';
+  if (!entries || entries.length === 0) {
+    return '<div class="exp-tl-empty">내역이 없습니다</div>';
   }
 
-  html += '</div>';
+  // 날짜별 그룹핑
+  var grouped = {};
+  var dateOrder = [];
+  entries.forEach(function(e) {
+    var d = e.date; // 'YYYY-MM-DD'
+    if (!grouped[d]) {
+      grouped[d] = [];
+      dateOrder.push(d);
+    }
+    grouped[d].push(e);
+  });
+
+  // 날짜 내림차순 정렬 (최신 먼저)
+  dateOrder.sort(function(a, b) { return b.localeCompare(a); });
+
+  var dayNames = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+  var html = '';
+
+  dateOrder.forEach(function(dateStr) {
+    var items = grouped[dateStr];
+    var dateObj = new Date(dateStr + 'T00:00:00');
+    var month = dateObj.getMonth() + 1;
+    var day = dateObj.getDate();
+    var dayName = dayNames[dateObj.getDay()];
+
+    // 날짜 헤더
+    html += '<div class="exp-tl-date-group">';
+    html += '<div class="exp-tl-date-header">' + month + '월 ' + day + '일 ' + dayName + '</div>';
+
+    // 해당 날짜의 항목들
+    items.forEach(function(item, idx) {
+      var clickAction = window.innerWidth > 768
+        ? 'openExpenseModal(\'' + item.id + '\')'
+        : 'loadExpense(\'' + item.id + '\'); setMobileView(\'editor\');';
+
+      html += '<div class="exp-tl-item" onclick="' + clickAction + '">';
+      html += '<div class="exp-tl-item-left">';
+      html += '<span class="exp-tl-item-name">' + (item.merchant || '미분류') + '</span>';
+      if (item.memo) {
+        html += '<span class="exp-tl-item-memo">' + item.memo + '</span>';
+      }
+      html += '</div>';
+      html += '<div class="exp-tl-item-right">';
+      html += '<span class="exp-tl-item-amount">' + item.amount.toLocaleString() + '</span>';
+      html += '</div>';
+      html += '</div>';
+
+      // 같은 날짜 내 항목 사이 구분선 (마지막 항목 제외)
+      if (idx < items.length - 1) {
+        html += '<div class="exp-tl-item-divider"></div>';
+      }
+    });
+
+    html += '</div>'; // .exp-tl-date-group 닫기
+  });
+
   return html;
 }
 
@@ -569,10 +732,12 @@ function showExpenseFullDetailMobile(yearMonth) {
 }
 
 function showExpenseDashboardFromDetailMobile() {
+  _expenseViewYM = today().slice(0, 7);
   var dashboard = document.getElementById('pane-expense-dashboard');
   var detail = document.getElementById('pane-expense-detail');
   if (detail) detail.style.display = 'none';
   if (dashboard) dashboard.style.display = 'flex';
+  renderExpenseDashboard('mobile');
 }
 
 function renderExpenseFullDetailMobile(yearMonth) {
@@ -580,23 +745,52 @@ function renderExpenseFullDetailMobile(yearMonth) {
   if (!container) return;
 
   var d = new Date(yearMonth + '-01');
-  var monthLabel = d.getFullYear() + '년 ' + (d.getMonth() + 1) + '월';
+  var monthNum = d.getMonth() + 1;
+  var monthLabel = monthNum + '월';
+  var fullMonthLabel = d.getFullYear() + '년 ' + monthNum + '월';
+  var nowYM = today().slice(0, 7);
+  var isCurrentMonth = (yearMonth === nowYM);
+  var isFutureDisabled = (yearMonth >= nowYM);
+  var monthTotal = getMonthTotal(yearMonth);
+  var catBreakdown = getCategoryBreakdown(yearMonth);
 
   var html = '';
 
-  // 헤더
-  html += '<div class="exp-detail-header">';
-  html += '<button class="exp-detail-back-btn" onclick="showExpenseDashboardFromDetailMobile()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--tx-d);padding:4px 8px;">‹</button>';
-  html += '<span class="exp-detail-title">' + monthLabel + ' 전체 내역</span>';
+  // 월 이동 헤더
+  var _leftSvg = '<svg width="8" height="14" viewBox="0 0 8 14"><polygon points="7,0.5 1,7 7,13.5" fill="currentColor"/></svg>';
+  var _rightSvg = '<svg width="8" height="14" viewBox="0 0 8 14"><polygon points="1,0.5 7,7 1,13.5" fill="currentColor"/></svg>';
+
+  html += '<div class="exp-month-nav">';
+  html += '<button class="exp-month-nav-btn" onclick="changeExpenseMonth(-1)">' + _leftSvg + '</button>';
+  html += '<span class="exp-month-nav-label" onclick="openMonthPicker()" style="cursor:pointer;">' + monthLabel + '</span>';
+  html += '<button class="exp-month-nav-btn' + (isFutureDisabled ? ' exp-nav-disabled' : '') + '"' + (isFutureDisabled ? '' : ' onclick="changeExpenseMonth(1)"') + '>' + _rightSvg + '</button>';
   html += '</div>';
+
+  if (!isCurrentMonth) {
+    var totalDisplay = monthTotal > 0 ? formatAmount(monthTotal) + '원' : '0원';
+    html += '<div class="exp-summary" style="padding:8px 20px 16px;">';
+    html += '<div class="exp-summary-title">' + monthNum + '월에 ' + totalDisplay + ' 썼어요</div>';
+    html += '</div>';
+
+    html += renderMonthCalendar(yearMonth);
+    html += '<div class="exp-section-gap"></div>';
+
+    if (catBreakdown.length > 0) {
+      html += renderCategoryChart(catBreakdown);
+      html += '<div class="exp-section-gap"></div>';
+    }
+  } else {
+    html += '<div class="exp-detail-header">';
+    html += '<span class="exp-detail-title">' + fullMonthLabel + ' 전체 내역</span>';
+    html += '</div>';
+
+    html += renderMonthCalendar(yearMonth);
+  }
 
   // 검색
   html += '<div class="exp-search-bar">';
   html += '<input type="text" class="exp-search-input" placeholder="검색" oninput="filterExpenseDetailMobile(this.value, \'' + yearMonth + '\')">';
   html += '</div>';
-
-  // 월 캘린더
-  html += renderMonthCalendar(yearMonth);
 
   // 타임라인
   html += '<div id="expMobileTimeline">';
@@ -619,5 +813,85 @@ function filterExpenseDetailMobile(query, yearMonth) {
   var wrap = document.getElementById('expMobileTimeline');
   if (wrap) {
     wrap.innerHTML = renderExpenseFullTimeline(yearMonth, query);
+  }
+}
+
+// ═══════════════════════════════════════
+// 월 선택 모달
+// ═══════════════════════════════════════
+function openMonthPicker() {
+  var existing = document.getElementById('expMonthPickerOverlay');
+  if (existing) existing.remove();
+
+  var currentYM = getExpenseViewYM();
+  var nowYM = today().slice(0, 7);
+  var now = new Date();
+
+  var months = [];
+  for (var i = 0; i < 12; i++) {
+    var d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    var ym = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    var label = d.getFullYear() + '년 ' + (d.getMonth() + 1) + '월';
+    months.push({ ym: ym, label: label, selected: ym === currentYM });
+  }
+
+  var listHtml = months.map(function(m) {
+    return '<div class="exp-mp-item' + (m.selected ? ' exp-mp-selected' : '') + '" onclick="selectMonth(\'' + m.ym + '\')">'
+      + '<span>' + m.label + '</span>'
+      + (m.selected ? '<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10L8 14L16 6" stroke="#E55643" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' : '')
+      + '</div>';
+  }).join('');
+
+  var overlay = document.createElement('div');
+  overlay.id = 'expMonthPickerOverlay';
+  overlay.className = 'exp-mp-overlay';
+  overlay.innerHTML = '<div class="exp-mp-sheet">'
+    + '<div class="exp-mp-header">'
+    + '<span class="exp-mp-title">월 선택하기</span>'
+    + '<button class="exp-mp-close" onclick="closeMonthPicker()"><svg width="16" height="16" viewBox="0 0 16 16"><line x1="2" y1="2" x2="14" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="14" y1="2" x2="2" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>'
+    + '</div>'
+    + '<div class="exp-mp-list">' + listHtml + '</div>'
+    + '</div>';
+
+  overlay.addEventListener('click', function(e) {
+    if (e.target === overlay) closeMonthPicker();
+  });
+
+  document.body.appendChild(overlay);
+  requestAnimationFrame(function() {
+    overlay.classList.add('open');
+  });
+}
+
+function closeMonthPicker() {
+  var overlay = document.getElementById('expMonthPickerOverlay');
+  if (!overlay) return;
+  overlay.classList.remove('open');
+  setTimeout(function() {
+    if (overlay.parentNode) overlay.remove();
+  }, 300);
+}
+
+function selectMonth(ym) {
+  _expenseViewYM = ym;
+  closeMonthPicker();
+
+  var nowYM = today().slice(0, 7);
+  var isNow = (ym === nowYM);
+
+  if (window.innerWidth > 768) {
+    if (isNow) {
+      showExpenseDashboardFromDetail();
+      renderExpenseDashboard('pc');
+    } else {
+      showExpenseFullDetail(ym);
+    }
+  } else {
+    if (isNow) {
+      showExpenseDashboardFromDetailMobile();
+      renderExpenseDashboard('mobile');
+    } else {
+      showExpenseFullDetailMobile(ym);
+    }
   }
 }
