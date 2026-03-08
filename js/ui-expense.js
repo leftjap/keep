@@ -617,6 +617,16 @@ function renderExpenseFullDetail(yearMonth) {
 
   var html = '';
 
+  var monthTotal = getMonthTotal(yearMonth);
+  var d = new Date(yearMonth + '-01');
+  var monthNum = d.getMonth() + 1;
+  var nowYM = today().slice(0, 7);
+  if (yearMonth === nowYM) {
+    html += '<div class="exp-summary" style="padding:8px 20px 12px;"><div class="exp-summary-title">이번 달 ' + formatAmount(monthTotal) + '원</div></div>';
+  } else {
+    html += '<div class="exp-summary" style="padding:8px 20px 12px;"><div class="exp-summary-title">' + monthNum + '월에 ' + formatAmount(monthTotal) + '원 썼어요</div></div>';
+  }
+
   // 월간 캘린더
   html += renderMonthCalendar(yearMonth);
 
@@ -748,6 +758,16 @@ function renderExpenseFullDetailMobile(yearMonth) {
   renderExpenseMonthNav(yearMonth);
 
   var html = '';
+
+  var monthTotal = getMonthTotal(yearMonth);
+  var d = new Date(yearMonth + '-01');
+  var monthNum = d.getMonth() + 1;
+  var nowYM = today().slice(0, 7);
+  if (yearMonth === nowYM) {
+    html += '<div class="exp-summary" style="padding:8px 20px 12px;"><div class="exp-summary-title">이번 달 ' + formatAmount(monthTotal) + '원</div></div>';
+  } else {
+    html += '<div class="exp-summary" style="padding:8px 20px 12px;"><div class="exp-summary-title">' + monthNum + '월에 ' + formatAmount(monthTotal) + '원 썼어요</div></div>';
+  }
 
   // 월간 캘린더
   html += renderMonthCalendar(yearMonth);
