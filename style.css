@@ -2944,8 +2944,13 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 }
 
 .exp-day-detail {
-  padding: 16px 20px 8px;
+  margin: 12px 16px 4px;
+  padding: 16px 0 8px;
+  background: var(--bg);
+  border: 1px solid var(--border-l);
+  border-radius: 14px;
   animation: expDaySlideIn .2s ease;
+  overflow: hidden;
 }
 @keyframes expDaySlideIn {
   from { opacity: 0; transform: translateY(-8px); }
@@ -2955,7 +2960,9 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 12px;
+  padding: 0 20px 12px;
+  border-bottom: 1px solid var(--border-l);
+  margin-bottom: 4px;
 }
 .exp-day-detail-date {
   font-size: 14px;
@@ -2966,4 +2973,10 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   font-size: 14px;
   font-weight: 700;
   color: var(--tab-color);
+}
+.exp-day-detail .exp-tl-item {
+  padding: 8px 20px;
+}
+.exp-day-detail .exp-tl-item-divider {
+  margin: 0 20px 0 72px;
 }
