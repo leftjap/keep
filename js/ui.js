@@ -323,6 +323,18 @@ function switchTab(t, keepLayout) {
   }
   if (t === 'quote') newQuoteForm();
 
+  // 루틴 상세 패널 초기화 (PC/태블릿)
+  if (t === 'navi' && window.innerWidth > 768) {
+    const detailPanel = document.getElementById('editorRoutineDetail');
+    if (detailPanel) {
+      detailPanel.style.display = 'flex';
+      renderRoutineOverview();
+    }
+  } else if (t !== 'navi' && window.innerWidth > 768) {
+    const detailPanel = document.getElementById('editorRoutineDetail');
+    if (detailPanel) detailPanel.style.display = 'none';
+  }
+
   if (t !== 'expense') renderListPanel();
 }
 
