@@ -2047,7 +2047,9 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 }
 .expense-cat-btn:hover { border-color: var(--border); }
 .expense-cat-btn.selected {
-  background: var(--bg); border-width: 2px;
+  background: color-mix(in srgb, #E55643 6%, var(--bg-white));
+  border-color: #E55643;
+  border-width: 1.5px;
 }
 .expense-cat-name { font-size: 13px; color: var(--tx-d); font-weight: 400; }
 .expense-cat-btn.selected .expense-cat-name { font-weight: 600; }

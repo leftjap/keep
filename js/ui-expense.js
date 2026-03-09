@@ -1154,12 +1154,7 @@ function selectCategory(catId, mode = 'normal') {
   btns.forEach(btn => {
     const isSelected = btn.getAttribute('data-cat') === catId;
     btn.classList.toggle('selected', isSelected);
-    if (isSelected) {
-      const cat = EXPENSE_CATEGORIES.find(c => c.id === catId);
-      if (cat) btn.style.borderColor = cat.color;
-    } else {
-      btn.style.borderColor = '';
-    }
+    btn.style.borderColor = '';
   });
 }
 
