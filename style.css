@@ -258,7 +258,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   position:relative;
 }
 .lp-text-wrap{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;justify-content:center}
-.lp-item-title{font-size:16px;font-weight:400;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.5;-webkit-font-smoothing:antialiased;max-height:1.5em;flex-shrink:0}
+.lp-item-title{font-size:15px;font-weight:400;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.5;-webkit-font-smoothing:antialiased;max-height:1.5em;flex-shrink:0}
 .lp-item-tags{font-size:11px;color:var(--tx-m);font-weight:500;letter-spacing:-.2px;display:flex;flex-wrap:nowrap;gap:4px;overflow:hidden;max-height:1.4em;flex-shrink:0}
 .lp-item-preview{font-size:13px;color:var(--tx-m);overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.45;font-weight:400;max-height:2.9em;word-break:break-all;flex-shrink:0}
 .lp-item-meta{font-size:11px;color:var(--tx-hint);margin-top:1px;font-weight:400;flex-shrink:0;line-height:1.4;max-height:1.4em;overflow:hidden;padding-bottom:0}
@@ -880,7 +880,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   .swipe-edge{top:90px!important}
   .ed-body{font-size:18px;line-height:1.9}
   .ed-title{font-size:26px}
-  .lp-item-title{font-size:17px}
+  .lp-item-title{font-size:16px}
   .lp-item-preview{font-size:15px}
   .lp-item-meta{font-size:12px}
   .editor-content-wrap{
@@ -1135,7 +1135,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   .lp-item.on{background:#e9e9ea;border-radius:0;margin:0;width:100%;border-left:none;padding-left:16px !important}
   .lp-date-wrap{min-width:36px;max-width:36px}
   .lp-day{font-size:20px}
-  .lp-item-title{font-size:17px;font-weight:500;white-space:normal;-webkit-line-clamp:2;display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden}
+  .lp-item-title{font-size:16px;font-weight:500;white-space:normal;-webkit-line-clamp:2;display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden}
   .lp-item-preview{font-size:15px;-webkit-line-clamp:2;color:var(--tx-m);font-weight:400}
   .lp-item-meta{font-size:12px}
   .lp-thumb{width:40px;min-width:40px;height:40px}
