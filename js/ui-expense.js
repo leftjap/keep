@@ -69,17 +69,8 @@ function _searchMerchantDomain(merchant, imgId) {
     .then(function(data) {
       var domain = null;
       if (data && data.items && data.items.length > 0) {
-        for (var i = 0; i < data.items.length; i++) {
-          var link = data.items[i].link || '';
-          var d = _extractDomain(link);
-          if (d && d.indexOf('naver.com') === -1 && d.indexOf('google.com') === -1
-              && d.indexOf('daum.net') === -1 && d.indexOf('tistory.com') === -1
-              && d.indexOf('wikipedia') === -1 && d.indexOf('namuwiki') === -1
-              && d.indexOf('namu.wiki') === -1) {
-            domain = d;
-            break;
-          }
-        }
+        var link = data.items[0].link || '';
+        domain = _extractDomain(link);
       }
       if (domain) {
         _merchantDomainCache[merchant] = domain;
