@@ -1848,7 +1848,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 
 /* 누적 곡선 차트 */
 .exp-chart-wrap {
-  padding: 16px 20px 20px; border-bottom: 1px solid var(--border-l);
+  padding: 0 0 8px; border-bottom: 1px solid var(--border-l);
   border: 2px dashed #007aff; border-radius: 12px;
 }
 .exp-chart-svg { width: 100%; height: 160px; }
@@ -2884,7 +2884,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 }
 
 .exp-chart-wrap {
-  padding: 0 20px 16px;
+  padding: 0 0 8px;
   border-bottom: 1px solid var(--border-l);
 }
 
