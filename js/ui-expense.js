@@ -29,6 +29,74 @@ function getCategoryBg(item) {
   return found ? found.bg : '#B0B0B8';
 }
 
+// ═══ 매출처 로고 (파비콘) ═══
+var _merchantDomainCache = {};
+
+function _extractDomain(url) {
+  try {
+    var match = url.match(/https?:\/\/([^\/\s]+)/);
+    return match ? match[1] : null;
+  } catch (e) { return null; }
+}
+
+function getMerchantIconHtml(item) {
+  var merchant = (item.merchant || '').trim();
+  if (!merchant) {
+    return '<div class="exp-tl-item-icon" style="background:' + getCategoryBg(item) + '">' + getCategoryIcon(item) + '</div>';
+  }
+  var uniqueId = 'micon_' + (item.id || Math.random().toString(36).slice(2));
+  if (_merchantDomainCache[merchant]) {
+    var domain = _merchantDomainCache[merchant];
+    if (domain === '_none') {
+      return '<div class="exp-tl-item-icon exp-tl-item-icon-img"><img src="gio_circle_white_closeup2_512.png" width="40" height="40"></div>';
+    }
+    var faviconUrl = 'https://www.google.com/s2/favicons?domain=' + domain + '&sz=64';
+    return '<div class="exp-tl-item-icon exp-tl-item-icon-img"><img id="' + uniqueId + '" src="' + faviconUrl + '" width="40" height="40" onerror="_faviconFallback(this)"></div>';
+  }
+  _searchMerchantDomain(merchant, uniqueId);
+  return '<div class="exp-tl-item-icon exp-tl-item-icon-img"><img id="' + uniqueId + '" src="gio_circle_white_closeup2_512.png" width="40" height="40"></div>';
+}
+
+function _faviconFallback(el) {
+  el.onerror = null;
+  el.src = 'gio_circle_white_closeup2_512.png';
+}
+
+function _searchMerchantDomain(merchant, imgId) {
+  var gasUrl = GAS_URL + '?action=searchMerchant&query=' + encodeURIComponent(merchant);
+  fetch(gasUrl)
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      var domain = null;
+      if (data && data.items && data.items.length > 0) {
+        for (var i = 0; i < data.items.length; i++) {
+          var link = data.items[i].link || '';
+          var d = _extractDomain(link);
+          if (d && d.indexOf('naver.com') === -1 && d.indexOf('google.com') === -1
+              && d.indexOf('daum.net') === -1 && d.indexOf('tistory.com') === -1
+              && d.indexOf('wikipedia') === -1 && d.indexOf('namuwiki') === -1
+              && d.indexOf('namu.wiki') === -1) {
+            domain = d;
+            break;
+          }
+        }
+      }
+      if (domain) {
+        _merchantDomainCache[merchant] = domain;
+        var el = document.getElementById(imgId);
+        if (el) {
+          el.onerror = function() { _faviconFallback(el); };
+          el.src = 'https://www.google.com/s2/favicons?domain=' + domain + '&sz=64';
+        }
+      } else {
+        _merchantDomainCache[merchant] = '_none';
+      }
+    })
+    .catch(function() {
+      _merchantDomainCache[merchant] = '_none';
+    });
+}
+
 function updateExpenseCompact() {
   const el = document.getElementById('expenseCompactAmount');
   if (!el) return;
@@ -292,7 +360,7 @@ function renderWeeklyCalendar(thisYM) {
 // 지출 항목 하나를 HTML로 생성
 function renderExpenseItem(item, clickAction) {
   var html = '<div class="exp-tl-item" onclick="' + clickAction + '">';
-  html += '<div class="exp-tl-item-icon" style="background:' + getCategoryBg(item) + '">' + getCategoryIcon(item) + '</div>';
+  html += getMerchantIconHtml(item);
   html += '<div class="exp-tl-item-left">';
   html += '<span class="exp-tl-item-amount">' + item.amount.toLocaleString() + '원</span>';
   html += '<span class="exp-tl-item-sub">' + (item.merchant || '미분류');

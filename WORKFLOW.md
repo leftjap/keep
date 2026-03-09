@@ -368,8 +368,11 @@ index.html        — 마크업
 **상수/헬퍼:**
 - `CATEGORY_ICONS` — 카테고리별 SVG 아이콘 매핑
 - `getCategoryIcon(item)`, `getCategoryBg(item)` — 아이콘/배경색 조회
-- `getMerchantIconHtml(item)` — 매출처 로고(파비콘) 또는 카테고리 아이콘 HTML
-- `_faviconFallback(el, item)` — 파비콘 로드 실패 시 카테고리 아이콘으로 대체
+- `_merchantDomainCache` — 매출처→도메인 캐시 객체
+- `getMerchantIconHtml(item)` — 매출처 파비콘 또는 지오 사진 HTML. 캐시 없으면 GAS 네이버 검색 프록시로 비동기 조회
+- `_faviconFallback(el)` — 파비콘 로드 실패 시 지오 사진으로 대체
+- `_searchMerchantDomain(merchant, imgId)` — GAS 프록시로 매출처 도메인 검색 → 캐시 저장 → img src 교체
+- `_extractDomain(url)` — URL에서 도메인 추출
 - `updateExpenseCompact()` — 사이드바 가계부 금액 업데이트
 
 **대시보드 A (renderExpenseDashboard):**
@@ -722,6 +725,7 @@ Haiku 4.5는 전체 프로젝트 맥락을 알지 못할 수 있다. 각 Step에
 | _expenseCategoryFilter | ui-expense.js | 가계부 카테고리 필터 ID |
 | _expenseCategoryFilterName | ui-expense.js | 가계부 카테고리 필터 이름 |
 | _expenseDetailSearchQuery | ui-expense.js | 가계부 전체 내역 검색어 |
+| _merchantDomainCache | ui-expense.js | 매출처→도메인 캐시 (파비콘용) |
 | _routineViewYM | routine-cal.js | 루틴 캘린더 보고 있는 월 |
 | _selectedRoutineDate | routine-cal.js | 루틴 캘린더 선택 날짜 |
 | contextItemId | ui.js | 꾹누르기 팝업 대상 항목 ID |
