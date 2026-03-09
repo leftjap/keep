@@ -260,7 +260,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 }
 .lp-text-wrap{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;justify-content:center}
 .lp-item-title{font-size:15px;font-weight:400;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.5;-webkit-font-smoothing:antialiased;max-height:1.5em;flex-shrink:0}
-.lp-item-tags{font-size:11px;color:var(--tab-color);font-weight:500;letter-spacing:-.2px;display:flex;flex-wrap:nowrap;gap:4px;overflow:hidden;max-height:1.4em;flex-shrink:0}
+.lp-item-tags{font-size:11px;color:var(--tx-m);font-weight:500;letter-spacing:-.2px;display:flex;flex-wrap:nowrap;gap:4px;overflow:hidden;max-height:1.4em;flex-shrink:0}
 .lp-item-preview{font-size:13px;color:var(--tx-m);overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.45;font-weight:400;max-height:2.9em;word-break:break-all;flex-shrink:0}
 .lp-item-meta{font-size:11px;color:var(--tx-hint);margin-top:1px;font-weight:400;flex-shrink:0;line-height:1.4;max-height:1.4em;overflow:hidden;padding-bottom:0}
 .lp-thumb{
