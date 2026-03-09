@@ -1921,6 +1921,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 .exp-week-day-amount {
   font-size: 9px; font-family: 'JetBrains Mono', monospace;
   color: var(--tx-hint); margin-top: 2px; white-space: nowrap;
+  min-height: 14px;
 }
 .exp-week-day-amount.high { color: #e87461; }
 
