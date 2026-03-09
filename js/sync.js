@@ -29,7 +29,7 @@ const SYNC = {
       clearTimeout(this._labelTimer);
       label.classList.remove('error', 'syncing');
       if (type === 'syncing') {
-        label.textContent = '동기화 진행 중';
+        label.innerHTML = '동기화 진행 중<span class="sync-dots"><span>.</span><span>.</span><span>.</span></span>';
         label.classList.add('syncing');
       } else if (type === 'error') {
         label.textContent = text || '오류';
