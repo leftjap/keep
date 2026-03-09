@@ -2877,7 +2877,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 
 .exp-chart-wrap svg.exp-chart-svg {
   width: 100% !important;
-  height: 160px !important;
+  height: 140px !important;
   display: block;
 }
 
