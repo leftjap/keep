@@ -2879,7 +2879,6 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   font-size: 18px;
 }
 .exp-month-day.exp-day-selected .exp-month-day-amount {
-  color: var(--tx-hint) !important;
   font-weight: 600;
   font-size: 12px;
 }
@@ -2899,7 +2898,6 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   font-size: 18px;
 }
 .exp-week-day.exp-day-selected .exp-week-day-amount {
-  color: var(--tx-hint) !important;
   font-weight: 600;
   font-size: 12px;
 }
@@ -2993,13 +2991,17 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 .rc-day-n{font-size:14px;color:var(--tx-d);font-weight:400}
 .rc-day.today .rc-day-n{font-weight:700;color:var(--tx)}
 .rc-day-p{font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--tx-hint);margin-top:1px}
-.rc-day.p100{background:rgba(229,86,67,.35)}
+.rc-day.p100{background:none}
 .rc-day.p100 .rc-day-n{color:var(--tx);font-weight:600}
+.rc-day.p100 .rc-day-p{color:#E55643}
 .rc-day.sel.today{
   background:#fff;
 }
 .rc-day.sel.p100{
   background:#fff;
+}
+.rc-day.sel.p100 .rc-day-p{
+  color:#E55643;
 }
 .rc-report{padding:16px 0;display:block;opacity:1;max-height:none;overflow:visible}
 .rc-report-hdr{display:flex;align-items:center;justify-content:space-between;padding-bottom:12px;margin-bottom:8px;border-bottom:1px solid var(--border-l)}
