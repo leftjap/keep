@@ -23,7 +23,14 @@ function renderRoutineMonthNav(yearMonth) {
 
   var w = window.innerWidth;
   if (w <= 768) {
-    return false;
+    var tabLabel0 = document.getElementById('edTabLabel');
+    if (tabLabel0) tabLabel0.style.display = 'none';
+    var topbar0 = document.querySelector('.ed-topbar');
+    if (topbar0) {
+      var leftEl0 = topbar0.querySelector('.ed-topbar-left');
+      if (leftEl0) leftEl0.insertAdjacentHTML('afterend', navHtml);
+    }
+    return true;
   } else if (w <= 1400) {
     var tabLabel = document.getElementById('edTabLabel');
     if (tabLabel) tabLabel.style.display = 'none';
