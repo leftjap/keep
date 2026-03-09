@@ -646,6 +646,17 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 .sync-cloud-label.error{
   color:rgba(255,100,90,.7);
 }
+.sync-cloud-label.syncing::after{
+  content:'';
+  display:inline;
+  animation:syncDots 1.2s steps(4,end) infinite;
+}
+@keyframes syncDots{
+  0%{content:''}
+  25%{content:'.'}
+  50%{content:'..'}
+  75%{content:'...'}
+}
 
 /* ═══════════════════════════════════════
    루틴 컴팩트 스타일

@@ -27,9 +27,10 @@ const SYNC = {
     const label = document.getElementById('syncCloudLabel');
     if (label) {
       clearTimeout(this._labelTimer);
-      label.classList.remove('error');
+      label.classList.remove('error', 'syncing');
       if (type === 'syncing') {
         label.textContent = '동기화 진행 중';
+        label.classList.add('syncing');
       } else if (type === 'error') {
         label.textContent = text || '오류';
         label.classList.add('error');
