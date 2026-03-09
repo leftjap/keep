@@ -2879,6 +2879,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   grid-template-columns: 1fr 1fr;
   gap: 24px;
   margin: 24px 0;
+  align-items: start;
 }
 
 .exp-two-col-card {
