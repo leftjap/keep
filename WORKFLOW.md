@@ -244,8 +244,6 @@ index.html        — 마크업
 **전역 상수:**
 - `APP_TOKEN` — 동기화 인증 토큰
 - `K` — LocalStorage 키 객체 (docs, checks, books, quotes, memos, expenses)
-- `EXPENSE_CATEGORIES` — 가계부 카테고리 배열 [{id, name, color, bg}, ...]
-- `MERCHANT_LOGOS` — 매출처→도메인 매핑 (파비콘 로고용)
 
 **유틸 함수:**
 - `L(key)` / `S(key, val)` — LocalStorage 읽기/쓰기
@@ -255,7 +253,6 @@ index.html        — 마크업
 - `fixDriveImageUrls(html)` — 구글 드라이브 이미지 URL 변환
 - `buildDocContent(doc)` — 문서 내용 + 메타 문자열 생성
 - `formatAmount(n)`, `formatAmountShort(n)` — 금액 포맷 (만원 단위)
-- `getMerchantLogoUrl(merchant)` — 매출처명 → 파비콘 URL
 
 **모의 데이터:**
 - `injectMockData()` — 문서/책/어구/메모/루틴 더미 데이터
@@ -265,8 +262,12 @@ index.html        — 마크업
 
 ---
 
-### js/data.js (~350줄)
-**역할:** 모든 데이터 타입의 CRUD + 통계.
+### js/data.js (~620줄)
+**역할:** 모든 데이터 타입의 CRUD + 통계 + 가계부 상수.
+
+**전역 상수:**
+- `EXPENSE_CATEGORIES` — 가계부 카테고리 배열 [{id, name, color, bg}, ...]
+- `MERCHANT_LOGOS` — 매출처 키워드 → 도메인 매핑 (Google 파비콘용)
 
 **전역 상태:**
 - `activeTab` — 현재 탭 ('navi'|'fiction'|'blog'|'book'|'quote'|'memo'|'expense')
@@ -368,10 +369,9 @@ index.html        — 마크업
 **상수/헬퍼:**
 - `CATEGORY_ICONS` — 카테고리별 SVG 아이콘 매핑
 - `getCategoryIcon(item)`, `getCategoryBg(item)` — 아이콘/배경색 조회
-- `_merchantLogoCache` — 매출처→로고 이미지 URL 캐시
-- `getMerchantIconHtml(item)` — 매출처 로고 이미지 또는 카테고리 아이콘 HTML. 캐시 없으면 GAS로 이미지 검색
+- `_findMerchantDomain(merchant)` — MERCHANT_LOGOS 매핑에서 매출처 도메인 검색 (긴 키워드 우선)
+- `getMerchantIconHtml(item)` — 매출처 파비콘 또는 카테고리 아이콘 HTML. MERCHANT_LOGOS 매핑 사용
 - `_logoFallback(el, category)` — 이미지 로드 실패 시 카테고리 아이콘으로 대체
-- `_searchMerchantLogo(merchant, imgId, category)` — GAS로 매출처 로고 이미지 검색 → 캐시 저장 → DOM 업데이트
 - `updateExpenseCompact()` — 사이드바 가계부 금액 업데이트
 
 **대시보드 A (renderExpenseDashboard):**
@@ -724,7 +724,6 @@ Haiku 4.5는 전체 프로젝트 맥락을 알지 못할 수 있다. 각 Step에
 | _expenseCategoryFilter | ui-expense.js | 가계부 카테고리 필터 ID |
 | _expenseCategoryFilterName | ui-expense.js | 가계부 카테고리 필터 이름 |
 | _expenseDetailSearchQuery | ui-expense.js | 가계부 전체 내역 검색어 |
-| _merchantLogoCache | ui-expense.js | 매출처→로고 이미지 URL 캐시 |
 | _routineViewYM | routine-cal.js | 루틴 캘린더 보고 있는 월 |
 | _selectedRoutineDate | routine-cal.js | 루틴 캘린더 선택 날짜 |
 | contextItemId | ui.js | 꾹누르기 팝업 대상 항목 ID |

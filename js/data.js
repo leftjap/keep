@@ -557,6 +557,80 @@ const EXPENSE_CATEGORIES = [
 ];
 
 // ═══════════════════════════════════════
+// 매출처 로고 도메인 매핑 (Google 파비콘용)
+// ═══════════════════════════════════════
+const MERCHANT_LOGOS = {
+  // 편의점
+  'CU': 'cu.bgfretail.com',
+  'GS25': 'gs25.gsretail.com',
+  'GS 25': 'gs25.gsretail.com',
+  '세븐일레븐': 'www.7-eleven.co.kr',
+  '이마트24': 'emart24.co.kr',
+  '미니스톱': 'ministop.co.kr',
+  // 카페
+  '스타벅스': 'starbucks.co.kr',
+  '투썸': 'twosome.co.kr',
+  '이디야': 'ediya.com',
+  '메가커피': 'www.mega-mgccoffee.com',
+  '메가MGC': 'www.mega-mgccoffee.com',
+  '컴포즈': 'composecoffee.com',
+  '빽다방': 'paikdabang.com',
+  '할리스': 'www.hollys.co.kr',
+  '폴바셋': 'paulbassett.co.kr',
+  '블루보틀': 'bluebottlecoffee.com',
+  '바나프레소': 'banapresso.com',
+  '파리바게뜨': 'paris.spc.co.kr',
+  '뚜레쥬르': 'tlj.co.kr',
+  // 배달/주문
+  '배달의민족': 'baemin.com',
+  '배민': 'baemin.com',
+  '요기요': 'yogiyo.co.kr',
+  '쿠팡이츠': 'www.coupangeats.com',
+  // 마트/쇼핑
+  '쿠팡': 'coupang.com',
+  '이마트': 'emart.com',
+  '홈플러스': 'homeplus.co.kr',
+  '롯데마트': 'lottemart.com',
+  '코스트코': 'costco.co.kr',
+  '다이소': 'daiso.co.kr',
+  '올리브영': 'oliveyoung.co.kr',
+  '무신사': 'musinsa.com',
+  '네이버쇼핑': 'shopping.naver.com',
+  // 영화/문화
+  'CGV': 'cgv.co.kr',
+  '메가박스': 'megabox.co.kr',
+  '롯데시네마': 'lottecinema.co.kr',
+  '넷플릭스': 'netflix.com',
+  '유튜브': 'youtube.com',
+  '멜론': 'melon.com',
+  '스포티파이': 'spotify.com',
+  '애플뮤직': 'music.apple.com',
+  // 교통
+  '카카오T': 'kakaomobility.com',
+  '카카오택시': 'kakaomobility.com',
+  'SK에너지': 'skenergy.com',
+  'GS칼텍스': 'gscaltex.com',
+  'S-OIL': 'soil.com',
+  // 통신
+  'SKT': 'tworld.co.kr',
+  'KT': 'kt.com',
+  'LG유플러스': 'lguplus.com',
+  'LGU': 'lguplus.com',
+  // 기타 대형
+  '맥도날드': 'mcdonalds.co.kr',
+  '버거킹': 'burgerking.co.kr',
+  '롯데리아': 'lotteria.com',
+  '교보문고': 'kyobobook.co.kr',
+  '알라딘': 'aladin.co.kr',
+  '예스24': 'yes24.com',
+  '아고다': 'agoda.com',
+  '에어비앤비': 'airbnb.co.kr',
+  '카카오페이': 'kakaopay.com',
+  '네이버페이': 'pay.naver.com',
+  '토스': 'toss.im'
+};
+
+// ═══════════════════════════════════════
 // 금액 포맷 유틸
 // ═══════════════════════════════════════
 function formatAmount(n) {

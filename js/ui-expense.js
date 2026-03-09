@@ -29,24 +29,30 @@ function getCategoryBg(item) {
   return found ? found.bg : '#B0B0B8';
 }
 
-// ═══ 매출처 로고 (Google 이미지 검색) ═══
-var _merchantLogoCache = {};
+// ═══ 매출처 로고 (MERCHANT_LOGOS 매핑 + Google 파비콘) ═══
+
+function _findMerchantDomain(merchant) {
+  // MERCHANT_LOGOS 키워드와 부분 매칭 (긴 키워드 우선)
+  var keys = Object.keys(MERCHANT_LOGOS).sort(function(a, b) { return b.length - a.length; });
+  for (var i = 0; i < keys.length; i++) {
+    if (merchant.indexOf(keys[i]) !== -1) return MERCHANT_LOGOS[keys[i]];
+  }
+  return null;
+}
 
 function getMerchantIconHtml(item) {
   var merchant = (item.merchant || '').trim();
   if (!merchant) {
     return '<div class="exp-tl-item-icon" style="background:' + getCategoryBg(item) + '">' + getCategoryIcon(item) + '</div>';
   }
-  var uniqueId = 'micon_' + (item.id || Math.random().toString(36).slice(2));
-  if (_merchantLogoCache[merchant]) {
-    var cached = _merchantLogoCache[merchant];
-    if (cached === '_none') {
-      return '<div class="exp-tl-item-icon" style="background:' + getCategoryBg(item) + '">' + getCategoryIcon(item) + '</div>';
-    }
-    return '<div class="exp-tl-item-icon exp-tl-item-icon-img"><img id="' + uniqueId + '" src="' + cached + '" width="40" height="40" onerror="_logoFallback(this,\'' + item.category + '\')"></div>';
+  var domain = _findMerchantDomain(merchant);
+  if (domain) {
+    var faviconUrl = 'https://www.google.com/s2/favicons?domain=' + domain + '&sz=64';
+    return '<div class="exp-tl-item-icon exp-tl-item-icon-img">'
+      + '<img src="' + faviconUrl + '" width="40" height="40" onerror="_logoFallback(this,\'' + (item.category || 'etc') + '\')">'
+      + '</div>';
   }
-  _searchMerchantLogo(merchant, uniqueId, item.category);
-  return '<div class="exp-tl-item-icon" style="background:' + getCategoryBg(item) + '" id="' + uniqueId + '_wrap">' + getCategoryIcon(item) + '</div>';
+  return '<div class="exp-tl-item-icon" style="background:' + getCategoryBg(item) + '">' + getCategoryIcon(item) + '</div>';
 }
 
 function _logoFallback(el, category) {
@@ -61,29 +67,6 @@ function _logoFallback(el, category) {
     parent.style.background = bg;
     parent.innerHTML = icon;
   }
-}
-
-function _searchMerchantLogo(merchant, imgId, category) {
-  var gasUrl = GAS_URL + '?action=searchMerchant&query=' + encodeURIComponent(merchant);
-  fetch(gasUrl)
-    .then(function(res) { return res.json(); })
-    .then(function(data) {
-      if (data && data.items && data.items.length > 0 && data.items[0].imageUrl) {
-        var imageUrl = data.items[0].imageUrl;
-        _merchantLogoCache[merchant] = imageUrl;
-        var wrapEl = document.getElementById(imgId + '_wrap');
-        if (wrapEl) {
-          wrapEl.classList.add('exp-tl-item-icon-img');
-          wrapEl.style.background = '';
-          wrapEl.innerHTML = '<img id="' + imgId + '" src="' + imageUrl + '" width="40" height="40" onerror="_logoFallback(this,\'' + (category || 'etc') + '\')">';
-        }
-      } else {
-        _merchantLogoCache[merchant] = '_none';
-      }
-    })
-    .catch(function() {
-      _merchantLogoCache[merchant] = '_none';
-    });
 }
 
 function updateExpenseCompact() {
