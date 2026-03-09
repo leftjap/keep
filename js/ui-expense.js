@@ -1045,7 +1045,6 @@ function newExpenseForm(mode = 'normal') {
   document.getElementById('expenseAmountInput' + suffix).value = '';
   document.getElementById('expenseMerchantInput' + suffix).value = '';
   document.getElementById('expenseCardInput' + suffix).value = '';
-  document.getElementById('expenseMemoInput' + suffix).value = '';
   document.getElementById('expenseIconKeyword' + suffix).value = '';
   document.getElementById('expenseIconUrl' + suffix).value = '';
   // 상단 휴지통 버튼 숨기기
@@ -1070,7 +1069,6 @@ function loadExpense(id, mode = 'normal') {
   document.getElementById('expenseAmountInput' + suffix).value = e.amount.toLocaleString();
   document.getElementById('expenseMerchantInput' + suffix).value = e.merchant;
   document.getElementById('expenseCardInput' + suffix).value = e.card;
-  document.getElementById('expenseMemoInput' + suffix).value = e.memo;
   const d = new Date(e.date + 'T' + (e.time || '00:00'));
   document.getElementById('expenseDateValue' + suffix).textContent = formatExpenseDate(d);
   selectCategory(e.category, mode);
@@ -1256,7 +1254,7 @@ function saveExpenseForm(mode = 'normal') {
 
   const merchant = document.getElementById('expenseMerchantInput' + suffix).value.trim();
   const card = document.getElementById('expenseCardInput' + suffix).value.trim();
-  const memo = document.getElementById('expenseMemoInput' + suffix).value.trim();
+  const memo = '';
   const category = getSelectedCategory(mode);
   const dateText = document.getElementById('expenseDateValue' + suffix).textContent;
   const { date, time } = parseExpenseDateText(dateText);
