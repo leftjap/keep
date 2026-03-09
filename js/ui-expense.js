@@ -1181,48 +1181,32 @@ function openExpenseDatePicker() {
 
 var _smsPasteMode = 'normal';
 
-function pasteFromClipboard(mode) {
+async function pasteFromClipboard(mode) {
   _smsPasteMode = mode || 'normal';
-  var overlay = document.getElementById('smsPasteOverlay');
-  var textarea = document.getElementById('smsPasteTextarea');
-  if (!overlay || !textarea) return;
-  textarea.value = '';
-  overlay.classList.add('open');
-  requestAnimationFrame(function() {
-    textarea.focus();
-  });
-}
-
-function closeSmsPasteSheet(e) {
-  if (e && e.target !== e.currentTarget && !e.target.closest('.sms-paste-close')) return;
-  var overlay = document.getElementById('smsPasteOverlay');
-  if (overlay) overlay.classList.remove('open');
-  var textarea = document.getElementById('smsPasteTextarea');
-  if (textarea) textarea.value = '';
-}
-
-function handleSmsPaste() {
-  var textarea = document.getElementById('smsPasteTextarea');
-  if (!textarea) return;
-  var text = textarea.value.trim();
-  if (!text) return;
-  var parsed = parseSMS(text);
-  if (!parsed) {
-    alert('카드 문자 형식을 인식할 수 없습니다.\n직접 입력해주세요.');
-    return;
-  }
   var suffix = _smsPasteMode === 'modal' ? 'Modal' : '';
-  document.getElementById('expenseAmountInput' + suffix).value = parsed.amount.toLocaleString();
-  document.getElementById('expenseMerchantInput' + suffix).value = parsed.merchant;
-  document.getElementById('expenseCardInput' + suffix).value = parsed.card;
-  if (parsed.date) {
-    var d = new Date(parsed.date + 'T' + (parsed.time || '00:00'));
-    document.getElementById('expenseDateValue' + suffix).textContent = formatExpenseDate(d);
+  try {
+    var text = await navigator.clipboard.readText();
+    if (!text || !text.trim()) {
+      alert('클립보드가 비어 있습니다.\n카드 문자를 먼저 복사해주세요.');
+      return;
+    }
+    var parsed = parseSMS(text.trim());
+    if (!parsed) {
+      alert('카드 문자 형식을 인식할 수 없습니다.\n직접 입력해주세요.');
+      return;
+    }
+    document.getElementById('expenseAmountInput' + suffix).value = parsed.amount.toLocaleString();
+    document.getElementById('expenseMerchantInput' + suffix).value = parsed.merchant;
+    document.getElementById('expenseCardInput' + suffix).value = parsed.card;
+    if (parsed.date) {
+      var d = new Date(parsed.date + 'T' + (parsed.time || '00:00'));
+      document.getElementById('expenseDateValue' + suffix).textContent = formatExpenseDate(d);
+    }
+    selectCategory(parsed.category, _smsPasteMode);
+    updateExpenseSaveBtn(_smsPasteMode);
+  } catch (err) {
+    alert('클립보드를 읽을 수 없습니다.\n브라우저 권한을 확인해주세요.');
   }
-  selectCategory(parsed.category, _smsPasteMode);
-  updateExpenseSaveBtn(_smsPasteMode);
-  closeSmsPasteSheet();
-  document.getElementById('expenseAmountInput' + suffix).focus();
 }
 
 function saveExpenseForm(mode = 'normal') {
@@ -1272,14 +1256,3 @@ function saveExpenseForm(mode = 'normal') {
     newExpenseForm();
   }
 }
-
-document.addEventListener('DOMContentLoaded', function() {
-  var textarea = document.getElementById('smsPasteTextarea');
-  if (!textarea) return;
-  textarea.addEventListener('input', function() {
-    var text = textarea.value.trim();
-    if (text.length > 10) {
-      setTimeout(function() { handleSmsPaste(); }, 150);
-    }
-  });
-});
