@@ -206,7 +206,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 .search-bar input::placeholder{color:var(--tx-hint)}
 #clearSearchBtn{display:none;background:var(--border);border:none;cursor:pointer;color:var(--tx-d);font-size:10px;width:16px;height:16px;border-radius:50%;margin-left:4px;align-items:center;justify-content:center;flex-shrink:0}
 
-.pane-list{flex:1 1 0;height:0;min-height:0;overflow-y:auto;display:block;padding-bottom:60px}
+.pane-list{flex:1 1 0;height:0;min-height:0;overflow-y:auto;display:flex;flex-direction:column;padding-bottom:60px}
 .pane-photo{flex:1 1 0;height:0;min-height:0;overflow-y:auto;display:none;padding-bottom:60px}
 .pane-calendar{flex:1 1 0;height:0;min-height:0;overflow-y:auto;display:none;padding-bottom:60px}
 
@@ -216,7 +216,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   display:flex;align-items:center;gap:5px;
   position:sticky;top:0;background:var(--bg-white);z-index:5;
   border-bottom:1px solid var(--border-l);border-top:none;
-  letter-spacing:.3px;
+  letter-spacing:.3px;flex-shrink:0;
 }
 
 .lp-month-hdr{
@@ -224,14 +224,14 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   padding:10px 16px 10px;display:flex;align-items:center;
   position:sticky;top:0;background:var(--bg-white);z-index:5;
   border-bottom:1px solid var(--border-l);border-top:none;
-  letter-spacing:-.2px;
+  letter-spacing:-.2px;flex-shrink:0;
 }
 
 /* ═══ 리스트 항목 — v5.2: flex-start 정렬 ═══ */
 .lp-item{
   display:flex;flex-direction:column;padding:14px 16px 12px;gap:5px;cursor:pointer;
   border-bottom:none;border-left:none;
-  transition:.1s;position:relative;min-height:0;height:auto;max-height:none;background:var(--bg-white);overflow:visible;
+  transition:.1s;position:relative;min-height:0;height:auto;max-height:none;background:var(--bg-white);overflow:visible;flex-shrink:0;
 }
 .lp-item::after{
   content:'';position:absolute;bottom:0;left:16px;right:16px;height:1px;
