@@ -240,7 +240,7 @@ function renderMonthlyBarChart(trend) {
   trend.forEach(function(t) {
     var pct = (t.total / maxTotal) * 100;
     var isCurrentClass = t.isCurrent ? 'current' : '';
-    html += '<div class="exp-bar-item ' + isCurrentClass + '">'
+    html += '<div class="exp-bar-item ' + isCurrentClass + '" onclick="_expenseViewYM=\'' + t.ym + '\';showExpenseFullDetail(\'' + t.ym + '\')" style="cursor:pointer;">'
       + (t.isCurrent && t.ym === today().slice(0, 7) ? '<div class="exp-bar-projected">예상</div>' : '')
       + '<div class="exp-bar-value">' + Math.round(t.total / 10000) + '</div>'
       + '<div class="exp-bar-fill" style="height:' + Math.max(pct, 4) + '%"></div>'
@@ -690,6 +690,13 @@ function renderExpenseFullDetail(yearMonth) {
 
   var html = '';
 
+  html += '<div class="exp-detail-back" style="padding:12px 20px 0;">';
+  html += '<button onclick="showExpenseDashboardFromDetail()" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;color:var(--tx-m);font-size:14px;font-family:Pretendard,sans-serif;padding:4px 0;transition:color .12s;">';
+  html += '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>';
+  html += '<span>대시보드</span>';
+  html += '</button>';
+  html += '</div>';
+
   var monthTotal = getMonthTotal(yearMonth);
   var d = new Date(yearMonth + '-01');
   var monthNum = d.getMonth() + 1;
@@ -801,6 +808,13 @@ function renderExpenseFullDetailMobile(yearMonth) {
   renderExpenseMonthNav(yearMonth);
 
   var html = '';
+
+  html += '<div class="exp-detail-back" style="padding:12px 20px 0;">';
+  html += '<button onclick="showExpenseDashboardFromDetail()" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;color:var(--tx-m);font-size:14px;font-family:Pretendard,sans-serif;padding:4px 0;transition:color .12s;">';
+  html += '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>';
+  html += '<span>대시보드</span>';
+  html += '</button>';
+  html += '</div>';
 
   var monthTotal = getMonthTotal(yearMonth);
   var d = new Date(yearMonth + '-01');

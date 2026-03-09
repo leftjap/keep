@@ -306,6 +306,10 @@ function switchTab(t, keepLayout) {
     if (moreBtn) moreBtn.style.display = '';
     if (aaBtn) aaBtn.style.display = '';
 
+    // 휴지통 버튼 복원
+    var trashBtnRestore = document.getElementById('expenseTrashBtn');
+    if (trashBtnRestore) trashBtnRestore.style.display = '';
+
     // FAB 복원
     var fab = document.querySelector('.fab-btn');
     if (fab) fab.style.display = '';
