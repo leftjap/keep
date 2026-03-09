@@ -2416,7 +2416,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 }
 
 .modal-card {
-  background: var(--bg); border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,.15);
+  background: var(--bg-white); border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,.15);
   overflow: hidden; max-height: 85vh; overflow-y: auto;
 }
 
