@@ -633,7 +633,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   position:absolute;
   bottom:4px;
   left:50%;
-  transform:translateX(-50%) translateY(2px);
+  transform:translateX(-50%);
   text-align:center;
   font-size:9px;
   font-family:'Pretendard',-apple-system,sans-serif;
@@ -641,14 +641,13 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   color:rgba(255,255,255,.5);
   white-space:nowrap;
   opacity:0;
-  transition:opacity .25s ease, transform .25s ease;
+  transition:opacity .25s ease;
   pointer-events:none;
   z-index:51;
   overflow:visible;
 }
 .sync-cloud-label.show{
   opacity:1;
-  transform:translateX(-50%) translateY(0);
 }
 .sync-cloud-label.error{
   color:rgba(255,100,90,.7);
@@ -657,6 +656,9 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 /* 동기화 중 점 애니메이션 */
 .sync-dots::after{
   content:'';
+  display:inline-block;
+  width:1em;
+  text-align:left;
   animation:syncDots 1.2s steps(4,end) infinite;
 }
 @keyframes syncDots{
