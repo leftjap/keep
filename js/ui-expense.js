@@ -153,7 +153,7 @@ function renderCumulativeChart(yearMonth) {
 
   var allVals = Object.values(thisMonthCumulative).concat(Object.values(prevMonthCumulative)).concat([1]);
   var maxY = Math.max.apply(null, allVals);
-  var width = 260, height = 170, paddingX = 0, paddingY = 20;
+  var width = 260, height = 140, paddingX = 0, paddingY = 20;
   var graphWidth = width - paddingX * 2;
   var graphHeight = height - paddingY * 2 - 18;
   var bottom = paddingY + graphHeight;
