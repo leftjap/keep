@@ -745,6 +745,17 @@ Haiku 4.5는 전체 프로젝트 맥락을 알지 못할 수 있다. 각 Step에
 - CSS에서 `height`를 px로 강제(`!important` 포함)하면 viewBox 비율과 충돌할 수 있다. 높이 고정이 필요하면 viewBox 비율도 그에 맞춰야 한다.
 - `maxY` 계산 시, 아직 데이터가 없는 미래 날짜의 값을 포함하면 그래프가 바닥에 깔린다. 현재 시점까지의 데이터만으로 스케일을 잡는다.
 
+### 가계부 탭 뷰 스위처 숨김 규칙
+
+가계부 탭(`expense`)에서는 `lp-hdr`의 뷰 스위처(리스트/사진/캘린더 아이콘)가 표시되면 안 된다. 가계부는 자체 대시보드/상세 뷰를 사용하며, 일반 탭의 리스트/사진/캘린더 전환과 무관하다.
+
+**재발 조건:** 가계부 폼(editorExpense)에서 뒤로가기 → 모바일 `setMobileView('list')` → `renderListPanel()` 경로에서 뷰 스위처 표시 상태가 복원될 때, 가계부 탭 여부를 체크하지 않으면 뷰 스위처가 노출된다.
+
+**체크리스트 — switchTab/setMobileView/renderListPanel을 수정할 때:**
+1. 가계부 탭 진입 시 뷰 스위처를 숨기는 코드가 유지되는가?
+2. 가계부 폼에서 빠져나올 때(handleBackBtn 등) 뷰 스위처가 다시 표시되지 않는가?
+3. 가계부 탭이 아닌 다른 탭으로 전환 시 뷰 스위처가 정상 복원되는가?
+
 ### 사이드바 화살표(›) 규칙
 사이드바의 모든 화살표(글쓰기 메뉴, 루틴, 가계부)는 **`.side-arrow` SVG 클래스**를 통일해서 사용한다. 개별 클래스(`wi-arrow`, `routine-compact-arrow`, `expense-compact-arrow` 등)는 사용하지 않는다.
 - HTML: `<svg class="side-arrow" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>`
