@@ -165,7 +165,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 .list-panel{
   width:var(--list-w);min-width:var(--list-min);max-width:var(--list-max);
   background:var(--bg-white);border-right:1px solid var(--border);
-  display:flex;flex-direction:column;overflow:hidden;position:relative;
+  display:flex;flex-direction:column;overflow:hidden;position:relative;min-height:0;
 }
 
 .lp-hdr{
@@ -206,9 +206,9 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 .search-bar input::placeholder{color:var(--tx-hint)}
 #clearSearchBtn{display:none;background:var(--border);border:none;cursor:pointer;color:var(--tx-d);font-size:10px;width:16px;height:16px;border-radius:50%;margin-left:4px;align-items:center;justify-content:center;flex-shrink:0}
 
-.pane-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;padding-bottom:60px;min-height:0}
-.pane-photo{flex:1;overflow-y:auto;display:none;padding-bottom:60px;min-height:0}
-.pane-calendar{flex:1;overflow-y:auto;display:none;padding-bottom:60px;min-height:0}
+.pane-list{flex:1 1 0;height:0;min-height:0;overflow-y:auto;display:flex;flex-direction:column;padding-bottom:60px}
+.pane-photo{flex:1 1 0;height:0;min-height:0;overflow-y:auto;display:none;padding-bottom:60px}
+.pane-calendar{flex:1 1 0;height:0;min-height:0;overflow-y:auto;display:none;padding-bottom:60px}
 
 .lp-pin-hdr{
   font-size:10.5px;font-weight:600;color:var(--tx-hint);
@@ -1796,7 +1796,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 
 /* ─── 2단 대시보드 + 상세 공통 ─── */
 .pane-expense-dashboard, .pane-expense-detail {
-  flex: 1; overflow-y: auto; display: flex; flex-direction: column;
+  flex: 1 1 0; height: 0; min-height: 0; overflow-y: auto; display: flex; flex-direction: column;
   padding-bottom: 60px; background: var(--bg-white);
 }
 
