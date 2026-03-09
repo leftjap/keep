@@ -3303,8 +3303,8 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 .exp-month-day.exp-day-selected {
   background: var(--bg-white) !important;
   border-radius: 14px;
-  transform: scale(1.02);
-  box-shadow: 0 2px 4px rgba(0,0,0,.04), 0 4px 12px rgba(0,0,0,.08), 0 8px 20px rgba(0,0,0,.06);
+  transform: scale(1.08);
+  box-shadow: 0 4px 8px rgba(0,0,0,.08), 0 8px 24px rgba(0,0,0,.14), 0 12px 32px rgba(0,0,0,.08);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   z-index: 2;
   position: relative;
@@ -3313,18 +3313,18 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 .exp-month-day.exp-day-selected .exp-month-day-num {
   color: var(--tx) !important;
   font-weight: 700;
-  font-size: 16px;
+  font-size: 18px;
 }
 .exp-month-day.exp-day-selected .exp-month-day-amount {
   font-weight: 600;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .exp-week-day.exp-day-selected {
   background: var(--bg-white) !important;
   border-radius: 14px;
-  transform: scale(1.02) !important;
-  box-shadow: 0 2px 4px rgba(0,0,0,.04), 0 4px 12px rgba(0,0,0,.08), 0 8px 20px rgba(0,0,0,.06) !important;
+  transform: scale(1.08) !important;
+  box-shadow: 0 4px 8px rgba(0,0,0,.08), 0 8px 24px rgba(0,0,0,.14), 0 12px 32px rgba(0,0,0,.08) !important;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   z-index: 2;
   position: relative;
@@ -3332,7 +3332,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 .exp-week-day.exp-day-selected .exp-week-day-num {
   color: var(--tx) !important;
   font-weight: 700;
-  font-size: 18px;
+  font-size: 20px;
 }
 .exp-week-day.exp-day-selected .exp-week-day-amount {
   font-weight: 600;
@@ -3409,15 +3409,15 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   background:#fff;
   border-radius:14px;
   box-shadow:
-    0 2px 4px rgba(0,0,0,.04),
-    0 4px 12px rgba(0,0,0,.08),
-    0 8px 20px rgba(0,0,0,.06);
-  transform:scale(1.02);
+    0 4px 8px rgba(0,0,0,.08),
+    0 8px 24px rgba(0,0,0,.14),
+    0 12px 32px rgba(0,0,0,.08);
+  transform:scale(1.08);
   z-index:2;
   position:relative;
 }
 .rc-day.sel .rc-day-n{
-  font-size:18px;
+  font-size:20px;
   font-weight:700;
 }
 .rc-day.sel .rc-day-p{
