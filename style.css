@@ -632,8 +632,8 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 .sync-cloud-label{
   position:absolute;
   bottom:4px;
-  left:0;
-  right:0;
+  left:50%;
+  transform:translateX(-50%) translateY(2px);
   text-align:center;
   font-size:9px;
   font-family:'Pretendard',-apple-system,sans-serif;
@@ -641,16 +641,14 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   color:rgba(255,255,255,.5);
   white-space:nowrap;
   opacity:0;
-  transform:translateY(2px);
   transition:opacity .25s ease, transform .25s ease;
   pointer-events:none;
   z-index:51;
-  overflow:hidden;
-  text-overflow:ellipsis;
+  overflow:visible;
 }
 .sync-cloud-label.show{
   opacity:1;
-  transform:translateY(0);
+  transform:translateX(-50%) translateY(0);
 }
 .sync-cloud-label.error{
   color:rgba(255,100,90,.7);
