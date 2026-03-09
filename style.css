@@ -665,7 +665,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 .routine-compact{
   position:relative;
   align-items:center;justify-content:space-between;
-  padding:12px 16px;cursor:pointer;border-radius:0;
+  padding:12px 40px 12px 16px;cursor:pointer;border-radius:0;
   transition:background .15s;
 }
 .routine-compact-left{display:flex;align-items:center;gap:12px}
@@ -679,7 +679,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 /* ═══ 사이드바 공통 화살표 ═══ */
 .side-arrow {
   position: absolute;
-  right: 16px;
+  right: 14px;
   top: 50%;
   transform: translateY(-50%);
   width: 20px;
@@ -1825,7 +1825,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 .expense-compact:hover { background: rgba(0,0,0,.04); }
 .expense-compact-left { display: flex; align-items: center; }
 .expense-compact-label { font-size: 14px; font-weight: 400; color: var(--tx-d); }
-.expense-compact-right { display: flex; align-items: center; gap: 8px; }
+.expense-compact-right { display: flex; align-items: center; gap: 8px; padding-right: 28px; }
 .expense-compact-amount {
   font-size: 12px; font-family: 'JetBrains Mono', monospace;
   color: var(--tx-hint); font-weight: 400;
