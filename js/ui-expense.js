@@ -465,6 +465,16 @@ function renderCategoryChart(catBreakdown) {
   var html = '<div class="exp-category-chart">';
   html += '<div class="exp-category-title">카테고리별 지출</div>';
 
+  var catChange = getTopCategoryChange(getExpenseViewYM());
+  if (catChange) {
+    var absDiff = formatAmount(Math.abs(catChange.diff));
+    if (catChange.diff > 0) {
+      html += '<div class="exp-category-sub">' + catChange.name + '이 지난달보다 <span style="color:#E55643;font-weight:600;">' + absDiff + '원 늘었어요</span></div>';
+    } else {
+      html += '<div class="exp-category-sub">' + catChange.name + '이 지난달보다 <span style="color:#5A8EC4;font-weight:600;">' + absDiff + '원 줄었어요</span></div>';
+    }
+  }
+
   // 항상 보이는 항목들
   catBreakdown.slice(0, showCount).forEach(function(cat, i) {
     var pct = (cat.amount / maxAmount) * 100;

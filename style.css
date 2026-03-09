@@ -206,9 +206,9 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 .search-bar input::placeholder{color:var(--tx-hint)}
 #clearSearchBtn{display:none;background:var(--border);border:none;cursor:pointer;color:var(--tx-d);font-size:10px;width:16px;height:16px;border-radius:50%;margin-left:4px;align-items:center;justify-content:center;flex-shrink:0}
 
-.pane-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;padding-bottom:60px}
-.pane-photo{flex:1;overflow-y:auto;display:none;padding-bottom:60px}
-.pane-calendar{flex:1;overflow-y:auto;display:none;padding-bottom:60px}
+.pane-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;padding-bottom:60px;min-height:0}
+.pane-photo{flex:1;overflow-y:auto;display:none;padding-bottom:60px;min-height:0}
+.pane-calendar{flex:1;overflow-y:auto;display:none;padding-bottom:60px;min-height:0}
 
 .lp-pin-hdr{
   font-size:10.5px;font-weight:600;color:var(--tx-hint);
@@ -2089,6 +2089,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   display: flex;
   flex-direction: column;
   gap: 0;
+  flex: 1;
 }
 
 .exp-category-title {
@@ -2098,6 +2099,13 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   letter-spacing: -0.3px;
   line-height: 1.4;
   margin: 0;
+}
+
+.exp-category-sub {
+  font-size: 13px;
+  color: var(--tx-m);
+  margin-top: 4px;
+  line-height: 1.4;
 }
 
 .exp-category-row {
@@ -2149,6 +2157,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   display: flex;
   justify-content: center;
   padding: 10px 0 0;
+  margin-top: auto;
 }
 
 .exp-cat-more-btn {
@@ -2170,48 +2179,88 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   color: var(--tx-d);
 }
 
-/* ─── PC 2열 카드 수평 정렬 ─── */
+/* ─── PC 2열 카드 하단 정렬 ─── */
+.exp-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin: 24px 0;
+  align-items: stretch;
+}
+
 .exp-two-col-card {
   display: flex;
   flex-direction: column;
+  background: none;
+  border: 1px solid var(--border-l);
+  border-radius: 14px;
   padding: 20px;
   overflow: hidden;
 }
 
 .exp-two-col-card .exp-summary {
   padding: 0 0 4px;
+  flex-shrink: 0;
 }
 
 .exp-two-col-card .exp-chart-wrap {
   padding: 0;
   border-bottom: none;
   margin: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .exp-two-col-card .exp-chart-wrap svg.exp-chart-svg {
   height: 180px !important;
+  flex: 1;
 }
 
 .exp-two-col-card .exp-chart-legend {
-  margin-top: 4px;
+  margin-top: auto;
+  padding-top: 8px;
+  flex-shrink: 0;
 }
 
 .exp-two-col-card .exp-category-chart {
-  height: 100%;
+  flex: 1;
   display: flex;
   flex-direction: column;
 }
 
 .exp-two-col-card .exp-category-title {
-  margin-bottom: 20px;
+  flex-shrink: 0;
 }
 
-.exp-two-col-card .exp-category-row:first-of-type {
-  margin-top: auto;
+.exp-two-col-card .exp-category-sub {
+  flex-shrink: 0;
+  margin-bottom: 16px;
 }
 
 .exp-two-col-card .exp-cat-more-wrap {
-  padding: 8px 0 0;
+  margin-top: auto;
+  flex-shrink: 0;
+}
+
+/* ─── 막대 차트 밀도 조정 ─── */
+.exp-bar-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  height: 120px;
+  margin-top: 20px;
+  padding-bottom: 20px;
+  position: relative;
+  max-width: 420px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.exp-bar-fill {
+  max-width: 40px;
+  margin: 0 auto;
+  border-radius: 4px 4px 0 0;
 }
 
 /* 모달 (PC/태블릿 입력 폼) */
@@ -2315,6 +2364,11 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
     font-size: 17px;
   }
 
+  .exp-category-sub {
+    font-size: 12px;
+    margin-bottom: 12px;
+  }
+
   .exp-category-row {
     grid-template-columns: 64px 1fr 48px;
     padding: 5px 0;
@@ -2326,6 +2380,10 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 
   .exp-category-amount {
     font-size: 13px;
+  }
+
+  .exp-bar-chart {
+    max-width: 100%;
   }
 }
 

@@ -489,6 +489,26 @@ function getCategoryBreakdown(yearMonth) {
     .sort((a, b) => b.amount - a.amount);
 }
 
+function getTopCategoryChange(ym) {
+  var thisBreakdown = getCategoryBreakdown(ym);
+  if (!thisBreakdown.length) return null;
+  var prevD = new Date(ym + '-01');
+  prevD.setMonth(prevD.getMonth() - 1);
+  var prevYM = prevD.getFullYear() + '-' + String(prevD.getMonth() + 1).padStart(2, '0');
+  var prevBreakdown = getCategoryBreakdown(prevYM);
+  var prevMap = {};
+  prevBreakdown.forEach(function(c) { prevMap[c.id] = c.amount; });
+  var best = null;
+  thisBreakdown.forEach(function(c) {
+    var prev = prevMap[c.id] || 0;
+    var diff = c.amount - prev;
+    if (!best || Math.abs(diff) > Math.abs(best.diff)) {
+      best = { name: c.name, diff: diff };
+    }
+  });
+  return best && best.diff !== 0 ? best : null;
+}
+
 function getMonthlyTrend() {
   const now = new Date();
   const result = [];
