@@ -29,15 +29,8 @@ function getCategoryBg(item) {
   return found ? found.bg : '#B0B0B8';
 }
 
-// ═══ 매출처 로고 (파비콘) ═══
-var _merchantDomainCache = {};
-
-function _extractDomain(url) {
-  try {
-    var match = url.match(/https?:\/\/([^\/\s]+)/);
-    return match ? match[1] : null;
-  } catch (e) { return null; }
-}
+// ═══ 매출처 로고 (Google 이미지 검색) ═══
+var _merchantLogoCache = {};
 
 function getMerchantIconHtml(item) {
   var merchant = (item.merchant || '').trim();
@@ -45,46 +38,51 @@ function getMerchantIconHtml(item) {
     return '<div class="exp-tl-item-icon" style="background:' + getCategoryBg(item) + '">' + getCategoryIcon(item) + '</div>';
   }
   var uniqueId = 'micon_' + (item.id || Math.random().toString(36).slice(2));
-  if (_merchantDomainCache[merchant]) {
-    var domain = _merchantDomainCache[merchant];
-    if (domain === '_none') {
-      return '<div class="exp-tl-item-icon exp-tl-item-icon-img"><img src="gio_circle_white_closeup2_512.png" width="40" height="40"></div>';
+  if (_merchantLogoCache[merchant]) {
+    var cached = _merchantLogoCache[merchant];
+    if (cached === '_none') {
+      return '<div class="exp-tl-item-icon" style="background:' + getCategoryBg(item) + '">' + getCategoryIcon(item) + '</div>';
     }
-    var faviconUrl = 'https://www.google.com/s2/favicons?domain=' + domain + '&sz=64';
-    return '<div class="exp-tl-item-icon exp-tl-item-icon-img"><img id="' + uniqueId + '" src="' + faviconUrl + '" width="40" height="40" onerror="_faviconFallback(this)"></div>';
+    return '<div class="exp-tl-item-icon exp-tl-item-icon-img"><img id="' + uniqueId + '" src="' + cached + '" width="40" height="40" onerror="_logoFallback(this,\'' + item.category + '\')"></div>';
   }
-  _searchMerchantDomain(merchant, uniqueId);
-  return '<div class="exp-tl-item-icon exp-tl-item-icon-img"><img id="' + uniqueId + '" src="gio_circle_white_closeup2_512.png" width="40" height="40"></div>';
+  _searchMerchantLogo(merchant, uniqueId, item.category);
+  return '<div class="exp-tl-item-icon" style="background:' + getCategoryBg(item) + '" id="' + uniqueId + '_wrap">' + getCategoryIcon(item) + '</div>';
 }
 
-function _faviconFallback(el) {
+function _logoFallback(el, category) {
   el.onerror = null;
-  el.src = 'gio_circle_white_closeup2_512.png';
+  var cat = category || 'etc';
+  var found = EXPENSE_CATEGORIES.find(function(c) { return c.id === cat; });
+  var bg = found ? found.bg : '#B0B0B8';
+  var icon = CATEGORY_ICONS[cat] || CATEGORY_ICONS['etc'];
+  var parent = el.parentElement;
+  if (parent) {
+    parent.classList.remove('exp-tl-item-icon-img');
+    parent.style.background = bg;
+    parent.innerHTML = icon;
+  }
 }
 
-function _searchMerchantDomain(merchant, imgId) {
+function _searchMerchantLogo(merchant, imgId, category) {
   var gasUrl = GAS_URL + '?action=searchMerchant&query=' + encodeURIComponent(merchant);
   fetch(gasUrl)
     .then(function(res) { return res.json(); })
     .then(function(data) {
-      var domain = null;
-      if (data && data.items && data.items.length > 0) {
-        var link = data.items[0].link || '';
-        domain = _extractDomain(link);
-      }
-      if (domain) {
-        _merchantDomainCache[merchant] = domain;
-        var el = document.getElementById(imgId);
-        if (el) {
-          el.onerror = function() { _faviconFallback(el); };
-          el.src = 'https://www.google.com/s2/favicons?domain=' + domain + '&sz=64';
+      if (data && data.items && data.items.length > 0 && data.items[0].imageUrl) {
+        var imageUrl = data.items[0].imageUrl;
+        _merchantLogoCache[merchant] = imageUrl;
+        var wrapEl = document.getElementById(imgId + '_wrap');
+        if (wrapEl) {
+          wrapEl.classList.add('exp-tl-item-icon-img');
+          wrapEl.style.background = '';
+          wrapEl.innerHTML = '<img id="' + imgId + '" src="' + imageUrl + '" width="40" height="40" onerror="_logoFallback(this,\'' + (category || 'etc') + '\')">';
         }
       } else {
-        _merchantDomainCache[merchant] = '_none';
+        _merchantLogoCache[merchant] = '_none';
       }
     })
     .catch(function() {
-      _merchantDomainCache[merchant] = '_none';
+      _merchantLogoCache[merchant] = '_none';
     });
 }
 
