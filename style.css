@@ -3139,15 +3139,16 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   z-index: 2;
   position: relative;
+  overflow: hidden;
 }
 .exp-month-day.exp-day-selected .exp-month-day-num {
   color: var(--tx) !important;
   font-weight: 700;
-  font-size: 18px;
+  font-size: 16px;
 }
 .exp-month-day.exp-day-selected .exp-month-day-amount {
   font-weight: 600;
-  font-size: 12px;
+  font-size: 9px;
 }
 
 .exp-week-day.exp-day-selected {
