@@ -2073,7 +2073,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 /* 저장 버튼 */
 .expense-save-btn {
   display: block; width: 100%; padding: 16px; margin-top: 8px;
-  background: var(--tab-color); border: none; border-radius: 12px;
+  background: #5B8DB8; border: none; border-radius: 12px;
   font-size: 16px; color: #fff; font-weight: 600; cursor: pointer;
   font-family: 'Pretendard', sans-serif; transition: .15s;
 }
