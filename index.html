@@ -521,17 +521,15 @@
           문자 붙여넣기
         </button>
 
-        <!-- 저장 버튼 -->
-        <button class="expense-save-btn" id="expenseSaveBtn" onclick="saveExpenseForm()">
-          확인
-        </button>
-
-        <!-- 삭제 버튼 -->
-        <button class="expense-delete-btn" id="expenseDeleteBtn" onclick="deleteExpenseFromForm('normal')" style="display:none">
-          삭제
-        </button>
-
       </div>
+    </div>
+    <div class="expense-form-footer">
+      <button class="expense-save-btn" id="expenseSaveBtn" onclick="saveExpenseForm()">
+        저장
+      </button>
+      <button class="expense-delete-btn" id="expenseDeleteBtn" onclick="deleteExpenseFromForm('normal')" style="display:none">
+        삭제
+      </button>
     </div>
   </div>
 
@@ -553,12 +551,12 @@
 
 <!-- 가계부 입력/수정 모달 (전역 — PC/태블릿) -->
 <div class="modal-overlay" id="expenseModalOverlay" style="display:none" onclick="onExpenseModalOverlayClick(event)">
-  <div class="modal-card" style="max-width:480px;max-height:85vh;overflow-y:auto">
+  <div class="modal-card" style="max-width:480px;max-height:85vh;display:flex;flex-direction:column">
     <div class="modal-hdr">
       <div class="modal-title">지출 입력</div>
       <button class="modal-close" onclick="closeExpenseModal()">×</button>
     </div>
-    <div class="modal-body" style="padding:20px">
+    <div class="modal-body" style="padding:20px;flex:1;overflow-y:auto">
       <!-- 금액 입력 -->
       <div class="expense-amount-field">
         <input type="text" inputmode="numeric" id="expenseAmountInputModal"
@@ -610,13 +608,11 @@
       <button class="expense-paste-btn" id="expensePasteBtnModal" onclick="pasteFromClipboard('modal')">
         문자 붙여넣기
       </button>
-
-      <!-- 저장 버튼 -->
+    </div>
+    <div class="expense-form-footer">
       <button class="expense-save-btn" id="expenseSaveBtnModal" onclick="saveExpenseForm('modal')">
-        확인
+        저장
       </button>
-
-      <!-- 삭제 버튼 -->
       <button class="expense-delete-btn" id="expenseDeleteBtnModal" onclick="deleteExpenseFromForm('modal')" style="display:none">
         삭제
       </button>

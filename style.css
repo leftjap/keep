@@ -2090,6 +2090,27 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 .expense-delete-btn:hover { opacity: .9; }
 .expense-delete-btn:active { opacity: .8; }
 
+/* 가계부 폼 하단 고정 버튼 영역 */
+.expense-form-footer {
+  flex-shrink: 0;
+  padding: 12px 20px;
+  padding-bottom: max(12px, env(safe-area-inset-bottom, 12px));
+  background: var(--bg-white);
+  border-top: 1px solid var(--border-l);
+}
+
+.expense-form-footer .expense-save-btn {
+  margin-top: 0;
+}
+
+.expense-form-footer .expense-delete-btn {
+  margin-top: 8px;
+}
+
+#expenseModalOverlay .expense-form-footer {
+  padding: 12px 20px 20px;
+}
+
 /* ═══ 가계부 풀 대시보드 (PC/태블릿) ═══ */
 .expense-dashboard-wrap {
   max-width: 960px; margin: 0 auto; padding: 32px 40px 100px;
