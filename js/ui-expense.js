@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════
 
 // ═══ 기본 아이콘 (고양이) ═══
-var DEFAULT_ICON_URL = 'https://www.genspark.ai/api/files/s/ERJTmkMG';
+var DEFAULT_ICON_URL = 'gio_circle_white_closeup2_512.png';
 
 function getMerchantIconHtml(item) {
   var merchant = (item.merchant || '').trim();
