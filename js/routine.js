@@ -87,6 +87,8 @@ function showRoutineCard() {
   if (vs) vs.style.display = 'none';
   const fab = document.querySelector('.fab-btn');
   if (fab) fab.style.display = 'none';
+  const newBtn = document.querySelector('.ed-new-btn');
+  if (newBtn) newBtn.style.display = 'none';
   var editorEl = document.querySelector('.editor'); if (editorEl) editorEl.classList.add('routine-view-active');
   renderStreakCard();
   renderMonthlyCard();
@@ -111,6 +113,8 @@ function hideRoutineCard() {
   if (vs) vs.style.display = 'flex';
   const fab = document.querySelector('.fab-btn');
   if (fab) fab.style.display = '';
+  const newBtn = document.querySelector('.ed-new-btn');
+  if (newBtn) newBtn.style.display = '';
   var editorEl = document.querySelector('.editor'); if (editorEl) editorEl.classList.remove('routine-view-active');
 }
 
