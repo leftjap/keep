@@ -2083,27 +2083,35 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 .exp-category-chart {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 0;
 }
 
 .exp-category-title {
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 20px;
+  font-weight: 700;
   color: var(--tx);
-  margin-bottom: 4px;
-  letter-spacing: -0.2px;
+  margin-bottom: 0;
+  letter-spacing: -0.3px;
+  line-height: 1.4;
 }
 
 .exp-category-row {
   display: grid;
-  grid-template-columns: 72px 1fr 60px;
-  gap: 10px;
+  grid-template-columns: 72px 1fr 48px;
+  gap: 12px;
   align-items: center;
-  padding: 2px 0;
+  padding: 6px 0;
+  cursor: pointer;
+  transition: background .1s;
+  border-radius: 6px;
+}
+
+.exp-category-row:hover {
+  background: rgba(0,0,0,.02);
 }
 
 .exp-category-name {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   color: var(--tx-d) !important;
   white-space: nowrap;
@@ -2112,21 +2120,21 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 }
 
 .exp-category-bar-wrap {
-  height: 16px;
+  height: 20px;
   background: rgba(0,0,0,.04);
-  border-radius: 4px;
+  border-radius: 5px;
   overflow: hidden;
 }
 
 .exp-category-bar {
   height: 100%;
-  border-radius: 4px;
+  border-radius: 5px;
 }
 
 .exp-category-amount {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
-  color: var(--tx-d);
+  color: var(--tx);
   text-align: right;
   font-family: 'Pretendard', -apple-system, sans-serif;
   white-space: nowrap;
@@ -2135,7 +2143,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 .exp-cat-more-wrap {
   display: flex;
   justify-content: center;
-  padding: 8px 0 0;
+  padding: 12px 0 4px;
 }
 
 .exp-cat-more-btn {
@@ -2155,6 +2163,43 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 .exp-cat-more-btn:hover {
   border-color: var(--tx-hint);
   color: var(--tx-d);
+}
+
+/* ─── PC 2열 카드 수평 정렬 ─── */
+.exp-two-col-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.exp-two-col-card .exp-summary {
+  padding: 0 0 8px;
+}
+
+.exp-two-col-card .exp-chart-wrap {
+  padding: 0;
+  border-bottom: none;
+  margin: 0;
+  flex: 1;
+}
+
+.exp-two-col-card .exp-category-chart {
+  padding-top: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.exp-two-col-card .exp-category-title {
+  padding-bottom: 16px;
+}
+
+.exp-two-col-card .exp-category-chart .exp-category-row:first-of-type {
+  margin-top: auto;
+}
+
+.exp-two-col-card .exp-chart-legend {
+  margin-top: auto;
+  padding-top: 8px;
 }
 
 /* 모달 (PC/태블릿 입력 폼) */
@@ -2254,16 +2299,21 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
     gap: 16px;
   }
 
+  .exp-category-title {
+    font-size: 17px;
+  }
+
   .exp-category-row {
-    grid-template-columns: 64px 1fr 56px;
+    grid-template-columns: 64px 1fr 48px;
+    padding: 5px 0;
   }
 
   .exp-category-name {
-    font-size: 12px;
+    font-size: 13px;
   }
 
   .exp-category-amount {
-    font-size: 12px;
+    font-size: 13px;
   }
 }
 
