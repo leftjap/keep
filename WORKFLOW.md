@@ -690,6 +690,17 @@ iOS 단축어가 카드 문자 수신 → GAS `saveExpenseFromSMS` 호출 → `a
 ### 각 Step에 충분한 컨텍스트 포함
 Haiku 4.5는 전체 프로젝트 맥락을 알지 못할 수 있다. 각 Step에 "이 함수는 현재 이런 일을 하고 있고, 여기에 이것을 추가/수정한다"는 맥락을 포함한다.
 
+### 에디터 서브 패널 복원 규칙
+
+`switchTab()`에서 특정 탭 진입 시 에디터 서브 패널(editorText, editorBook, editorQuote, editorMemo, editorExpense, editorDayList, expenseFullDashboard 등)의 display를 직접 변경하는 경우, **반드시 else 블록(다른 탭으로 전환 시)에서 해당 패널을 숨기고 현재 탭에 맞는 패널을 복원하는 코드를 포함해야 한다.**
+
+에디터 서브 패널은 한 번에 하나만 표시되어야 하며(13번 참조), `loadDoc`/`loadBook`/`loadMemo`/`loadQuote` 등의 함수는 에디터 패널 전환을 수행하지 않는다. 따라서 `switchTab`의 else 블록이 유일한 복원 지점이다.
+
+**체크리스트 — 새 탭이 에디터 패널을 조작할 때:**
+1. 진입 시 켠 패널을 else 블록에서 끄는가?
+2. 진입 시 끈 패널(editorText 등)을 else 블록에서 현재 탭에 맞게 복원하는가?
+3. 진입 시 숨긴 UI(toolbar, Aa버튼, 더보기버튼, FAB 등)를 else 블록에서 복원하는가?
+
 ### 코드 블록 포함
 각 Step의 작업 내용에 Haiku가 그대로 적용할 수 있는 구체적인 코드 블록을 포함한다. 설명만 있고 코드가 없는 Step은 Haiku가 잘못 해석할 수 있다.
 
