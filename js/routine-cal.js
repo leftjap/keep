@@ -298,7 +298,9 @@ function renderRoutineCalView(yearMonth) {
   h += '<div class="rc-gap"></div>';
   var fdow = new Date(y, mo - 1, 1).getDay();
   h += '<div class="rc-cal"><div class="rc-cal-grid">';
+  h += '<div class="rc-dow-row">';
   h += '<div class="rc-dow">일</div><div class="rc-dow">월</div><div class="rc-dow">화</div><div class="rc-dow">수</div><div class="rc-dow">목</div><div class="rc-dow">금</div><div class="rc-dow">토</div>';
+  h += '</div>';
   for (var e = 0; e < fdow; e++) h += '<div class="rc-day empty"></div>';
   dayData.forEach(function(dd) {
     var cls = 'rc-day';

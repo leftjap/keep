@@ -258,8 +258,10 @@ function renderWeeklyCalendar(thisYM) {
   weekStart.setDate(now.getDate() - dayOfWeek);
 
   let html = '<div class="exp-week-cal"><div class="exp-week-grid">';
+  html += '<div class="exp-week-dow-row">';
   html += '<div class="exp-week-dow">일</div><div class="exp-week-dow">월</div><div class="exp-week-dow">화</div>';
   html += '<div class="exp-week-dow">수</div><div class="exp-week-dow">목</div><div class="exp-week-dow">금</div><div class="exp-week-dow">토</div>';
+  html += '</div>';
 
   for (let i = 0; i < 7; i++) {
     const d = new Date(weekStart);
@@ -375,8 +377,10 @@ function renderMonthCalendar(yearMonth) {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
   let html = '<div class="exp-month-cal"><div class="exp-month-grid">';
+  html += '<div class="exp-month-dow-row">';
   html += '<div class="exp-month-dow">일</div><div class="exp-month-dow">월</div><div class="exp-month-dow">화</div>';
   html += '<div class="exp-month-dow">수</div><div class="exp-month-dow">목</div><div class="exp-month-dow">금</div><div class="exp-month-dow">토</div>';
+  html += '</div>';
 
   // 빈 셀 (월 시작 전)
   for (let i = 0; i < firstDay; i++) {
