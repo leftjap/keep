@@ -513,11 +513,11 @@ index.html        — 마크업
 
 ---
 
-### js/sms-parser.js (~80줄)
+### js/sms-parser.js (~120줄)
 **역할:** 카드 결제 문자(SMS) 파싱 → 가계부 자동 입력.
 
 **함수:**
-- `parseSMS(text)` — 문자열 → {amount, merchant, card, date, time, category}
+- `parseSMS(text)` — 문자열 → {amount, merchant, card, date, time, category}. 카드사 짧은 키워드(삼성, 신한 등) → 풀네임 변환 (CARD_MAP), 마스킹 이름(고*진) 제거, 누적 금액 제거, 카드+숫자 패턴 제거
 - `autoMatchCategory(merchant)` — 가맹점명 → 카테고리 자동 매칭
 
 **이 파일을 업로드해야 할 때:** 문자 파싱 규칙 변경, 카테고리 매칭 규칙 추가
