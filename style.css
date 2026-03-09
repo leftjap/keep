@@ -2962,9 +2962,9 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 .rc-leg-dot{display:inline-block;width:16px;height:2px;border-radius:1px;vertical-align:middle;margin-right:4px}
 .rc-gap{height:16px;background:var(--bg);margin:0 -40px}
 .rc-cal{padding:16px 0}
-.rc-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.rc-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:0}
 .rc-dow{text-align:center;font-size:12px;color:var(--tx-m);font-weight:500;padding:8px 0}
-.rc-day{text-align:center;padding:8px 2px;border-radius:10px;cursor:pointer;transition:all .12s;position:relative;aspect-ratio:1;display:flex;align-items:center;justify-content:center;flex-direction:column}
+.rc-day{text-align:center;padding:8px 2px;border-radius:10px;cursor:pointer;transition:all .12s;position:relative;aspect-ratio:1;display:flex;align-items:center;justify-content:center;flex-direction:column;margin:2px}
 .rc-day.empty{cursor:default}
 .rc-day:hover:not(.empty):not(.future){background:rgba(0,0,0,.03)}
 .rc-day.today{box-shadow:0 2px 8px rgba(0,0,0,.08);transform:translateY(-2px);z-index:2;background:var(--bg-white)}
