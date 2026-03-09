@@ -365,6 +365,7 @@ index.html        — 마크업
 - `_expenseDetailSearchQuery` — 전체 내역 검색어
 - `_expenseCategoryFilter` — 카테고리 필터 ID
 - `_expenseCategoryFilterName` — 카테고리 필터 표시명
+- `_smsPasteMode` — 문자 붙여넣기 시트의 대상 폼 모드 (normal/modal)
 
 **상수/헬퍼:**
 - `CATEGORY_ICONS` — 카테고리별 SVG 아이콘 매핑
@@ -418,6 +419,9 @@ index.html        — 마크업
 - `openExpenseModal(expenseId)`, `closeExpenseModal()`, `onExpenseModalOverlayClick(e)`
 
 **폼 관리:**
+- `pasteFromClipboard(mode)` — 문자 붙여넣기 하단 시트 열기
+- `closeSmsPasteSheet(e)` — 하단 시트 닫기
+- `handleSmsPaste()` — textarea 내용 파싱 → 폼 반영
 - `deleteExpenseFromForm(mode)` — 기존 항목 삭제 (확인 대화 포함, 모바일|모달 모드 지원)
 
 **이 파일을 업로드해야 할 때:** 가계부 UI 변경, 차트 스타일, 타임라인 수정, 월 이동 로직, 카테고리 표시
