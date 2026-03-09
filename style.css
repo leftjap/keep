@@ -368,6 +368,8 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 }
 .ed-new-btn:hover{opacity:.85;transform:scale(1.05)}
 .ed-new-btn svg{width:17px;height:17px}
+/* 루틴 뷰 활성 시 새 글 버튼 숨김 */
+.editor.routine-view-active .ed-new-btn{display:none}
 .editor.routine-cal-active .ed-new-btn{display:none !important}
 .editor.routine-cal-active .ed-more-btn{display:none !important}
 .editor.routine-cal-active .ed-aa-btn{display:none !important}

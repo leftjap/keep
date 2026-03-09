@@ -83,6 +83,7 @@ function showRoutineCalendarView(keepListPanel) {
   if (tl) tl.style.display = 'none';
   document.querySelector('.editor').classList.add('routine-cal-active');
   panel.style.display = 'flex';
+  document.querySelector('.editor').classList.add('routine-view-active');
   _routineViewYM = today().slice(0, 7);
   _selectedRoutineDate = today();
   renderRoutineCalView(_routineViewYM);
@@ -117,6 +118,7 @@ function hideRoutineCalView() {
   if (mb) mb.style.display = '';
   if (ab) ab.style.display = '';
   if (nb) nb.style.display = '';
+  document.querySelector('.editor').classList.remove('routine-view-active');
   var tl = document.getElementById('edTabLabel');
   if (tl) tl.style.display = '';
   if (textTypes.includes(activeTab)) {
