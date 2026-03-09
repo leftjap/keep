@@ -669,6 +669,8 @@ function showExpenseDashboardFromDetail() {
     renderExpenseDashboard('mobile');
   }
 }
+// gesture.js 호환 래퍼
+function showExpenseDashboardFromDetailMobile() { showExpenseDashboardFromDetail(); }
 
 // ═══════════════════════════════════════
 // B. 전체 내역 렌더 (전체 내역 페이지)
