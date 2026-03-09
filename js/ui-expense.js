@@ -459,14 +459,18 @@ function renderExpenseTimeline(yearMonth, useModal) {
 function renderCategoryChart(catBreakdown) {
   if (!catBreakdown || catBreakdown.length === 0) return '';
   var maxAmount = catBreakdown[0].amount;
+  var showCount = 4;
+  var visibleCats = catBreakdown.slice(0, showCount);
+  var hasMore = catBreakdown.length > showCount;
+
   var html = '<div class="exp-category-chart">';
   html += '<div class="exp-category-title">카테고리별 지출</div>';
 
-  catBreakdown.forEach(function(cat, i) {
+  visibleCats.forEach(function(cat, i) {
     var pct = (cat.amount / maxAmount) * 100;
     var opacity = Math.max(0.2, 1 - i * 0.12);
 
-    html += '<div class="exp-category-row">'
+    html += '<div class="exp-category-row" style="cursor:pointer;" onclick="openCategoryDetail(\'' + cat.id + '\',\'' + cat.name + '\')">'
       + '<div class="exp-category-name">' + cat.name + '</div>'
       + '<div class="exp-category-bar-wrap">'
       + '<div class="exp-category-bar" style="width:' + Math.max(pct, 3) + '%;background:#E55643;opacity:' + opacity + '"></div>'
@@ -475,8 +479,52 @@ function renderCategoryChart(catBreakdown) {
       + '</div>';
   });
 
+  if (hasMore) {
+    html += '<div style="text-align:center;padding:12px 0 4px;">';
+    html += '<button class="exp-more-btn" style="margin:0;padding:8px 20px;font-size:13px;" onclick="toggleCategoryMore(this)">더보기</button>';
+    html += '</div>';
+    html += '<div class="exp-category-more" style="display:none;">';
+    catBreakdown.slice(showCount).forEach(function(cat, i) {
+      var pct = (cat.amount / maxAmount) * 100;
+      var opacity = Math.max(0.2, 1 - (i + showCount) * 0.12);
+
+      html += '<div class="exp-category-row" style="cursor:pointer;" onclick="openCategoryDetail(\'' + cat.id + '\',\'' + cat.name + '\')">'
+        + '<div class="exp-category-name">' + cat.name + '</div>'
+        + '<div class="exp-category-bar-wrap">'
+        + '<div class="exp-category-bar" style="width:' + Math.max(pct, 3) + '%;background:#E55643;opacity:' + opacity + '"></div>'
+        + '</div>'
+        + '<div class="exp-category-amount">' + formatAmount(cat.amount) + '</div>'
+        + '</div>';
+    });
+    html += '</div>';
+  }
+
   html += '</div>';
   return html;
+}
+
+function toggleCategoryMore(btn) {
+  var moreDiv = btn.parentElement.nextElementSibling;
+  if (!moreDiv) return;
+  if (moreDiv.style.display === 'none') {
+    moreDiv.style.display = 'block';
+    btn.textContent = '접기';
+  } else {
+    moreDiv.style.display = 'none';
+    btn.textContent = '더보기';
+  }
+}
+
+function openCategoryDetail(catId, catName) {
+  _expenseCategoryFilter = catId;
+  _expenseCategoryFilterName = catName;
+  var ym = getExpenseViewYM();
+  showExpenseFullDetail(ym);
+}
+
+function clearCategoryFilter() {
+  _expenseCategoryFilter = null;
+  _expenseCategoryFilterName = null;
 }
 
 // ═══════════════════════════════════════
@@ -602,6 +650,7 @@ function showExpenseFullDetailMobile(ym) { showExpenseFullDetail(ym); }
 
 function showExpenseDashboardFromDetail() {
   _expenseViewYM = today().slice(0, 7);
+  clearCategoryFilter();
   if (window.innerWidth > 768) {
     var dashPane = document.getElementById('expFullDashboardPane');
     var detailPane = document.getElementById('expFullDetailPane');
@@ -622,6 +671,8 @@ function showExpenseDashboardFromDetail() {
 // ═══════════════════════════════════════
 var _expenseDetailSearchQuery = '';
 var _selectedExpenseDate = null;
+var _expenseCategoryFilter = null;
+var _expenseCategoryFilterName = null;
 
 function renderExpenseFullDetail(yearMonth) {
   var container = document.getElementById('expFullDetailPane');
@@ -648,7 +699,16 @@ function renderExpenseFullDetail(yearMonth) {
   var d = new Date(yearMonth + '-01');
   var monthNum = d.getMonth() + 1;
   var nowYM = today().slice(0, 7);
-  if (yearMonth === nowYM) {
+
+  if (_expenseCategoryFilter) {
+    // 카테고리 필터 활성 — 해당 카테고리 합계 계산
+    var catEntries = getMonthExpenses(yearMonth).filter(function(e) { return e.category === _expenseCategoryFilter; });
+    var catTotal = catEntries.reduce(function(s, e) { return s + e.amount; }, 0);
+    html += '<div class="exp-summary" style="padding:8px 20px 12px;">';
+    html += '<div class="exp-summary-title">' + (_expenseCategoryFilterName || '') + ' ' + formatAmount(catTotal) + '원</div>';
+    html += '<div style="margin-top:8px;"><button class="exp-more-btn" style="margin:0;padding:6px 16px;font-size:13px;" onclick="clearCategoryFilter();renderExpenseFullDetail(\'' + yearMonth + '\')">전체 내역 보기</button></div>';
+    html += '</div>';
+  } else if (yearMonth === nowYM) {
     html += '<div class="exp-summary" style="padding:8px 20px 12px;"><div class="exp-summary-title">이번 달 ' + formatAmount(monthTotal) + '원</div></div>';
   } else {
     html += '<div class="exp-summary" style="padding:8px 20px 12px;"><div class="exp-summary-title">' + monthNum + '월에 ' + formatAmount(monthTotal) + '원 썼어요</div></div>';
@@ -687,6 +747,11 @@ function renderExpenseFullTimeline(yearMonth, query = '') {
       e.merchant.toLowerCase().includes(query.toLowerCase()) ||
       (e.memo && e.memo.toLowerCase().includes(query.toLowerCase()))
     );
+  }
+
+  // 카테고리 필터
+  if (_expenseCategoryFilter) {
+    entries = entries.filter(function(e) { return e.category === _expenseCategoryFilter; });
   }
 
   if (!entries || entries.length === 0) {
@@ -746,7 +811,16 @@ function renderExpenseFullDetailMobile(yearMonth) {
   var d = new Date(yearMonth + '-01');
   var monthNum = d.getMonth() + 1;
   var nowYM = today().slice(0, 7);
-  if (yearMonth === nowYM) {
+
+  if (_expenseCategoryFilter) {
+    // 카테고리 필터 활성 — 해당 카테고리 합계 계산
+    var catEntries = getMonthExpenses(yearMonth).filter(function(e) { return e.category === _expenseCategoryFilter; });
+    var catTotal = catEntries.reduce(function(s, e) { return s + e.amount; }, 0);
+    html += '<div class="exp-summary" style="padding:8px 20px 12px;">';
+    html += '<div class="exp-summary-title">' + (_expenseCategoryFilterName || '') + ' ' + formatAmount(catTotal) + '원</div>';
+    html += '<div style="margin-top:8px;"><button class="exp-more-btn" style="margin:0;padding:6px 16px;font-size:13px;" onclick="clearCategoryFilter();renderExpenseFullDetailMobile(\'' + yearMonth + '\')">전체 내역 보기</button></div>';
+    html += '</div>';
+  } else if (yearMonth === nowYM) {
     html += '<div class="exp-summary" style="padding:8px 20px 12px;"><div class="exp-summary-title">이번 달 ' + formatAmount(monthTotal) + '원</div></div>';
   } else {
     html += '<div class="exp-summary" style="padding:8px 20px 12px;"><div class="exp-summary-title">' + monthNum + '월에 ' + formatAmount(monthTotal) + '원 썼어요</div></div>';

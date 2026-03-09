@@ -347,7 +347,10 @@ index.html        — 마크업
 - `renderMonthlyBarChart(trend)` — 월별 막대 차트
 - `renderWeeklyCalendar(ym)` — 주간 캘린더 그리드
 - `renderRecentExpenses(ym)` — 최근 7일 타임라인
-- `renderCategoryChart(catBreakdown)` — 카테고리별 수평 바 차트
+- `renderCategoryChart(catBreakdown)` — 카테고리별 수평 바 차트 (상위 4개 표시 + 더보기 + 행 클릭 시 openCategoryDetail)
+- `toggleCategoryMore(btn)` — 카테고리 더보기/접기 토글
+- `openCategoryDetail(catId, catName)` — 카테고리 클릭 → 화면B 진입 및 필터 설정
+- `clearCategoryFilter()` — 카테고리 필터 초기화
 - `renderCategoryBarCompact(catBreakdown, total)` — 스택 바
 
 **전체 내역 B:**
