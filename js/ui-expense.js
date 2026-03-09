@@ -2,8 +2,8 @@
 // ui-expense.js — 가계부 UI 렌더링
 // ═══════════════════════════════════════
 
-// ═══ 기본 아이콘 (고양이) ═══
-var DEFAULT_ICON_URL = 'gio_circle_white_closeup2_512.png';
+// ═══ 기본 아이콘 ═══
+var DEFAULT_ICON_URL = 'default-icon.jpg';
 
 function getMerchantIconHtml(item) {
   var merchant = (item.merchant || '').trim();
