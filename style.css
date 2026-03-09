@@ -2028,7 +2028,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 }
 .expense-date-label { font-size: 14px; color: var(--tx-m); }
 .expense-date-value {
-  font-size: 14px; color: var(--tab-color); cursor: pointer; font-weight: 500;
+  font-size: 14px; color: var(--tx); cursor: default; font-weight: 500;
 }
 
 /* 카테고리 */
@@ -2077,7 +2077,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 /* 저장 버튼 */
 .expense-save-btn {
   display: block; width: 100%; padding: 16px; margin-top: 8px;
-  background: #5B8DB8; border: none; border-radius: 12px;
+  background: #E55643; border: none; border-radius: 12px;
   font-size: 16px; color: #fff; font-weight: 600; cursor: pointer;
   font-family: 'Pretendard', sans-serif; transition: .15s;
 }
@@ -2086,13 +2086,8 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 
 /* 삭제 버튼 */
 .expense-delete-btn {
-  display: block; width: 100%; padding: 16px; margin-top: 8px;
-  background: #ff3b30; border: none; border-radius: 12px;
-  font-size: 16px; color: #fff; font-weight: 600; cursor: pointer;
-  font-family: 'Pretendard', sans-serif; transition: .15s;
+  display: none !important;
 }
-.expense-delete-btn:hover { opacity: .9; }
-.expense-delete-btn:active { opacity: .8; }
 
 /* 가계부 폼 하단 고정 버튼 영역 */
 .expense-form-footer {
@@ -2445,6 +2440,65 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   background: rgba(0,0,0,.05); color: var(--tx);
 }
 
+/* 가계부 모달 헤더 좌측 뒤로가기 */
+.modal-back-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--tx-m);
+  transition: .12s;
+  border-radius: 8px;
+  flex-shrink: 0;
+  margin-right: 8px;
+}
+.modal-back-btn:hover {
+  background: rgba(0,0,0,.05);
+  color: var(--tx-d);
+}
+.modal-back-btn svg {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* 가계부 모달/에디터 상단 휴지통 버튼 */
+.expense-trash-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  color: var(--tx-hint);
+  transition: color .15s, background .15s;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+.expense-trash-btn:hover {
+  background: rgba(0,0,0,.05);
+  color: var(--red);
+}
+.expense-trash-btn svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .modal-body {
   padding: 20px;
 }
@@ -2494,6 +2548,16 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   .expense-dashboard-wrap {
     padding: 24px 20px 100px;
   }
+
+  .expense-trash-btn {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+  }
+  .expense-trash-btn svg {
+    width: 22px;
+    height: 22px;
+  }
 }
 
 /* 모바일 (768px 이하) */
@@ -2532,6 +2596,17 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 
   .exp-bar-chart {
     max-width: 100%;
+  }
+
+  /* 가계부 에디터: 모바일 상단 휴지통 크기 */
+  .expense-trash-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+  }
+  .expense-trash-btn svg {
+    width: 20px;
+    height: 20px;
   }
 }
 

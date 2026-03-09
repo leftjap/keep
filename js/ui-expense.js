@@ -1043,8 +1043,9 @@ function newExpenseForm(mode = 'normal') {
   document.getElementById('expenseMemoInput' + suffix).value = '';
   document.getElementById('expenseIconKeyword' + suffix).value = '';
   document.getElementById('expenseIconUrl' + suffix).value = '';
-  var delBtn = document.getElementById('expenseDeleteBtn' + suffix);
-  if (delBtn) delBtn.style.display = 'none';
+  // 상단 휴지통 버튼 숨기기
+  var trashBtn = document.getElementById(mode === 'modal' ? 'expenseTrashBtnModal' : 'expenseTrashBtn');
+  if (trashBtn) trashBtn.style.display = 'none';
   const now = new Date();
   document.getElementById('expenseDateValue' + suffix).textContent = formatExpenseDate(now);
   clearCategorySelection(mode);
@@ -1081,9 +1082,9 @@ function loadExpense(id, mode = 'normal') {
     document.getElementById('expenseIconUrl' + suffix).value = '';
   }
 
-  // 기존 항목이므로 삭제 버튼 표시
-  var delBtn = document.getElementById('expenseDeleteBtn' + suffix);
-  if (delBtn) delBtn.style.display = 'block';
+  // 기존 항목이므로 상단 휴지통 버튼 표시
+  var trashBtn = document.getElementById(mode === 'modal' ? 'expenseTrashBtnModal' : 'expenseTrashBtn');
+  if (trashBtn) trashBtn.style.display = 'flex';
 
   updateExpenseSaveBtn(mode);
 }
@@ -1096,12 +1097,25 @@ function deleteExpenseFromForm(mode = 'normal') {
   if (!confirm('정말 삭제하시겠습니까?')) return;
   delExpense(curExpenseId);
   curExpenseId = null;
-  newExpenseForm(mode);
+
+  // 상단 휴지통 숨기기
+  var trashBtn = document.getElementById(mode === 'modal' ? 'expenseTrashBtnModal' : 'expenseTrashBtn');
+  if (trashBtn) trashBtn.style.display = 'none';
+
   if (mode === 'modal') {
     closeExpenseModal();
+    // 대시보드 갱신
+    if (window.innerWidth > 768) {
+      renderExpenseDashboard('pc');
+    }
   } else {
+    // 모바일: 대시보드 갱신 후 리스트 뷰로
+    renderExpenseDashboard('mobile');
     setMobileView('list');
   }
+
+  updateExpenseCompact();
+  SYNC.scheduleDatabaseSave();
 }
 
 function formatExpenseAmount(input) {
