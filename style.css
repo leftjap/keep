@@ -1851,8 +1851,9 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   font-weight: 500; padding-bottom: 6px;
 }
 .exp-week-day {
-  text-align: center; padding: 6px 2px; border-radius: 12px; cursor: pointer;
+  text-align: center; padding: 0; border-radius: 12px; cursor: pointer;
   transition: all .12s; margin: 0;
+  aspect-ratio: 1; display: flex; align-items: center; justify-content: center; flex-direction: column;
 }
 .exp-week-day:hover { background: rgba(0,0,0,.03); }
 .exp-week-day.today {
