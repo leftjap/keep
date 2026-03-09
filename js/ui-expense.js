@@ -628,9 +628,21 @@ function renderExpenseFullDetail(yearMonth) {
   if (!container) return;
 
   // 월 헤더를 상단 네비에 렌더링
-  renderExpenseMonthNav(yearMonth);
+  var detailParts = yearMonth.split('-');
+  var detailMo = parseInt(detailParts[1]);
+  var detailIsNow = (yearMonth === today().slice(0, 7));
+  var detailTopbarNav = renderExpenseMonthNav(yearMonth);
 
   var html = '';
+
+  // 모바일: topbar에 안 들어가면 콘텐츠 내부에 삽입
+  if (!detailTopbarNav) {
+    html += '<div class="exp-month-nav">';
+    html += '<button class="exp-month-nav-btn" onclick="changeExpenseMonth(-1)"><svg width="8" height="14" viewBox="0 0 8 14"><polygon points="7,0.5 1,7 7,13.5" fill="currentColor"/></svg></button>';
+    html += '<span class="exp-month-nav-label" onclick="openMonthPicker()" style="cursor:pointer;">' + detailMo + '월</span>';
+    html += '<button class="exp-month-nav-btn' + (detailIsNow ? ' exp-nav-disabled' : '') + '"' + (detailIsNow ? '' : ' onclick="changeExpenseMonth(1)"') + '><svg width="8" height="14" viewBox="0 0 8 14"><polygon points="1,0.5 7,7 1,13.5" fill="currentColor"/></svg></button>';
+    html += '</div>';
+  }
 
   var monthTotal = getMonthTotal(yearMonth);
   var d = new Date(yearMonth + '-01');
