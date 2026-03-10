@@ -1494,3 +1494,215 @@ function closeExpenseFloatingPopup() {
     if (overlay.parentNode) overlay.remove();
   }, 250);
 }
+
+// ═══════════════════════════════════════
+// 상호별 랭킹 카드 (공용)
+// ═══════════════════════════════════════
+function renderMerchantRanking(merchants, limit, options) {
+  if (!merchants || merchants.length === 0) {
+    return '<div class="exp-mr-empty">데이터가 없습니다</div>';
+  }
+  var opts = options || {};
+  var maxAmount = merchants[0].amount;
+  var showList = merchants.slice(0, limit);
+  var hasMore = merchants.length > limit;
+
+  var html = '<div class="exp-mr-list">';
+
+  showList.forEach(function(m, i) {
+    var barPct = maxAmount > 0 ? (m.amount / maxAmount) * 100 : 0;
+    var catObj = EXPENSE_CATEGORIES.find(function(c) { return c.id === m.category; });
+    var catName = catObj ? catObj.name : '기타';
+    var catColor = catObj ? catObj.color : '#B0B0B8';
+    var iconItem = { merchant: m.merchant, icon: null };
+
+    html += '<div class="exp-mr-row" onclick="openMerchantDetail(\'' + _escMerchant(m.merchant) + '\')">';
+    html += getMerchantIconHtml(iconItem);
+    html += '<div class="exp-mr-info">';
+    html += '<div class="exp-mr-name">' + m.merchant + '</div>';
+    html += '<div class="exp-mr-meta">';
+    html += '<span class="exp-mr-count">' + m.count + '건</span>';
+    html += '<span class="exp-mr-pct">' + m.percent + '%</span>';
+    html += '<span class="exp-mr-cat-tag" style="background:' + catColor + '20;color:' + catColor + ';">' + catName + '</span>';
+    html += '</div>';
+    html += '<div class="exp-mr-bar-wrap"><div class="exp-mr-bar" style="width:' + Math.max(barPct, 3) + '%;background:' + catColor + ';"></div></div>';
+    html += '</div>';
+    html += '<div class="exp-mr-amount">' + formatAmount(m.amount) + '원</div>';
+    html += '</div>';
+  });
+
+  html += '</div>';
+
+  // 더보기 (연간 전체 보기 등)
+  if (hasMore && opts.onMoreClick) {
+    html += '<div class="exp-mr-more-wrap">';
+    html += '<button class="exp-cat-more-btn" onclick="' + opts.onMoreClick + '">전체 보기</button>';
+    html += '</div>';
+  }
+
+  return html;
+}
+
+// 상호명에 특수문자가 있을 때 onclick 안전하게 이스케이프
+function _escMerchant(str) {
+  return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+}
+
+// 상호 클릭 → 해당 상호의 월간 내역을 플로팅 팝업으로 표시
+function openMerchantDetail(merchant) {
+  var ym = getExpenseViewYM();
+  var expenses = getMonthExpenses(ym)
+    .filter(function(e) { return (e.merchant || '').trim() === merchant; })
+    .sort(function(a, b) { return (b.date + ' ' + (b.time || '')).localeCompare(a.date + ' ' + (a.time || '')); });
+
+  var total = expenses.reduce(function(s, e) { return s + e.amount; }, 0);
+  var parts = ym.split('-');
+  var mo = parseInt(parts[1]);
+  var title = merchant + ' · ' + mo + '월';
+
+  var contentHtml = '';
+
+  if (expenses.length === 0) {
+    contentHtml = '<div class="exp-tl-empty">내역이 없습니다</div>';
+  } else {
+    // 날짜별 그룹핑
+    var grouped = {};
+    var dateOrder = [];
+    expenses.forEach(function(e) {
+      if (!grouped[e.date]) {
+        grouped[e.date] = [];
+        dateOrder.push(e.date);
+      }
+      grouped[e.date].push(e);
+    });
+    dateOrder.sort(function(a, b) { return b.localeCompare(a); });
+
+    dateOrder.forEach(function(dateStr) {
+      contentHtml += renderExpenseDateGroup(dateStr, grouped[dateStr], function(item) {
+        return window.innerWidth > 768
+          ? 'closeExpenseFloatingPopup(); openExpenseModal(\'' + item.id + '\')'
+          : 'closeExpenseFloatingPopup(); loadExpense(\'' + item.id + '\'); setMobileView(\'editor\');';
+      });
+    });
+
+    // 하단 합계
+    contentHtml += '<div class="exp-fp-footer">';
+    contentHtml += '<span class="exp-fp-footer-label">' + expenses.length + '건 합계</span>';
+    contentHtml += '<span class="exp-fp-footer-amount">' + total.toLocaleString() + '원</span>';
+    contentHtml += '</div>';
+  }
+
+  // 화면 중앙에서 열기
+  var cx = window.innerWidth / 2;
+  var cy = window.innerHeight / 2 - 50;
+  openExpenseFloatingPopup(title, contentHtml, cx, cy);
+}
+
+// ═══════════════════════════════════════
+// 연간 누적 섹션
+// ═══════════════════════════════════════
+function renderYearlySection(year) {
+  var data = getYearMerchantBreakdown(year);
+  if (!data || !data.merchants || data.merchants.length === 0) {
+    return '';
+  }
+
+  var merchants = data.merchants;
+  var top1 = merchants[0];
+  var grid = merchants.slice(1, 7);
+  var hasMore = merchants.length > 7;
+
+  // 기간 표시
+  var startParts = data.startDate ? data.startDate.split('-') : [];
+  var startLabel = startParts.length >= 2 ? parseInt(startParts[1]) + '월 ' + parseInt(startParts[2]) + '일' : '';
+  var endParts = data.endDate ? data.endDate.split('-') : [];
+  var endLabel = endParts.length >= 2 ? parseInt(endParts[1]) + '월 ' + parseInt(endParts[2]) + '일' : '오늘';
+
+  var catObj1 = EXPENSE_CATEGORIES.find(function(c) { return c.id === top1.category; });
+  var catColor1 = catObj1 ? catObj1.color : '#B0B0B8';
+
+  var html = '<div class="exp-yearly-section">';
+
+  // 섹션 헤더
+  html += '<div class="exp-yearly-header">';
+  html += '<div class="exp-yearly-title">' + year + '년</div>';
+  html += '<div class="exp-yearly-sub">' + startLabel + ' ~ ' + endLabel + ' · 총 ' + formatAmount(data.total) + '원</div>';
+  html += '</div>';
+
+  // 히어로 카드 (1위)
+  var iconItem1 = { merchant: top1.merchant, icon: null };
+  html += '<div class="exp-yearly-hero" style="background:' + catColor1 + '10;border:1px solid ' + catColor1 + '20;">';
+  html += '<div class="exp-yearly-hero-icon">' + getMerchantIconHtml(iconItem1) + '</div>';
+  html += '<div class="exp-yearly-hero-body">';
+  html += '<div class="exp-yearly-hero-name">' + top1.merchant + '</div>';
+  html += '<div class="exp-yearly-hero-amount">' + formatAmount(top1.amount) + '원 <span class="exp-yearly-hero-count">' + top1.count + '건</span></div>';
+  html += '<div class="exp-yearly-hero-desc">전체 지출의 <strong>' + top1.percent + '%</strong>를 여기에 쓰고 있어요</div>';
+  html += '</div>';
+  html += '</div>';
+
+  // 그리드 (2~7위)
+  if (grid.length > 0) {
+    html += '<div class="exp-yearly-grid">';
+    grid.forEach(function(m) {
+      var catObj = EXPENSE_CATEGORIES.find(function(c) { return c.id === m.category; });
+      var catColor = catObj ? catObj.color : '#B0B0B8';
+      var iconItem = { merchant: m.merchant, icon: null };
+      html += '<div class="exp-yearly-grid-item" onclick="openMerchantDetail(\'' + _escMerchant(m.merchant) + '\')">';
+      html += '<div class="exp-yearly-grid-icon">' + getMerchantIconHtml(iconItem) + '</div>';
+      html += '<div class="exp-yearly-grid-name">' + m.merchant + '</div>';
+      html += '<div class="exp-yearly-grid-amount">' + formatAmount(m.amount) + '원</div>';
+      html += '<div class="exp-yearly-grid-meta">' + m.count + '건 · ' + m.percent + '%</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+
+  // 전체 보기 버튼
+  if (hasMore) {
+    html += '<div class="exp-mr-more-wrap">';
+    html += '<button class="exp-cat-more-btn" onclick="openYearlyFullPopup(' + year + ')">전체 보기</button>';
+    html += '</div>';
+  }
+
+  html += '</div>';
+  return html;
+}
+
+// 연간 전체 상호 리스트 팝업
+function openYearlyFullPopup(year) {
+  var data = getYearMerchantBreakdown(year);
+  if (!data || !data.merchants || data.merchants.length === 0) return;
+
+  var merchants = data.merchants;
+  var title = year + '년 전체 상호';
+
+  var contentHtml = '<div class="exp-fp-yearly-list">';
+
+  merchants.forEach(function(m, i) {
+    var catObj = EXPENSE_CATEGORIES.find(function(c) { return c.id === m.category; });
+    var catColor = catObj ? catObj.color : '#B0B0B8';
+    var iconItem = { merchant: m.merchant, icon: null };
+
+    contentHtml += '<div class="exp-fp-yearly-row">';
+    contentHtml += '<span class="exp-fp-yearly-rank">' + (i + 1) + '</span>';
+    contentHtml += getMerchantIconHtml(iconItem);
+    contentHtml += '<div class="exp-fp-yearly-info">';
+    contentHtml += '<div class="exp-fp-yearly-name">' + m.merchant + '</div>';
+    contentHtml += '<div class="exp-fp-yearly-meta">' + m.count + '건 · ' + m.percent + '%</div>';
+    contentHtml += '</div>';
+    contentHtml += '<div class="exp-fp-yearly-amount">' + formatAmount(m.amount) + '원</div>';
+    contentHtml += '</div>';
+  });
+
+  contentHtml += '</div>';
+
+  // 하단 합계
+  contentHtml += '<div class="exp-fp-footer">';
+  contentHtml += '<span class="exp-fp-footer-label">' + merchants.length + '개 상호 합계</span>';
+  contentHtml += '<span class="exp-fp-footer-amount">' + formatAmount(data.total) + '원</span>';
+  contentHtml += '</div>';
+
+  var cx = window.innerWidth / 2;
+  var cy = window.innerHeight / 2 - 50;
+  openExpenseFloatingPopup(title, contentHtml, cx, cy);
+}

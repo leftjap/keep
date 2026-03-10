@@ -378,6 +378,8 @@ gas-nametag/          — Google Apps Script (메인 레포와 별도 폴더)
 - `getTopCategoryChange(ym)` — 전월 대비 가장 변화폭이 큰 카테고리 {name, diff}
 - `getMonthlyTrend(count)` — 월별 추이 (count: 개월수, 기본값 6)
 - `getMonthlyTrendAround(centerYM)` — 중심 월 기준 월별 추이
+- `getMerchantBreakdown(ym)` — 월간 상호별 지출 분석 [{merchant, amount, count, percent, category}, ...]
+- `getYearMerchantBreakdown(year)` — 연간 상호별 지출 분석 {startDate, endDate, total, merchants: [...]}
 
 **기타:** `getTabCount(t)`, `updateWritingStats()`, `updateBookStats()`, `showRandomQuote()`, `togglePin(type, id, e)`
 
@@ -505,6 +507,10 @@ gas-nametag/          — Google Apps Script (메인 레포와 별도 폴더)
 - `showExpensePopup(expenseId, x, y)` — 타임라인 항목 우클릭/꾹누르기 팝업 (수정/삭제)
 - `_deleteExpenseFromPopup(expenseId)` — 팝업에서 삭제 실행 + 화면 리렌더
 - `setupExpenseContextMenu()` — document 레벨 이벤트 위임 등록 (우클릭 + 꾹누르기 600ms)
+
+**플로팅 팝업 (공용 컴포넌트):**
+- `openExpenseFloatingPopup(title, contentHtml, anchorX, anchorY)` — 플로팅 팝업 열기 (PC: 앵커 근처 카드, 모바일: 하단 시트)
+- `closeExpenseFloatingPopup()` — 플로팅 팝업 닫기 (fade-out 애니메이션)
 
 **주요 렌더 함수 출력 구조:**
 - `renderWeeklyCalendar()` → `.exp-week-cal > .exp-week-grid > (.exp-week-dow-row > .exp-week-dow×7) + .exp-week-day×7` + `#expWeekDaySlot`
@@ -767,6 +773,7 @@ gas-nametag/          — Google Apps Script (메인 레포와 별도 폴더)
 
 **선택자 위치 참조:**
 - `.exp-week-*`, `.exp-month-*`, `.exp-bar-*`, `.exp-tl-*`, `.exp-cat-*` → 12번 가계부
+- `.exp-fp-*` (`.exp-fp-overlay`, `.exp-fp-card`, `.exp-fp-header`, `.exp-fp-body`, `.exp-fp-footer`) → 12번 가계부 플로팅 팝업
 - `.exp-day-selected`, `.exp-day-detail` → 13번 가계부 캘린더 선택
 - `.rc-*` → 14번 루틴 캘린더 뷰
 - `.chk-*`, `.streak-*`, `.routine-*`, `.monthly-*`, `.rhythm-*` → 4번 사이드바 루틴~기록
