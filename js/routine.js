@@ -95,9 +95,9 @@ function showRoutineCard() {
 
   const weekDates = getWeekDates();
   const weekLabel =
-    (new Date(weekDates[0])).getMonth()+1 + '/' + (new Date(weekDates[0])).getDate() +
+    ((new Date(weekDates[0])).getMonth()+1) + '/' + (new Date(weekDates[0])).getDate() +
     ' ~ ' +
-    (new Date(weekDates[6])).getMonth()+1 + '/' + (new Date(weekDates[6])).getDate();
+    ((new Date(weekDates[6])).getMonth()+1) + '/' + (new Date(weekDates[6])).getDate();
   const weekEl = document.getElementById('routineCardWeek');
   if (weekEl) weekEl.textContent = weekLabel;
   renderRoutineCardBody();
@@ -167,7 +167,10 @@ function renderChk() {
     const pct       = Math.round((doneCount / 7) * 100);
     const blobHtml  = _buildBlobHtml(r, doneCount, W, H);
     const dotHtml   = weekDone.map((done, i) => {
-      const dt = week[i], isTd = dt === td;
+      const dt = week[i], isTd = dt === td, isFuture = dt > td;
+      if (isFuture) {
+        return `<div class="chk-dot future"></div>`;
+      }
       return `<div class="chk-dot ${done?'done':''} ${isTd?'today':''}" onclick="event.stopPropagation();toggleDay('${r.id}','${dt}')"></div>`;
     }).join('');
 
@@ -199,7 +202,10 @@ function renderRoutineCardBody() {
     const doneCount = weekDone.filter(d => d).length;
     const blobHtml  = _buildBlobHtml(r, doneCount, W, H);
     const dotHtml   = weekDone.map((done, i) => {
-      const dt = week[i], isTd = dt === td;
+      const dt = week[i], isTd = dt === td, isFuture = dt > td;
+      if (isFuture) {
+        return `<div class="chk-dot future"></div>`;
+      }
       return `<div class="chk-dot ${done?'done':''} ${isTd?'today':''}" onclick="event.stopPropagation();toggleDayCard('${r.id}','${dt}')"></div>`;
     }).join('');
 
@@ -266,27 +272,56 @@ function renderStreakCard() {
   if (!container) return;
   const all = getAllChk();
   const d = new Date();
+  const td = today();
+  const week = getWeekDates();
+  // 이번 주에서 오늘까지의 날짜만 추출
+  const weekUntilToday = week.filter(function(dt) { return dt <= td; });
 
   const streakData = ROUTINE_META.map(r => {
-    let current = 0, best = 0;
-    for (let i = 0; i < 365; i++) {
+    // === 현재 연속: 오늘(또는 어제)부터 과거로 끊기지 않은 일수 ===
+    let current = 0;
+    let startIdx = 0;
+    // 오늘 체크했으면 오늘부터, 아니면 어제부터 시작
+    if (all[td] && all[td][r.id]) {
+      startIdx = 0;
+    } else {
+      startIdx = 1;
+    }
+    for (let i = startIdx; i < 365; i++) {
       const dt = new Date(d); dt.setDate(d.getDate() - i);
       const key = getLocalYMD(dt);
       if (all[key] && all[key][r.id]) {
-        if (i === 0 || current > 0) current++;
+        current++;
       } else {
-        if (i === 0) current = 0;
-        else break;
+        break;
       }
     }
-    let tempStreak = 0;
+
+    // === 이번 주 최장 연속: 일요일~오늘 범위에서 가장 긴 연속 구간 ===
+    let weekBest = 0, weekRun = 0;
+    for (let i = 0; i < weekUntilToday.length; i++) {
+      var wk = weekUntilToday[i];
+      if (all[wk] && all[wk][r.id]) {
+        weekRun++;
+        if (weekRun > weekBest) weekBest = weekRun;
+      } else {
+        weekRun = 0;
+      }
+    }
+
+    // === 연속 기록 = 둘 중 큰 값 ===
+    let streak = Math.max(current, weekBest);
+
+    // === 전체 최장 연속 ===
+    let best = 0, tempStreak = 0;
     for (let i = 0; i < 365; i++) {
       const dt = new Date(d); dt.setDate(d.getDate() - i);
       const key = getLocalYMD(dt);
       if (all[key] && all[key][r.id]) { tempStreak++; if (tempStreak > best) best = tempStreak; }
       else { tempStreak = 0; }
     }
-    return { ...r, current, best, isBroken: current === 0 };
+
+    return { ...r, current: streak, best, isBroken: streak === 0 };
   });
 
   let heroIdx = -1, heroMax = 0;
