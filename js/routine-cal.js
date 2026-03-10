@@ -161,9 +161,42 @@ function changeRoutineMonth(delta) {
   renderRoutineCalView(_routineViewYM);
 }
 
+function renderRoutineDayReport(dateStr) {
+  if (!dateStr) return '';
+  var all = getAllChk();
+  var dc = all[dateStr] || {};
+  var dO = new Date(dateStr + 'T00:00:00');
+  var dn = ['일','월','화','수','목','금','토'][dO.getDay()];
+  var doneN = 0;
+  ROUTINE_META.forEach(function(r) { if (dc[r.id]) doneN++; });
+  var h = '<div class="rc-report">';
+  h += '<div class="rc-report-hdr"><span>' + (dO.getMonth() + 1) + '월 ' + dO.getDate() + '일 ' + dn + '요일</span><span class="rc-report-cnt">' + doneN + '/' + ROUTINE_META.length + '</span></div>';
+  h += '<div class="rc-report-list">';
+  ROUTINE_META.forEach(function(r) {
+    var d = !!dc[r.id];
+    h += '<div class="rc-report-row' + (d ? ' done' : '') + '"><div class="rc-report-dot" style="background:' + (d ? r.color : 'var(--border-l)') + '"></div><span class="rc-report-name">' + r.name + '</span><span class="rc-report-chk">' + (d ? '✓' : '') + '</span></div>';
+  });
+  h += '</div></div>';
+  return h;
+}
+
 function selectRoutineDate(dateStr) {
+  var prev = _selectedRoutineDate;
   _selectedRoutineDate = dateStr;
-  renderRoutineCalView(_routineViewYM);
+
+  // 이전 선택 셀에서 sel 제거
+  if (prev) {
+    var prevEl = document.querySelector('.rc-day[data-date="' + prev + '"]');
+    if (prevEl) prevEl.classList.remove('sel');
+  }
+
+  // 새 선택 셀에 sel 추가
+  var newEl = document.querySelector('.rc-day[data-date="' + dateStr + '"]');
+  if (newEl) newEl.classList.add('sel');
+
+  // 슬롯 갱신
+  var slot = document.getElementById('rcDaySlot');
+  if (slot) slot.innerHTML = renderRoutineDayReport(dateStr);
 }
 
 function openRoutineMonthPicker() {
@@ -293,9 +326,6 @@ function renderRoutineCalView(yearMonth) {
   }
   h += '</div>';
 
-  h += buildRCChart(dim, checkDays, thisCum, prevCum, pDim, mo, prevMo);
-
-  h += '<div class="rc-gap"></div>';
   var fdow = new Date(y, mo - 1, 1).getDay();
   h += '<div class="rc-cal"><div class="rc-cal-grid">';
   h += '<div class="rc-dow-row">';
@@ -309,27 +339,15 @@ function renderRoutineCalView(yearMonth) {
     if (_selectedRoutineDate === dd.date) cls += ' sel';
     if (!dd.isFuture && dd.pct === 100) cls += ' p100';
     var oc = dd.isFuture ? '' : ' onclick="selectRoutineDate(\'' + dd.date + '\')"';
-    h += '<div class="' + cls + '"' + oc + '><div class="rc-day-n">' + dd.day + '</div>';
+    h += '<div class="' + cls + '" data-date="' + dd.date + '"' + oc + '><div class="rc-day-n">' + dd.day + '</div>';
     if (!dd.isFuture && dd.pct > 0) h += '<div class="rc-day-p">' + dd.pct + '%</div>';
     h += '</div>';
   });
   h += '</div></div>';
 
-  if (_selectedRoutineDate && _selectedRoutineDate.startsWith(yearMonth)) {
-    var dc = all[_selectedRoutineDate] || {};
-    var dO = new Date(_selectedRoutineDate + 'T00:00:00');
-    var dn = ['일','월','화','수','목','금','토'][dO.getDay()];
-    var doneN = 0;
-    ROUTINE_META.forEach(function(r) { if (dc[r.id]) doneN++; });
-    h += '<div class="rc-report">';
-    h += '<div class="rc-report-hdr"><span>' + (dO.getMonth() + 1) + '월 ' + dO.getDate() + '일 ' + dn + '요일</span><span class="rc-report-cnt">' + doneN + '/' + ROUTINE_META.length + '</span></div>';
-    h += '<div class="rc-report-list">';
-    ROUTINE_META.forEach(function(r) {
-      var d = !!dc[r.id];
-      h += '<div class="rc-report-row' + (d ? ' done' : '') + '"><div class="rc-report-dot" style="background:' + (d ? r.color : 'var(--border-l)') + '"></div><span class="rc-report-name">' + r.name + '</span><span class="rc-report-chk">' + (d ? '✓' : '') + '</span></div>';
-    });
-    h += '</div></div>';
-  }
+  h += '<div id="rcDaySlot">';
+  h += renderRoutineDayReport(_selectedRoutineDate);
+  h += '</div>';
 
   h += '</div>';
   panel.querySelector('.editor-scroll-area').innerHTML = h;
@@ -337,60 +355,4 @@ function renderRoutineCalView(yearMonth) {
   // 루틴 캘린더 뷰에서 글쓰기 버튼 숨기기 (렌더링 후 확실히 숨김)
   var nb = document.querySelector('.ed-new-btn');
   if (nb) nb.style.setProperty('display', 'none', 'important');
-}
-
-function buildRCChart(dim, lastDay, thisCum, prevCum, pDim, mNum, pNum) {
-  var allV = thisCum.concat(prevCum).concat([1]);
-  var maxY = Math.max.apply(null, allV);
-  var W = 260;
-  var H = 170;
-  var P = 20;
-  var gw = W - P * 2;
-  var gh = H - P * 2 - 18;
-  var bot = P + gh;
-  var tp = '';
-  var pp = '';
-  var tf = P + ',' + bot + ' ';
-  var pf = P + ',' + bot + ' ';
-  var dx = 0;
-  var dy = 0;
-  for (var i = 0; i < dim; i++) {
-    var x = P + i / Math.max(dim - 1, 1) * gw;
-    var ty = P + gh - (thisCum[i] / maxY) * gh;
-    if (i < lastDay) {
-      tp += x + ',' + ty + ' ';
-      tf += x + ',' + ty + ' ';
-      dx = x;
-      dy = ty;
-    }
-  }
-  for (var j = 0; j < pDim; j++) {
-    var px = P + j / Math.max(pDim - 1, 1) * gw;
-    var py = P + gh - (prevCum[j] / maxY) * gh;
-    pp += px + ',' + py + ' ';
-    pf += px + ',' + py + ' ';
-  }
-  tf += (P + (lastDay - 1) / Math.max(dim - 1, 1) * gw) + ',' + bot;
-  pf += (P + gw) + ',' + bot;
-  var lY = bot + 16;
-  var s = '<div class="rc-chart">';
-  s += '<svg class="rc-chart-svg" viewBox="0 0 ' + W + ' ' + H + '">';
-  s += '<defs>';
-  s += '<linearGradient id="rcG1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#E55643" stop-opacity=".25"/><stop offset="100%" stop-color="#E55643" stop-opacity=".02"/></linearGradient>';
-  s += '<linearGradient id="rcG2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#B0B0B0" stop-opacity=".35"/><stop offset="100%" stop-color="#B0B0B0" stop-opacity=".05"/></linearGradient>';
-  s += '</defs>';
-  s += '<polygon points="' + pf + '" fill="url(#rcG2)"/>';
-  s += '<polyline points="' + pp + '" fill="none" stroke="#D0D0D0" stroke-width="1.5"/>';
-  s += '<polygon points="' + tf + '" fill="url(#rcG1)"/>';
-  s += '<polyline points="' + tp + '" fill="none" stroke="#E55643" stroke-width="2"/>';
-  s += '<circle cx="' + dx + '" cy="' + dy + '" r="7" fill="#E55643" opacity=".2"/>';
-  s += '<circle cx="' + dx + '" cy="' + dy + '" r="4" fill="#E55643"/>';
-  s += '<text x="' + P + '" y="' + lY + '" font-size="10" fill="#aaa" text-anchor="start">' + mNum + '.1</text>';
-  s += '<text x="' + (P + gw) + '" y="' + lY + '" font-size="10" fill="#aaa" text-anchor="end">' + mNum + '.' + dim + '</text>';
-  s += '</svg>';
-  s += '<div class="rc-chart-leg">';
-  s += '<span><span class="rc-leg-dot" style="background:#E55643"></span>' + mNum + '월</span>';
-  s += '<span><span class="rc-leg-dot" style="background:#D0D0D0"></span>' + pNum + '월</span>';
-  s += '</div></div>';
-  return s;
 }
