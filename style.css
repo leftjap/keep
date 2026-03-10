@@ -3690,15 +3690,17 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   padding: 14px 16px;
   border-radius: 12px;
   cursor: pointer;
-  transition: opacity .12s;
+  transition: background .12s;
+  border: 1px solid var(--border-l);
+  background: transparent;
 }
 
 .exp-yearly-rank-row:hover {
-  opacity: .8;
+  background: rgba(0,0,0,.02);
 }
 
 .exp-yearly-rank-row:active {
-  opacity: .7;
+  background: rgba(0,0,0,.04);
 }
 
 .exp-yearly-rank-num {

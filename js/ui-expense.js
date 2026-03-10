@@ -1957,7 +1957,7 @@ function _renderYearlyBubbles(merchants, containerW, containerH) {
     var size = Math.round(c.r * 2);
     var left = Math.round(c.x - c.r);
     var top = Math.round(c.y - c.r);
-    var imgSize = Math.max(20, Math.round(c.r * 0.9));
+    var imgSize = Math.round(c.r * 2 - 4);
 
     var onclick = c.item.isEtc
       ? 'openYearlyFullPopup(' + new Date(getExpenseViewYM() + "-01").getFullYear() + ')'
@@ -1971,7 +1971,7 @@ function _renderYearlyBubbles(merchants, containerW, containerH) {
       + 'height:' + size + 'px;'
       + 'border-radius:50%;'
       + 'background:' + bgColor + ';'
-      + 'border:1.5px solid ' + borderColor + '20;'
+      + 'border:2.5px solid #fff;'
       + 'display:flex;align-items:center;justify-content:center;'
       + 'cursor:pointer;transition:transform .15s,box-shadow .15s;'
       + '">';
@@ -2000,33 +2000,23 @@ function _renderYearlyRankList(merchants, limit) {
 
   showList.forEach(function(m, i) {
     var rank = i + 1;
-    // 뉴트럴 그라데이션: 1위 가장 진하고 아래로 갈수록 연해짐
-    var alpha = Math.max(0.03, 0.18 - (i * 0.016));
-    var bgColor = 'rgba(51,65,85,' + alpha + ')';
-    // 순위 번호 크기/무게: 1~3위 더 크게
     var rankSize = rank <= 3 ? '20px' : '15px';
     var rankWeight = rank <= 3 ? '700' : '600';
     var rankColor = 'var(--tx-m)';
-    // 텍스트 색상: 1위만 살짝 진하게
     var nameWeight = rank === 1 ? '600' : '400';
 
-    var iconItem = { merchant: m.merchant, icon: null };
     var src = findMerchantIcon(m.merchant) || DEFAULT_ICON_URL;
 
-    html += '<div class="exp-yearly-rank-row" onclick="openMerchantDetail(\'' + _escMerchant(m.merchant) + '\')" style="background:' + bgColor + ';">';
+    html += '<div class="exp-yearly-rank-row" onclick="openMerchantDetail(\'' + _escMerchant(m.merchant) + '\')">';
 
-    // 순위 번호
     html += '<span class="exp-yearly-rank-num" style="font-size:' + rankSize + ';font-weight:' + rankWeight + ';color:' + rankColor + ';">' + rank + '</span>';
 
-    // 파비콘
     html += '<div class="exp-yearly-rank-icon">';
     html += '<img src="' + src + '" width="36" height="36" style="border-radius:50%;object-fit:cover;" onerror="this.onerror=null;this.src=\'' + DEFAULT_ICON_URL + '\';">';
     html += '</div>';
 
-    // 상호명
     html += '<div class="exp-yearly-rank-name" style="font-weight:' + nameWeight + ';">' + m.merchant + '</div>';
 
-    // 금액
     html += '<div class="exp-yearly-rank-amount">' + formatAmount(m.amount) + '원</div>';
 
     html += '</div>';
