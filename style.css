@@ -4414,3 +4414,31 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 .list-panel.expense-active .lp-search-btn {
   display: none !important;
 }
+
+/* ═══ PC/태블릿 캘린더 선택 카드 — 정사각형 ═══ */
+@media (min-width: 769px) {
+  .exp-month-day.exp-day-selected::before {
+    inset: auto;
+    width: 68px;
+    height: 68px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-53%, -53%);
+  }
+  .exp-week-day.exp-day-selected::before {
+    inset: auto;
+    width: 68px;
+    height: 68px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-53%, -53%);
+  }
+  .rc-day.sel::before {
+    inset: auto;
+    width: 68px;
+    height: 68px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-53%, -53%);
+  }
+}
