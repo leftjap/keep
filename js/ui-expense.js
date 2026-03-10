@@ -688,16 +688,24 @@ function renderCategoryBarCompact(catBreakdown, total) {
 function changeExpenseMonth(delta) {
   _selectedExpenseDate = null;
   var current = getExpenseViewYM();
-  if (delta > 0 && current >= today().slice(0, 7)) return;
+  var nowYM = today().slice(0, 7);
+
+  // 이동하려는 월 계산
   var d = new Date(current + '-01');
   d.setMonth(d.getMonth() + delta);
-  _expenseViewYM = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+  var targetYM = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+
+  // 미래 월(현재 월 이후)로는 이동 불가
+  if (targetYM > nowYM) return;
+
+  // 데이터 없는 월로는 이동 불가
+  if (!hasExpenseDataInMonth(targetYM) && targetYM !== nowYM) return;
+
+  _expenseViewYM = targetYM;
 
   if (window.innerWidth > 768) {
-    // PC/태블릿: 항상 단일 대시보드 렌더
     renderExpenseDashboard('pc');
   } else {
-    // 모바일: 항상 대시보드 유지
     var dashboard = document.getElementById('pane-expense-dashboard');
     var detail = document.getElementById('pane-expense-detail');
     if (detail) detail.style.display = 'none';
@@ -936,10 +944,16 @@ function openMonthPicker() {
     var d = new Date(now.getFullYear(), now.getMonth() - i, 1);
     var ym = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
     var label = d.getFullYear() + '년 ' + (d.getMonth() + 1) + '월';
-    months.push({ ym: ym, label: label, selected: ym === currentYM });
+    var hasData = hasExpenseDataInMonth(ym) || ym === nowYM;
+    months.push({ ym: ym, label: label, selected: ym === currentYM, hasData: hasData });
   }
 
   var listHtml = months.map(function(m) {
+    if (!m.hasData) {
+      return '<div class="exp-mp-item" style="color:var(--tx-hint);cursor:default;opacity:0.4;">'
+        + '<span>' + m.label + '</span>'
+        + '</div>';
+    }
     return '<div class="exp-mp-item' + (m.selected ? ' exp-mp-selected' : '') + '" onclick="selectMonth(\'' + m.ym + '\')">'
       + '<span>' + m.label + '</span>'
       + (m.selected ? '<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10L8 14L16 6" stroke="#E55643" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' : '')
@@ -977,14 +991,19 @@ function closeMonthPicker() {
 }
 
 function selectMonth(ym) {
+  var nowYM = today().slice(0, 7);
+  // 데이터 없는 월(현재 월 제외)은 선택 불가
+  if (!hasExpenseDataInMonth(ym) && ym !== nowYM) {
+    closeMonthPicker();
+    return;
+  }
+
   _expenseViewYM = ym;
   closeMonthPicker();
 
   if (window.innerWidth > 768) {
-    // PC/태블릿: 항상 단일 대시보드 렌더
     renderExpenseDashboard('pc');
   } else {
-    // 모바일: 항상 대시보드 유지
     var dashboard = document.getElementById('pane-expense-dashboard');
     var detail = document.getElementById('pane-expense-detail');
     if (detail) detail.style.display = 'none';
@@ -1000,15 +1019,27 @@ function renderExpenseMonthNav(yearMonth) {
   var parts = yearMonth.split('-');
   var mo = parseInt(parts[1]);
   var nowYM = today().slice(0, 7);
-  var isNow = (yearMonth === nowYM);
+
+  // 이전 월 데이터 유무 확인
+  var prevD = new Date(yearMonth + '-01');
+  prevD.setMonth(prevD.getMonth() - 1);
+  var prevYM = prevD.getFullYear() + '-' + String(prevD.getMonth() + 1).padStart(2, '0');
+  var prevDisabled = !hasExpenseDataInMonth(prevYM) && prevYM !== nowYM;
+
+  // 다음 월 데이터 유무 확인
+  var nextD = new Date(yearMonth + '-01');
+  nextD.setMonth(nextD.getMonth() + 1);
+  var nextYM = nextD.getFullYear() + '-' + String(nextD.getMonth() + 1).padStart(2, '0');
+  var nextDisabled = (nextYM > nowYM) || (!hasExpenseDataInMonth(nextYM) && nextYM !== nowYM);
 
   var navHtml = '<div class="exp-month-nav-inline" id="expenseMonthNavInline">'
-    + '<button class="exp-month-nav-btn" onclick="changeExpenseMonth(-1)">'
+    + '<button class="exp-month-nav-btn' + (prevDisabled ? ' exp-nav-disabled' : '') + '"'
+    + (prevDisabled ? '' : ' onclick="changeExpenseMonth(-1)"') + '>'
     + '<svg width="8" height="14" viewBox="0 0 8 14"><polygon points="7,0.5 1,7 7,13.5" fill="currentColor"/></svg>'
     + '</button>'
     + '<span class="exp-month-nav-label" onclick="openMonthPicker()" style="cursor:pointer;">' + mo + '월</span>'
-    + '<button class="exp-month-nav-btn' + (isNow ? ' exp-nav-disabled' : '') + '"'
-    + (isNow ? '' : ' onclick="changeExpenseMonth(1)"') + '>'
+    + '<button class="exp-month-nav-btn' + (nextDisabled ? ' exp-nav-disabled' : '') + '"'
+    + (nextDisabled ? '' : ' onclick="changeExpenseMonth(1)"') + '>'
     + '<svg width="8" height="14" viewBox="0 0 8 14"><polygon points="1,0.5 7,7 1,13.5" fill="currentColor"/></svg>'
     + '</button>'
     + '</div>';
@@ -1018,7 +1049,6 @@ function renderExpenseMonthNav(yearMonth) {
 
   var w = window.innerWidth;
   if (w <= 768) {
-    // 모바일: lp-hdr 센터에 삽입
     var tabLabel = document.getElementById('edTabLabel');
     if (tabLabel) tabLabel.style.display = 'none';
     var lpHdr = document.querySelector('.lp-hdr');
@@ -1027,7 +1057,6 @@ function renderExpenseMonthNav(yearMonth) {
     }
     return true;
   } else {
-    // PC/태블릿: ed-topbar 센터에 삽입
     var tabLabel = document.getElementById('edTabLabel');
     if (tabLabel) tabLabel.style.display = 'none';
     var topbar = document.querySelector('.ed-topbar');

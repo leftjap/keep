@@ -383,6 +383,12 @@ gas-nametag/          — Google Apps Script (메인 레포와 별도 폴더)
 
 **기타:** `getTabCount(t)`, `updateWritingStats()`, `updateBookStats()`, `showRandomQuote()`, `togglePin(type, id, e)`
 
+**데이터 범위 조회:**
+- `getOldestExpenseYM()` — 가계부 데이터가 있는 가장 오래된 월(YYYY-MM) 반환
+- `getOldestRoutineYM()` — 루틴 체크 데이터가 있는 가장 오래된 월(YYYY-MM) 반환
+- `hasExpenseDataInMonth(ym)` — 해당 월에 가계부 항목이 1개 이상 있는지 boolean
+- `hasRoutineDataInMonth(ym)` — 해당 월에 루틴 체크 기록이 있는지 boolean
+
 **이 파일을 업로드해야 할 때:** 새 데이터 타입 추가, CRUD 함수 수정, 통계 로직 변경, 검색/정렬 변경
 
 ---
@@ -1144,4 +1150,5 @@ editor 영역 안에 다음 하위 패널이 있다. 한 번에 하나만 표시
 | 2026-03-10 | GAS 배포 규칙 추가: 7번 파일 구조에 gas-nametag 추가, 8번 상세 맵에 Code.gs 추가, 0번 업로드 기준에 GAS 행 추가, 2번에 GAS 배포 규칙/템플릿 추가, 10번에 GAS 수정 주의사항 추가 |
 | 2026-03-10 | 가계부 PC/태블릿 대시보드 레이아웃 개편: renderExpenseDashboard 재구성(요약/캘린더/2열+막대+연간), renderMerchantRanking 개선(1위빨강/태그회색/태그팝업), renderMonthlyBarChart 예상금액추가, renderYearlySection 재구성(순위/같은행/더보기), openCategoryExpensePopup/_renderYearlyGridItem/_loadMoreYearly/_yearlyLoadedCount 추가, 막대두께8px/태그스타일/금액정규화/그리드2열/모바일조정 CSS 변경 |
 | 2026-03-11 | 연간 누적 섹션 교체: 리스트+바 → 버블 차트(circle packing)+랭킹 리스트(뉴트럴 그라데이션). _packCircles/_renderYearlyBubbles/_renderYearlyRankList 추가, _renderYearlyListItem/_loadMoreYearly/_yearlyLoadedCount 제거, renderYearlySection 전면 교체, CSS 버블/랭킹 스타일 추가, 8번/12번 WORKFLOW.md 갱신 |
+| 2026-03-11 | 가계부/루틴 월 네비 데이터 없는 월 이동 차단: data.js에 getOldestExpenseYM/getOldestRoutineYM/hasExpenseDataInMonth/hasRoutineDataInMonth 추가, changeExpenseMonth/renderExpenseMonthNav/openMonthPicker/selectMonth에 데이터 유무 체크 추가, changeRoutineMonth/renderRoutineMonthNav/openRoutineMonthPicker/pickRoutineMonth에 동일 체크 추가, 월 피커에서 데이터 없는 월 회색 비활성 표시 |
 ```

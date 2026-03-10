@@ -627,6 +627,41 @@ function getYearMerchantBreakdown(year) {
   };
 }
 
+// ═══ 데이터 존재 월 범위 ═══
+function getOldestExpenseYM() {
+  var expenses = getExpenses();
+  if (!expenses.length) return today().slice(0, 7);
+  var oldest = expenses.reduce(function(min, e) {
+    var ym = (e.date || '').slice(0, 7);
+    return ym && ym < min ? ym : min;
+  }, today().slice(0, 7));
+  return oldest;
+}
+
+function getOldestRoutineYM() {
+  var all = getAllChk();
+  var keys = Object.keys(all);
+  if (!keys.length) return today().slice(0, 7);
+  var oldest = keys.reduce(function(min, dateStr) {
+    var ym = dateStr.slice(0, 7);
+    return ym < min ? ym : min;
+  }, today().slice(0, 7));
+  return oldest;
+}
+
+function hasExpenseDataInMonth(ym) {
+  return getMonthExpenses(ym).length > 0;
+}
+
+function hasRoutineDataInMonth(ym) {
+  var all = getAllChk();
+  var keys = Object.keys(all);
+  for (var i = 0; i < keys.length; i++) {
+    if (keys[i].slice(0, 7) === ym) return true;
+  }
+  return false;
+}
+
 // ═══════════════════════════════════════
 // 가계부 상수 및 유틸 (storage.js에서 이동)
 // ═══════════════════════════════════════

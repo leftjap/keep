@@ -6,15 +6,27 @@ function renderRoutineMonthNav(yearMonth) {
   var parts = yearMonth.split('-');
   var mo = parseInt(parts[1]);
   var nowYM = today().slice(0, 7);
-  var isNow = (yearMonth === nowYM);
+
+  // 이전 월 데이터 유무 확인
+  var prevD = new Date(yearMonth + '-01');
+  prevD.setMonth(prevD.getMonth() - 1);
+  var prevYM = prevD.getFullYear() + '-' + String(prevD.getMonth() + 1).padStart(2, '0');
+  var prevDisabled = !hasRoutineDataInMonth(prevYM) && prevYM !== nowYM;
+
+  // 다음 월 데이터 유무 확인
+  var nextD = new Date(yearMonth + '-01');
+  nextD.setMonth(nextD.getMonth() + 1);
+  var nextYM = nextD.getFullYear() + '-' + String(nextD.getMonth() + 1).padStart(2, '0');
+  var nextDisabled = (nextYM > nowYM) || (!hasRoutineDataInMonth(nextYM) && nextYM !== nowYM);
 
   var navHtml = '<div class="exp-month-nav-inline" id="routineMonthNavInline">'
-    + '<button class="exp-month-nav-btn" onclick="changeRoutineMonth(-1)">'
+    + '<button class="exp-month-nav-btn' + (prevDisabled ? ' exp-nav-disabled' : '') + '"'
+    + (prevDisabled ? '' : ' onclick="changeRoutineMonth(-1)"') + '>'
     + '<svg width="8" height="14" viewBox="0 0 8 14"><polygon points="7,0.5 1,7 7,13.5" fill="currentColor"/></svg>'
     + '</button>'
     + '<span class="exp-month-nav-label" onclick="openRoutineMonthPicker()" style="cursor:pointer;">' + mo + '월</span>'
-    + '<button class="exp-month-nav-btn' + (isNow ? ' exp-nav-disabled' : '') + '"'
-    + (isNow ? '' : ' onclick="changeRoutineMonth(1)"') + '>'
+    + '<button class="exp-month-nav-btn' + (nextDisabled ? ' exp-nav-disabled' : '') + '"'
+    + (nextDisabled ? '' : ' onclick="changeRoutineMonth(1)"') + '>'
     + '<svg width="8" height="14" viewBox="0 0 8 14"><polygon points="1,0.5 7,7 1,13.5" fill="currentColor"/></svg>'
     + '</button>'
     + '</div>';
@@ -148,10 +160,19 @@ function hideRoutineCalView() {
 function changeRoutineMonth(delta) {
   if (!_routineViewYM) _routineViewYM = today().slice(0, 7);
   var nowYM = today().slice(0, 7);
-  if (delta > 0 && _routineViewYM >= nowYM) return;
+
+  // 이동하려는 월 계산
   var d = new Date(_routineViewYM + '-01');
   d.setMonth(d.getMonth() + delta);
-  _routineViewYM = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+  var targetYM = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+
+  // 미래 월(현재 월 이후)로는 이동 불가
+  if (targetYM > nowYM) return;
+
+  // 데이터 없는 월(현재 월 제외)로는 이동 불가
+  if (!hasRoutineDataInMonth(targetYM) && targetYM !== nowYM) return;
+
+  _routineViewYM = targetYM;
   if (_routineViewYM === nowYM) {
     _selectedRoutineDate = today();
   } else {
@@ -203,14 +224,21 @@ function openRoutineMonthPicker() {
   var old = document.getElementById('routineMonthPickerOverlay');
   if (old) old.remove();
   var currentYM = _routineViewYM || today().slice(0, 7);
+  var nowYM = today().slice(0, 7);
   var now = new Date();
   var months = [];
   for (var i = 0; i < 12; i++) {
     var d = new Date(now.getFullYear(), now.getMonth() - i, 1);
     var ym = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
-    months.push({ ym: ym, label: d.getFullYear() + '년 ' + (d.getMonth() + 1) + '월', sel: ym === currentYM });
+    var hasData = hasRoutineDataInMonth(ym) || ym === nowYM;
+    months.push({ ym: ym, label: d.getFullYear() + '년 ' + (d.getMonth() + 1) + '월', sel: ym === currentYM, hasData: hasData });
   }
   var list = months.map(function(m) {
+    if (!m.hasData) {
+      return '<div class="exp-mp-item" style="color:var(--tx-hint);cursor:default;opacity:0.4;">'
+        + '<span>' + m.label + '</span>'
+        + '</div>';
+    }
     return '<div class="exp-mp-item' + (m.sel ? ' exp-mp-selected' : '') + '" onclick="pickRoutineMonth(\'' + m.ym + '\')">'
       + '<span>' + m.label + '</span>'
       + (m.sel ? '<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10L8 14L16 6" stroke="#E55643" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' : '')
@@ -235,9 +263,15 @@ function closeRoutineMonthPicker() {
 }
 
 function pickRoutineMonth(ym) {
+  var nowYM = today().slice(0, 7);
+  // 데이터 없는 월(현재 월 제외)은 선택 불가
+  if (!hasRoutineDataInMonth(ym) && ym !== nowYM) {
+    closeRoutineMonthPicker();
+    return;
+  }
+
   _routineViewYM = ym;
   closeRoutineMonthPicker();
-  var nowYM = today().slice(0, 7);
   if (ym === nowYM) {
     _selectedRoutineDate = today();
   } else {
