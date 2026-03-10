@@ -1246,6 +1246,26 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
     border-radius:0;
     box-shadow:none;
   }
+  .routine-card-hdr {
+    padding: 0 20px;
+  }
+  .routine-card-body {
+    padding: 8px 20px 12px;
+  }
+  .routine-streak {
+    padding: 14px 20px 10px;
+  }
+  .routine-streak::before {
+    left: 20px;
+    right: 20px;
+  }
+  .routine-monthly {
+    padding: 14px 20px 20px;
+  }
+  .routine-monthly::before {
+    left: 20px;
+    right: 20px;
+  }
 }/* ═══ 스트릭 카드 ═══ */
 .routine-streak{
   margin:0;
