@@ -4199,6 +4199,8 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   .pane-expense-dashboard .exp-yearly-hero{margin-bottom:20px}
   .pane-expense-dashboard .exp-yearly-grid{gap:10px}
   .pane-expense-dashboard .exp-yearly-section{padding-top:24px}
+  .pane-expense-dashboard .exp-pc-calendar-wrap{padding-bottom:12px}
+  .pane-expense-dashboard .exp-yearly-hero{padding-bottom:20px}
 }
 
 /* ═══ 전체 보기 팝업 내부 ═══ */
