@@ -1412,6 +1412,26 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   .routine-streak{margin:0}
   .routine-monthly{margin:0}
   .streak-list{grid-template-columns:repeat(3,1fr)}
+  /* 루틴 폰트 — 토스 기준 최대값 */
+  .routine-card-title{font-size:20px}
+  .routine-card-week{font-size:14px}
+  .routine-card-body .chk-left{width:70px}
+  .routine-card-body .chk-week-hdr-spacer{width:70px}
+  .routine-card-body .chk-lb{font-size:15px}
+  .routine-card-body .chk-week-hdr .day-lbl{font-size:13px}
+  .streak-title{font-size:20px}
+  .streak-hero-name{font-size:17px}
+  .streak-hero-sub{font-size:14px}
+  .streak-days{font-size:24px}
+  .streak-name{font-size:15px}
+  .streak-info{font-size:13px}
+  .monthly-title{font-size:20px}
+  .monthly-pct{font-size:36px}
+  .monthly-stat-row{font-size:16px}
+  .monthly-stat-row .ms-value{font-size:14px}
+  .rhythm-stat-num{font-size:24px}
+  .rhythm-stat-label{font-size:14px}
+  .rhythm-stat-unit{font-size:13px}
 }
 .lp-item:has(.lp-thumbs){max-height:none}
 
