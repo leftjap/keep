@@ -164,11 +164,6 @@ function renderExpenseDashboard(platform) {
       html += '</div>';
     }
 
-    // ── 내역 더 보기 버튼 ──
-    html += '<div style="padding:20px 0;text-align:center;">';
-    html += '<button class="exp-more-btn" onclick="showExpenseFullDetail(\'' + thisYM + '\')">내역 더 보기 →</button>';
-    html += '</div>';
-
     container.innerHTML = html;
   }
 }
