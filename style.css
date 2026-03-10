@@ -3716,13 +3716,14 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   display: flex;
   flex-direction: column;
   gap: 6px;
+  padding: 0 20px;
 }
 
 .exp-yearly-rank-row {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px 16px;
+  padding: 14px 0;
   border-radius: 12px;
   cursor: pointer;
   transition: background .12s;
@@ -4026,7 +4027,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   }
 
   .exp-yearly-rank-row {
-    padding: 10px 8px;
+    padding: 10px 0;
     gap: 8px;
   }
 
