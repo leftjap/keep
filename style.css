@@ -3903,27 +3903,75 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 /* 모바일: 2열 그리드 */
 @media (max-width: 768px) {
   .exp-yearly-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 8px;
   }
 
+  .exp-yearly-grid-item {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 4px;
+    padding: 12px 6px;
+    min-height: 0;
+  }
+
+  .exp-yearly-grid-rank {
+    font-size: 11px;
+    width: auto;
+    min-width: auto;
+  }
+
+  .exp-yearly-grid-icon .exp-tl-item-icon,
+  .exp-yearly-grid-icon .exp-tl-item-icon img {
+    width: 36px;
+    height: 36px;
+  }
+
+  .exp-yearly-grid-row {
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .exp-yearly-grid-name {
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
+  .exp-yearly-grid-amount {
+    font-size: 12px;
+    color: var(--tx-m);
+  }
+
   .exp-yearly-hero {
-    padding: 16px;
+    padding: 12px;
     gap: 10px;
   }
 
   .exp-yearly-hero-icon .exp-tl-item-icon,
   .exp-yearly-hero-icon .exp-tl-item-icon img {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
   }
 
   .exp-yearly-hero-name {
-    font-size: 15px;
+    font-size: 14px;
   }
 
   .exp-yearly-hero-amount {
-    font-size: 15px;
+    font-size: 14px;
+  }
+
+  .exp-yearly-hero-desc {
+    font-size: 12px;
+  }
+
+  .exp-monthly-hero-rank {
+    font-size: 16px;
   }
 
   /* 연간 버블/랭킹 모바일 조정 */
