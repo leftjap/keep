@@ -1266,6 +1266,9 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
     left: 20px;
     right: 20px;
   }
+  .streak-list {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }/* ═══ 스트릭 카드 ═══ */
 .routine-streak{
   margin:0;
