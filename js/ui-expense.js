@@ -39,55 +39,102 @@ function renderExpenseDashboard(platform) {
   if (!container) return;
 
   var thisYM = getExpenseViewYM();
-  var pace = getExpensePace();
-  var projected = getProjectedMonthTotal();
-  var trendCount = window.innerWidth > 1400 ? 10 : window.innerWidth > 768 ? 8 : 6;
-  var trend = getMonthlyTrend(trendCount);
-  var catBreakdown = getCategoryBreakdown(thisYM);
   var thisMonthTotal = getMonthTotal(thisYM);
   var totalDisplay = thisMonthTotal > 0 ? formatAmount(thisMonthTotal) + '원' : '0원';
+  var nowYM = today().slice(0, 7);
+  var isCurrentMonth = (thisYM === nowYM);
 
-  // 월 헤더를 상단 네비에 렌더링 (PC/태블릿은 topbar, 모바일은 false 반환)
-  var ymParts = thisYM.split('-');
-  var mo = parseInt(ymParts[1]);
-  var isNow = (thisYM === today().slice(0, 7));
-  var topbarNav = renderExpenseMonthNav(thisYM);
-
-  var html = '';
-
-  var summaryTitle = '오늘까지 ' + totalDisplay + ' 썼어요';
-
-  var paceHtml = '';
-  if (pace) {
-    var diffAmount = formatAmount(Math.abs(pace.diff)) + '원';
-    if (pace.isLess) {
-      paceHtml = '<div class="exp-summary-sub">지난달보다 <span style="color:#E55643;font-weight:600;">' + diffAmount + ' 덜</span> 쓰는 중</div>';
-    } else {
-      paceHtml = '<div class="exp-summary-sub">지난달보다 <span style="color:#E55643;font-weight:600;">' + diffAmount + ' 더</span> 쓰는 중</div>';
-    }
-  }
+  // 월 헤더를 상단 네비에 렌더링
+  renderExpenseMonthNav(thisYM);
 
   if (platform === 'pc') {
-    // 2. PC 2열: (이달 총액 + 누적 차트) | (카테고리별 지출)
-    html += '<div class="exp-two-col">';
+    // ═══ PC/태블릿: 단일 스크롤 통합 대시보드 ═══
+    var html = '';
 
-    // 좌측 카드: 이달 총액 + 페이스 + 누적 차트
-    html += '<div class="exp-two-col-card">';
-    html += '<div class="exp-summary" style="padding:0 0 16px;">';
-    html += '<div class="exp-summary-title">' + summaryTitle + '</div>';
-    html += paceHtml;
+    // 1. 요약 카드
+    html += '<div class="exp-summary">';
+    if (isCurrentMonth) {
+      html += '<div class="exp-summary-title">오늘까지 ' + totalDisplay + ' 썼어요</div>';
+      var projected = getProjectedMonthTotal();
+      html += '<div class="exp-summary-sub">예상 ' + formatAmount(projected) + '원</div>';
+      var pace = getExpensePace();
+      if (pace) {
+        var diffAmount = formatAmount(Math.abs(pace.diff)) + '원';
+        if (pace.isLess) {
+          html += '<div class="exp-summary-sub">지난달보다 <span style="color:#5A8EC4;font-weight:600;">' + diffAmount + ' 덜</span> 쓰는 중</div>';
+        } else {
+          html += '<div class="exp-summary-sub">지난달보다 <span style="color:#E55643;font-weight:600;">' + diffAmount + ' 더</span> 쓰는 중</div>';
+        }
+      }
+    } else {
+      var ymDate = new Date(thisYM + '-01');
+      var monthNum = ymDate.getMonth() + 1;
+      var daysInMonth = new Date(ymDate.getFullYear(), ymDate.getMonth() + 1, 0).getDate();
+      var dayAvg = daysInMonth > 0 ? Math.round(thisMonthTotal / daysInMonth) : 0;
+      html += '<div class="exp-summary-title">총 ' + totalDisplay + ' 썼어요</div>';
+      html += '<div class="exp-summary-sub">일평균 ' + dayAvg.toLocaleString() + '원</div>';
+    }
     html += '</div>';
+
+    // 2. 월간 캘린더
+    html += renderMonthCalendar(thisYM);
+
+    // 3. 누적 곡선
+    html += '<div class="exp-section-gap"></div>';
     html += renderCumulativeChart(thisYM);
+
+    // 4. 상호별 월간 Top 5
+    var merchantBreakdown = getMerchantBreakdown(thisYM);
+    if (merchantBreakdown.length > 0) {
+      html += '<div class="exp-section-gap"></div>';
+      html += '<div style="padding:24px 20px 0;">';
+      html += '<div class="exp-summary-title">많이 쓴 곳</div>';
+      html += '</div>';
+      html += '<div style="padding:0 20px;">';
+      html += renderMerchantRanking(merchantBreakdown, 5, {});
+      html += '</div>';
+    }
+
+    // 5. 월별 막대 차트
+    var trendCount = window.innerWidth > 1400 ? 10 : 8;
+    var trend = isCurrentMonth ? getMonthlyTrend(trendCount) : getMonthlyTrendAround(thisYM);
+    html += '<div class="exp-section-gap"></div>';
+    html += '<div class="exp-projection">';
+    html += renderMonthlyBarChart(trend);
     html += '</div>';
 
-    // 우측 카드: 카테고리별 지출
-    html += '<div class="exp-two-col-card">';
-    html += renderCategoryChart(catBreakdown);
-    html += '</div>';
+    // 6. 연간 누적 섹션
+    var currentYear = new Date(thisYM + '-01').getFullYear();
+    var yearlyHtml = renderYearlySection(currentYear);
+    if (yearlyHtml) {
+      html += '<div class="exp-section-gap"></div>';
+      html += '<div style="padding:0 20px;">';
+      html += yearlyHtml;
+      html += '</div>';
+    }
 
-    html += '</div>';
+    container.innerHTML = html;
+
   } else {
-    // 모바일: 1열 순차
+    // ═══ 모바일: 기존 유지 ═══
+    var html = '';
+    var pace = getExpensePace();
+    var projected = getProjectedMonthTotal();
+    var trendCount = 6;
+    var trend = getMonthlyTrend(trendCount);
+    var catBreakdown = getCategoryBreakdown(thisYM);
+    var summaryTitle = '오늘까지 ' + totalDisplay + ' 썼어요';
+
+    var paceHtml = '';
+    if (pace) {
+      var diffAmount = formatAmount(Math.abs(pace.diff)) + '원';
+      if (pace.isLess) {
+        paceHtml = '<div class="exp-summary-sub">지난달보다 <span style="color:#E55643;font-weight:600;">' + diffAmount + ' 덜</span> 쓰는 중</div>';
+      } else {
+        paceHtml = '<div class="exp-summary-sub">지난달보다 <span style="color:#E55643;font-weight:600;">' + diffAmount + ' 더</span> 쓰는 중</div>';
+      }
+    }
+
     html += '<div class="exp-summary">';
     html += '<div class="exp-summary-title">' + summaryTitle + '</div>';
     html += paceHtml;
@@ -95,32 +142,24 @@ function renderExpenseDashboard(platform) {
     html += renderCumulativeChart(thisYM);
     html += '<div class="exp-section-gap"></div>';
     html += renderCategoryChart(catBreakdown);
-  }
 
-  // 3. 예상 지출 + 월별 막대 차트 — 전체 너비
-  html += '<div class="exp-section-gap"></div>';
-  html += '<div class="exp-projection">';
-  html += '<div class="exp-projection-title">이번 달엔 ' + formatAmount(projected) + '원 쓸 것 같아요</div>';
-  html += '<div class="exp-projection-sub">한 달에 평균 ' + formatAmount(getMonthlyAverage()) + '원 정도 써요</div>';
-  html += renderMonthlyBarChart(trend);
-  html += '</div>';
+    html += '<div class="exp-section-gap"></div>';
+    html += '<div class="exp-projection">';
+    html += '<div class="exp-projection-title">이번 달엔 ' + formatAmount(projected) + '원 쓸 것 같아요</div>';
+    html += '<div class="exp-projection-sub">한 달에 평균 ' + formatAmount(getMonthlyAverage()) + '원 정도 써요</div>';
+    html += renderMonthlyBarChart(trend);
+    html += '</div>';
 
-  // 4. 주간 캘린더 — 전체 너비
-  html += '<div class="exp-section-gap"></div>';
-  html += renderWeeklyCalendar(thisYM);
+    html += '<div class="exp-section-gap"></div>';
+    html += renderWeeklyCalendar(thisYM);
 
-  // 5. 최근 7일 타임라인 — 전체 너비
-  html += '<div class="exp-section-gap"></div>';
-  html += renderRecentExpenses(thisYM);
+    html += '<div class="exp-section-gap"></div>';
+    html += renderRecentExpenses(thisYM);
 
-  // 6. "내역 더 보기" 버튼
-  if (platform === 'pc') {
     html += '<button class="exp-more-btn" onclick="showExpenseFullDetail(\'' + thisYM + '\')">내역 더 보기 →</button>';
-  } else {
-    html += '<button class="exp-more-btn" onclick="showExpenseFullDetail(\'' + thisYM + '\')">내역 더 보기 →</button>';
-  }
 
-  container.innerHTML = html;
+    container.innerHTML = html;
+  }
 }
 
 function renderCumulativeChart(yearMonth) {
@@ -135,6 +174,7 @@ function renderCumulativeChart(yearMonth) {
   var todayDate = new Date().getDate();
   var isCurrentMonth = (yearMonth === today().slice(0, 7));
   var lastDataDay = isCurrentMonth ? Math.min(todayDate, daysInMonth) : daysInMonth;
+  var showPrevLine = isCurrentMonth; // 과거 월이면 전월선 숨김
 
   var thisMonthCumulative = {};
   var prevMonthCumulative = {};
@@ -145,27 +185,30 @@ function renderCumulativeChart(yearMonth) {
     thisSum += getDayTotal(d);
     thisMonthCumulative[i] = thisSum;
 
-    var prevD = prevYM + '-' + String(i).padStart(2,'0');
-    var prevDayTotal = prevMonthExpenses.reduce(function(s, e) { return e.date === prevD ? s + e.amount : s; }, 0);
-    prevSum += prevDayTotal;
-    prevMonthCumulative[i] = prevSum;
+    if (showPrevLine) {
+      var prevD = prevYM + '-' + String(i).padStart(2,'0');
+      var prevDayTotal = prevMonthExpenses.reduce(function(s, e) { return e.date === prevD ? s + e.amount : s; }, 0);
+      prevSum += prevDayTotal;
+      prevMonthCumulative[i] = prevSum;
+    }
   }
 
-  // ── maxY: 현재까지 데이터 + 전월 전체 중 최대값 ──
+  // maxY 계산
   var relevantVals = [1];
   for (var rv = 1; rv <= lastDataDay; rv++) {
     relevantVals.push(thisMonthCumulative[rv]);
-    relevantVals.push(prevMonthCumulative[rv]);
+    if (showPrevLine) relevantVals.push(prevMonthCumulative[rv]);
   }
-  for (var rv2 = lastDataDay + 1; rv2 <= daysInMonth; rv2++) {
-    relevantVals.push(prevMonthCumulative[rv2]);
+  if (showPrevLine) {
+    for (var rv2 = lastDataDay + 1; rv2 <= daysInMonth; rv2++) {
+      relevantVals.push(prevMonthCumulative[rv2]);
+    }
   }
   var maxY = Math.max.apply(null, relevantVals);
 
-  // ── SVG 좌표계: viewBox 전체를 그래프에 사용 ──
   var width = 260, height = 150;
-  var padTop = 6, padBottom = 20; // 상단 약간 여유, 하단 라벨 영역
-  var graphLeft = 0, graphRight = width; // 좌우 끝까지
+  var padTop = 6, padBottom = 20;
+  var graphLeft = 0, graphRight = width;
   var graphWidth = graphRight - graphLeft;
   var graphTop = padTop;
   var graphBottom = height - padBottom;
@@ -179,7 +222,6 @@ function renderCumulativeChart(yearMonth) {
   for (var j = 1; j <= daysInMonth; j++) {
     var x = graphLeft + (j - 1) / (daysInMonth - 1) * graphWidth;
     var thisY = graphTop + graphHeight - (thisMonthCumulative[j] / maxY) * graphHeight;
-    var prevY = graphTop + graphHeight - (prevMonthCumulative[j] / maxY) * graphHeight;
 
     if (j <= lastDataDay) {
       thisPoints += x + ',' + thisY + ' ';
@@ -188,25 +230,26 @@ function renderCumulativeChart(yearMonth) {
       dotY = thisY;
     }
 
-    prevPoints += x + ',' + prevY + ' ';
-    prevFill += x + ',' + prevY + ' ';
+    if (showPrevLine) {
+      var prevY = graphTop + graphHeight - (prevMonthCumulative[j] / maxY) * graphHeight;
+      prevPoints += x + ',' + prevY + ' ';
+      prevFill += x + ',' + prevY + ' ';
+    }
   }
 
   var lastThisX = graphLeft + (lastDataDay - 1) / (daysInMonth - 1) * graphWidth;
   thisFill += lastThisX + ',' + graphBottom;
-  var lastPrevX = graphRight;
-  prevFill += lastPrevX + ',' + graphBottom;
+  if (showPrevLine) {
+    prevFill += graphRight + ',' + graphBottom;
+  }
 
-  var labelY = height - 4; // 라벨을 SVG 하단에 배치
+  var labelY = height - 4;
   var startLabel = monthNum + '.1';
   var endLabel = monthNum + '.' + daysInMonth;
   var todayLabel = monthNum + '.' + lastDataDay;
   var todayLabelX = dotX;
-  var startX = graphLeft;
-  var endX = graphRight;
 
-  return '<div class="exp-chart-wrap">'
-    + '<svg class="exp-chart-svg" viewBox="0 0 ' + width + ' ' + height + '" preserveAspectRatio="none">'
+  var svgHtml = '<svg class="exp-chart-svg" viewBox="0 0 ' + width + ' ' + height + '" preserveAspectRatio="none">'
     + '<defs>'
     + '<linearGradient id="thisMonthGrad" x1="0" y1="0" x2="0" y2="1">'
     + '<stop offset="0%" stop-color="#E55643" stop-opacity="0.25"/>'
@@ -216,22 +259,37 @@ function renderCumulativeChart(yearMonth) {
     + '<stop offset="0%" stop-color="#C8C8C8" stop-opacity="0.2"/>'
     + '<stop offset="100%" stop-color="#C8C8C8" stop-opacity="0.02"/>'
     + '</linearGradient>'
-    + '</defs>'
-    + '<polygon points="' + prevFill + '" fill="url(#prevMonthGrad)"/>'
-    + '<polyline points="' + prevPoints + '" fill="none" stroke="#D0D0D0" stroke-width="1.5"/>'
-    + '<polygon points="' + thisFill + '" fill="url(#thisMonthGrad)"/>'
-    + '<polyline points="' + thisPoints + '" fill="none" stroke="#E55643" stroke-width="2"/>'
-    + '<circle cx="' + dotX + '" cy="' + dotY + '" r="7" fill="#E55643" opacity="0.2"/>'
-    + '<circle cx="' + dotX + '" cy="' + dotY + '" r="4" fill="#E55643"/>'
-    + '<text x="' + startX + '" y="' + labelY + '" font-size="10" fill="#aaa" font-family="Pretendard,sans-serif" text-anchor="start">' + startLabel + '</text>'
-    + (isCurrentMonth && lastDataDay < daysInMonth ? '<text x="' + todayLabelX + '" y="' + labelY + '" font-size="10" fill="#E55643" font-weight="600" font-family="Pretendard,sans-serif" text-anchor="middle">' + todayLabel + '</text>' : '')
-    + '<text x="' + endX + '" y="' + labelY + '" font-size="10" fill="#aaa" font-family="Pretendard,sans-serif" text-anchor="end">' + endLabel + '</text>'
-    + '</svg>'
-    + '<div class="exp-chart-legend">'
-    + '<span><span class="exp-chart-legend-dot" style="background:#E55643;"></span>' + monthNum + '월</span>'
-    + '<span><span class="exp-chart-legend-dot" style="background:#D0D0D0;"></span>' + (new Date(prevYM + '-01').getMonth() + 1) + '월</span>'
-    + '</div>'
-    + '</div>';
+    + '</defs>';
+
+  if (showPrevLine) {
+    svgHtml += '<polygon points="' + prevFill + '" fill="url(#prevMonthGrad)"/>';
+    svgHtml += '<polyline points="' + prevPoints + '" fill="none" stroke="#D0D0D0" stroke-width="1.5"/>';
+  }
+
+  svgHtml += '<polygon points="' + thisFill + '" fill="url(#thisMonthGrad)"/>';
+  svgHtml += '<polyline points="' + thisPoints + '" fill="none" stroke="#E55643" stroke-width="2"/>';
+
+  if (isCurrentMonth) {
+    svgHtml += '<circle cx="' + dotX + '" cy="' + dotY + '" r="7" fill="#E55643" opacity="0.2"/>';
+    svgHtml += '<circle cx="' + dotX + '" cy="' + dotY + '" r="4" fill="#E55643"/>';
+  }
+
+  svgHtml += '<text x="' + graphLeft + '" y="' + labelY + '" font-size="10" fill="#aaa" font-family="Pretendard,sans-serif" text-anchor="start">' + startLabel + '</text>';
+  if (isCurrentMonth && lastDataDay < daysInMonth) {
+    svgHtml += '<text x="' + todayLabelX + '" y="' + labelY + '" font-size="10" fill="#E55643" font-weight="600" font-family="Pretendard,sans-serif" text-anchor="middle">' + todayLabel + '</text>';
+  }
+  svgHtml += '<text x="' + graphRight + '" y="' + labelY + '" font-size="10" fill="#aaa" font-family="Pretendard,sans-serif" text-anchor="end">' + endLabel + '</text>';
+  svgHtml += '</svg>';
+
+  // 범례
+  var legendHtml = '<div class="exp-chart-legend">';
+  legendHtml += '<span><span class="exp-chart-legend-dot" style="background:#E55643;"></span>' + monthNum + '월</span>';
+  if (showPrevLine) {
+    legendHtml += '<span><span class="exp-chart-legend-dot" style="background:#D0D0D0;"></span>' + (new Date(prevYM + '-01').getMonth() + 1) + '월</span>';
+  }
+  legendHtml += '</div>';
+
+  return '<div class="exp-chart-wrap">' + svgHtml + legendHtml + '</div>';
 }
 
 function renderMonthlyBarChart(trend) {
@@ -375,6 +433,7 @@ function renderMonthCalendar(yearMonth) {
   const month = d.getMonth();
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
+  var isPC = window.innerWidth > 768;
 
   let html = '<div class="exp-month-cal"><div class="exp-month-grid">';
   html += '<div class="exp-month-dow-row">';
@@ -382,36 +441,50 @@ function renderMonthCalendar(yearMonth) {
   html += '<div class="exp-month-dow">수</div><div class="exp-month-dow">목</div><div class="exp-month-dow">금</div><div class="exp-month-dow">토</div>';
   html += '</div>';
 
-  // 빈 셀 (월 시작 전)
   for (let i = 0; i < firstDay; i++) {
     html += '<div class="exp-month-day empty"></div>';
   }
 
-  // 날짜
   const now = new Date();
-  const today = getLocalYMD(now);
+  const todayStr = getLocalYMD(now);
   const monthExpenses = getMonthExpenses(yearMonth);
   const totalDaysWithExpense = new Set(monthExpenses.map(e => e.date)).size;
   const avgDaily = totalDaysWithExpense > 0 ? monthExpenses.reduce((s, e) => s + e.amount, 0) / totalDaysWithExpense : 0;
+
   for (let i = 1; i <= daysInMonth; i++) {
     const dateStr = `${yearMonth}-${String(i).padStart(2,'0')}`;
     const total = getDayTotal(dateStr);
-    const isToday = dateStr === today ? 'today' : '';
+    const isToday = dateStr === todayStr ? 'today' : '';
     const amountClass = total > avgDaily * 1.5 ? 'high' : '';
-    var selectedClass = (_selectedExpenseDate === dateStr) ? ' exp-day-selected' : '';
-    html += `<div class="exp-month-day ${isToday}${selectedClass}" onclick="toggleExpenseDaySelect('${dateStr}', reRenderDetail)">
-      <div class="exp-month-day-num">${i}</div>
-      ${total > 0 ? `<div class="exp-month-day-amount ${amountClass}">${total.toLocaleString()}</div>` : ''}
-    </div>`;
+
+    if (isPC) {
+      // PC/태블릿: 플로팅 팝업 방식
+      html += `<div class="exp-month-day ${isToday}" onclick="onExpCalDayClick(event, '${dateStr}')">
+        <div class="exp-month-day-num">${i}</div>
+        ${total > 0 ? `<div class="exp-month-day-amount ${amountClass}">${total.toLocaleString()}</div>` : ''}
+      </div>`;
+    } else {
+      // 모바일: 기존 하단 펼침 방식
+      var selectedClass = (_selectedExpenseDate === dateStr) ? ' exp-day-selected' : '';
+      html += `<div class="exp-month-day ${isToday}${selectedClass}" onclick="toggleExpenseDaySelect('${dateStr}', reRenderDetail)">
+        <div class="exp-month-day-num">${i}</div>
+        ${total > 0 ? `<div class="exp-month-day-amount ${amountClass}">${total.toLocaleString()}</div>` : ''}
+      </div>`;
+    }
   }
 
   html += '</div></div>';
-  html += '<div id="expMonthDaySlot">';
-  if (_selectedExpenseDate && _selectedExpenseDate.startsWith(yearMonth)) {
-    html += renderSelectedDayExpenses(_selectedExpenseDate);
-    html += '<div class="exp-section-gap"></div>';
+
+  // 모바일만 하단 슬롯 유지
+  if (!isPC) {
+    html += '<div id="expMonthDaySlot">';
+    if (_selectedExpenseDate && _selectedExpenseDate.startsWith(yearMonth)) {
+      html += renderSelectedDayExpenses(_selectedExpenseDate);
+      html += '<div class="exp-section-gap"></div>';
+    }
+    html += '</div>';
   }
-  html += '</div>';
+
   return html;
 }
 
@@ -619,13 +692,10 @@ function changeExpenseMonth(delta) {
   var isNow = (_expenseViewYM === nowYM);
 
   if (window.innerWidth > 768) {
-    if (isNow) {
-      showExpenseDashboardFromDetail();
-      renderExpenseDashboard('pc');
-    } else {
-      showExpenseFullDetail(_expenseViewYM);
-    }
+    // PC/태블릿: 항상 단일 대시보드 렌더
+    renderExpenseDashboard('pc');
   } else {
+    // 모바일: 기존 로직 유지
     if (isNow) {
       showExpenseDashboardFromDetail();
       renderExpenseDashboard('mobile');
@@ -914,13 +984,10 @@ function selectMonth(ym) {
   var isNow = (ym === nowYM);
 
   if (window.innerWidth > 768) {
-    if (isNow) {
-      showExpenseDashboardFromDetail();
-      renderExpenseDashboard('pc');
-    } else {
-      showExpenseFullDetail(ym);
-    }
+    // PC/태블릿: 항상 단일 대시보드 렌더
+    renderExpenseDashboard('pc');
   } else {
+    // 모바일: 기존 로직 유지
     if (isNow) {
       showExpenseDashboardFromDetail();
       renderExpenseDashboard('mobile');
@@ -1596,6 +1663,43 @@ function openMerchantDetail(merchant) {
   var cx = window.innerWidth / 2;
   var cy = window.innerHeight / 2 - 50;
   openExpenseFloatingPopup(title, contentHtml, cx, cy);
+}
+
+// ═══════════════════════════════════════
+// 캘린더 날짜 클릭 → 플로팅 팝업 (PC/태블릿)
+// ═══════════════════════════════════════
+function onExpCalDayClick(event, dateStr) {
+  var expenses = getDayExpenses(dateStr).sort(function(a, b) {
+    return (b.time || '').localeCompare(a.time || '');
+  });
+  if (expenses.length === 0) return;
+
+  var dateObj = new Date(dateStr + 'T00:00:00');
+  var dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+  var month = dateObj.getMonth() + 1;
+  var day = dateObj.getDate();
+  var dayName = dayNames[dateObj.getDay()];
+  var dayTotal = expenses.reduce(function(s, e) { return s + e.amount; }, 0);
+
+  var title = month + '월 ' + day + '일 ' + dayName + '요일';
+
+  var contentHtml = '';
+  expenses.forEach(function(item, idx) {
+    var clickAction = 'closeExpenseFloatingPopup(); openExpenseModal(\'' + item.id + '\')';
+    contentHtml += renderExpenseItem(item, clickAction);
+  });
+
+  // 하단 합계
+  contentHtml += '<div class="exp-fp-footer">';
+  contentHtml += '<span class="exp-fp-footer-label">' + expenses.length + '건</span>';
+  contentHtml += '<span class="exp-fp-footer-amount">' + dayTotal.toLocaleString() + '원</span>';
+  contentHtml += '</div>';
+
+  // 클릭한 셀 위치 근처에서 열기
+  var rect = event.currentTarget.getBoundingClientRect();
+  var anchorX = rect.left + rect.width / 2;
+  var anchorY = rect.bottom;
+  openExpenseFloatingPopup(title, contentHtml, anchorX, anchorY);
 }
 
 // ═══════════════════════════════════════

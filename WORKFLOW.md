@@ -512,6 +512,15 @@ gas-nametag/          — Google Apps Script (메인 레포와 별도 폴더)
 - `openExpenseFloatingPopup(title, contentHtml, anchorX, anchorY)` — 플로팅 팝업 열기 (PC: 앵커 근처 카드, 모바일: 하단 시트)
 - `closeExpenseFloatingPopup()` — 플로팅 팝업 닫기 (fade-out 애니메이션)
 
+**상호별 랭킹 (공용 렌더 함수):**
+- `renderMerchantRanking(merchants, limit, options)` — 상호별 랭킹 리스트 HTML 생성 (각 행: 파비콘/상호명/금액/건수/비중/수평바/카테고리태그)
+- `_escMerchant(str)` — onclick에서 상호명 안전하게 이스케이프
+- `openMerchantDetail(merchant)` — 상호 클릭 → 월간 내역을 플로팅 팝업으로 표시
+
+**연간 누적 섹션:**
+- `renderYearlySection(year)` — 연간 누적 섹션 (히어로 카드 1위 + 그리드 2~7위) HTML 생성
+- `openYearlyFullPopup(year)` — 연간 전체 상호 리스트 팝업 (순위+파비콘+상호명+금액 리스트)
+
 **주요 렌더 함수 출력 구조:**
 - `renderWeeklyCalendar()` → `.exp-week-cal > .exp-week-grid > (.exp-week-dow-row > .exp-week-dow×7) + .exp-week-day×7` + `#expWeekDaySlot`
 - `renderMonthCalendar()` → `.exp-month-cal > .exp-month-grid > (.exp-month-dow-row > .exp-month-dow×7) + .exp-month-day×N` + `#expMonthDaySlot`
@@ -774,6 +783,9 @@ gas-nametag/          — Google Apps Script (메인 레포와 별도 폴더)
 **선택자 위치 참조:**
 - `.exp-week-*`, `.exp-month-*`, `.exp-bar-*`, `.exp-tl-*`, `.exp-cat-*` → 12번 가계부
 - `.exp-fp-*` (`.exp-fp-overlay`, `.exp-fp-card`, `.exp-fp-header`, `.exp-fp-body`, `.exp-fp-footer`) → 12번 가계부 플로팅 팝업
+- `.exp-mr-*` (`.exp-mr-list`, `.exp-mr-row`, `.exp-mr-info`, `.exp-mr-bar-wrap`, `.exp-mr-amount` 등) → 12번 상호별 랭킹 카드
+- `.exp-yearly-*` (`.exp-yearly-section`, `.exp-yearly-hero`, `.exp-yearly-grid`, `.exp-yearly-grid-item` 등) → 12번 연간 누적 섹션
+- `.exp-fp-yearly-*` (`.exp-fp-yearly-list`, `.exp-fp-yearly-row`, `.exp-fp-yearly-rank`, `.exp-fp-yearly-amount` 등) → 12번 연간 전체 보기 팝업 내부
 - `.exp-day-selected`, `.exp-day-detail` → 13번 가계부 캘린더 선택
 - `.rc-*` → 14번 루틴 캘린더 뷰
 - `.chk-*`, `.streak-*`, `.routine-*`, `.monthly-*`, `.rhythm-*` → 4번 사이드바 루틴~기록
