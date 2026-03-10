@@ -3651,6 +3651,25 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   font-family: 'JetBrains Mono', monospace;
 }
 
+/* ─── 월간 히어로 순위 크기 확대 ─── */
+.exp-monthly-hero-rank {
+  font-size: 20px;
+  font-weight: 700;
+  width: 28px;
+  color: var(--tx-m);
+}
+
+/* ─── 연간 리스트 순위 ─── */
+.exp-yearly-list-rank {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--tx-hint);
+  width: 24px;
+  text-align: center;
+  flex-shrink: 0;
+  font-family: 'JetBrains Mono', monospace;
+}
+
 .exp-yearly-hero-icon .exp-tl-item-icon {
   width: 44px;
   height: 44px;

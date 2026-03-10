@@ -49,7 +49,7 @@ function renderExpenseDashboard(platform) {
 
   if (platform === 'pc') {
     // ═══ PC/태블릿: 단일 스크롤 통합 대시보드 ═══
-    _yearlyLoadedCount = 7;
+    _yearlyLoadedCount = 5;
     var html = '';
     var nowYM = today().slice(0, 7);
     var isCurrentMonth = (thisYM === nowYM);
@@ -69,11 +69,11 @@ function renderExpenseDashboard(platform) {
     // ── 섹션 1: 요약 텍스트 (1열) ──
     html += '<div class="exp-summary">';
     if (isCurrentMonth) {
-      html += '<div class="exp-summary-title">' + monthNum + '월에는 ' + totalDisplay + ' 쓰고 있어요</div>';
-      html += '<div class="exp-summary-sub">하루 평균 ' + dailyAvg.toLocaleString() + '원 쓰고 있어요</div>';
+      html += '<div class="exp-summary-title">' + monthNum + '월에는 <span style="color:#E55643;">' + totalDisplay + '</span> 쓰고 있어요</div>';
+      html += '<div class="exp-summary-sub">하루 평균 <span style="color:#E55643;">' + dailyAvg.toLocaleString() + '원</span> 쓰고 있어요</div>';
     } else {
-      html += '<div class="exp-summary-title">' + monthNum + '월에는 ' + totalDisplay + ' 썼어요</div>';
-      html += '<div class="exp-summary-sub">하루 평균 ' + dailyAvg.toLocaleString() + '원 썼어요</div>';
+      html += '<div class="exp-summary-title">' + monthNum + '월에는 <span style="color:#E55643;">' + totalDisplay + '</span> 썼어요</div>';
+      html += '<div class="exp-summary-sub">하루 평균 <span style="color:#E55643;">' + dailyAvg.toLocaleString() + '원</span> 썼어요</div>';
     }
     html += '</div>';
 
@@ -82,49 +82,12 @@ function renderExpenseDashboard(platform) {
     html += renderMonthCalendar(thisYM);
     html += '</div>';
 
-    // ── 섹션 3: 누적 곡선(좌) + 상호별 랭킹(우) 2열 ──
+    // ── 섹션 3: 월간 상호별 랭킹 (히어로 1위 + 그리드 2~7위) ──
     var merchantBreakdown = getMerchantBreakdown(thisYM);
-
-    html += '<div class="exp-section-gap"></div>';
-    html += '<div class="exp-two-col exp-two-col-top">';
-
-    // 좌: 누적 곡선
-    html += '<div class="exp-two-col-card">';
-    if (isCurrentMonth) {
-      html += '<div class="exp-summary" style="padding:0 0 12px;">';
-      html += '<div class="exp-summary-title" style="font-size:17px;">오늘까지 ' + totalDisplay + ' 썼어요</div>';
-      var pace = getExpensePace();
-      if (pace) {
-        var diffAmount = formatAmount(Math.abs(pace.diff)) + '원';
-        if (pace.isLess) {
-          html += '<div class="exp-summary-sub">지난달보다 <span style="color:#5A8EC4;font-weight:600;">' + diffAmount + ' 덜</span> 쓰는 중</div>';
-        } else {
-          html += '<div class="exp-summary-sub">지난달보다 <span style="color:#E55643;font-weight:600;">' + diffAmount + ' 더</span> 쓰는 중</div>';
-        }
-      }
-      html += '</div>';
-    }
-    html += renderCumulativeChart(thisYM);
-    html += '</div>';
-
-    // 우: 상호별 랭킹 (막대 바 없이)
-    html += '<div class="exp-two-col-card">';
     if (merchantBreakdown.length > 0) {
-      var topMerchant = merchantBreakdown[0].merchant;
-      html += '<div class="exp-summary" style="padding:0 0 12px;">';
-      if (isCurrentMonth) {
-        html += '<div class="exp-summary-title" style="font-size:17px;">' + monthNum + '월에는 ' + topMerchant + '에 많이 쓰고 있어요</div>';
-      } else {
-        html += '<div class="exp-summary-title" style="font-size:17px;">' + monthNum + '월에는 ' + topMerchant + '에 많이 썼어요</div>';
-      }
-      html += '</div>';
-      html += renderMerchantRanking(merchantBreakdown, 5, { hideBar: true });
-    } else {
-      html += '<div class="exp-mr-empty">이달 지출 내역이 없습니다</div>';
+      html += '<div class="exp-section-gap"></div>';
+      html += renderMonthlyMerchantHero(merchantBreakdown, thisYM, isCurrentMonth, monthNum);
     }
-    html += '</div>';
-
-    html += '</div>'; // .exp-two-col 닫기
 
     // ── 섹션 4: 월별 막대 차트 (1열) ──
     var trendCount = window.innerWidth > 1400 ? 10 : 8;
@@ -134,7 +97,7 @@ function renderExpenseDashboard(platform) {
     html += renderMonthlyBarChart(trend);
     html += '</div>';
 
-    // ── 섹션 5: 연간 누적 (1열) ──
+    // ── 섹션 5: 연간 누적 (단순 리스트, 5위까지 + 더보기) ──
     var currentYear = ymDate.getFullYear();
     var yearlyHtml = renderYearlySection(currentYear);
     if (yearlyHtml) {
@@ -1797,6 +1760,51 @@ function onExpCalDayClick(event, dateStr) {
 }
 
 // ═══════════════════════════════════════
+// 월간 상호별 랭킹 — 히어로 + 그리드
+// ═══════════════════════════════════════
+function renderMonthlyMerchantHero(merchants, thisYM, isCurrentMonth, monthNum) {
+  var top1 = merchants[0];
+  var gridItems = merchants.slice(1, 7); // 2~7위
+
+  var catObj1 = EXPENSE_CATEGORIES.find(function(c) { return c.id === top1.category; });
+  var catColor1 = catObj1 ? catObj1.color : '#B0B0B8';
+  var iconItem1 = { merchant: top1.merchant, icon: null };
+
+  var html = '<div style="padding:0;">';
+
+  // 헤더 텍스트
+  html += '<div class="exp-summary" style="padding:20px 0 12px;">';
+  if (isCurrentMonth) {
+    html += '<div class="exp-summary-title" style="font-size:17px;">' + monthNum + '월에는 ' + top1.merchant + '에 많이 쓰고 있어요</div>';
+  } else {
+    html += '<div class="exp-summary-title" style="font-size:17px;">' + monthNum + '월에는 ' + top1.merchant + '에 많이 썼어요</div>';
+  }
+  html += '</div>';
+
+  // 히어로 카드 (1위)
+  html += '<div class="exp-yearly-hero" style="background:' + catColor1 + '10;border:1px solid ' + catColor1 + '20;" onclick="openMerchantDetail(\'' + _escMerchant(top1.merchant) + '\')">';
+  html += '<div class="exp-yearly-hero-rank exp-monthly-hero-rank">1</div>';
+  html += '<div class="exp-yearly-hero-icon">' + getMerchantIconHtml(iconItem1) + '</div>';
+  html += '<div class="exp-yearly-hero-body">';
+  html += '<div class="exp-yearly-hero-row"><span class="exp-yearly-hero-name">' + top1.merchant + '</span><span class="exp-yearly-hero-amount">' + formatAmount(top1.amount) + '원</span></div>';
+  html += '<div class="exp-yearly-hero-desc">' + top1.count + '건 · ' + top1.percent + '%</div>';
+  html += '</div>';
+  html += '</div>';
+
+  // 2열 그리드 (2~7위)
+  if (gridItems.length > 0) {
+    html += '<div class="exp-yearly-grid">';
+    gridItems.forEach(function(m, i) {
+      html += _renderYearlyGridItem(m, i + 2);
+    });
+    html += '</div>';
+  }
+
+  html += '</div>';
+  return html;
+}
+
+// ═══════════════════════════════════════
 // 연간 누적 섹션
 // ═══════════════════════════════════════
 function renderYearlySection(year) {
@@ -1806,46 +1814,30 @@ function renderYearlySection(year) {
   }
 
   var merchants = data.merchants;
-  var top1 = merchants[0];
-  var initialGrid = merchants.slice(1, 7); // 2~7위
-  var hasMore = merchants.length > 7;
+  var initialCount = 5;
+  var initialList = merchants.slice(0, initialCount);
+  var hasMore = merchants.length > initialCount;
 
   // 날짜 표시
   var now = new Date();
   var monthNum = now.getMonth() + 1;
   var dayNum = now.getDate();
 
-  var catObj1 = EXPENSE_CATEGORIES.find(function(c) { return c.id === top1.category; });
-  var catColor1 = catObj1 ? catObj1.color : '#B0B0B8';
-
   var html = '<div class="exp-yearly-section">';
 
   // 섹션 헤더
   html += '<div class="exp-yearly-header">';
-  html += '<div class="exp-yearly-title">' + year + '년 ' + monthNum + '월 ' + dayNum + '일까지 ' + formatAmount(data.total) + '원 쓰고 있어요</div>';
+  html += '<div class="exp-yearly-title">' + year + '년 ' + monthNum + '월 ' + dayNum + '일까지 <span style="color:#E55643;">총 ' + formatAmount(data.total) + '원</span> 쓰고 있어요</div>';
   html += '</div>';
 
-  // 히어로 카드 (1위) — 항목명과 금액 같은 행
-  var iconItem1 = { merchant: top1.merchant, icon: null };
-  html += '<div class="exp-yearly-hero" style="background:' + catColor1 + '10;border:1px solid ' + catColor1 + '20;" onclick="openMerchantDetail(\'' + _escMerchant(top1.merchant) + '\')">';
-  html += '<div class="exp-yearly-hero-rank">1</div>';
-  html += '<div class="exp-yearly-hero-icon">' + getMerchantIconHtml(iconItem1) + '</div>';
-  html += '<div class="exp-yearly-hero-body">';
-  html += '<div class="exp-yearly-hero-row"><span class="exp-yearly-hero-name">' + top1.merchant + '</span><span class="exp-yearly-hero-amount">' + formatAmount(top1.amount) + '원</span></div>';
-  html += '<div class="exp-yearly-hero-desc">' + top1.count + '건 · ' + top1.percent + '% · 전체 지출의 ' + top1.percent + '%를 여기에 쓰고 있어요</div>';
-  html += '</div>';
+  // 단순 리스트
+  html += '<div class="exp-mr-list" id="expYearlyList">';
+  initialList.forEach(function(m, i) {
+    html += _renderYearlyListItem(m, i + 1);
+  });
   html += '</div>';
 
-  // 그리드 (2~7위) — 항목명과 금액 같은 행, 순위 표시
-  if (initialGrid.length > 0) {
-    html += '<div class="exp-yearly-grid" id="expYearlyGrid">';
-    initialGrid.forEach(function(m, i) {
-      html += _renderYearlyGridItem(m, i + 2);
-    });
-    html += '</div>';
-  }
-
-  // 더보기 버튼 (7위 이후 데이터가 있을 때)
+  // 더보기 버튼
   if (hasMore) {
     html += '<div class="exp-mr-more-wrap" id="expYearlyMoreWrap">';
     html += '<button class="exp-cat-more-btn" id="expYearlyMoreBtn" onclick="_loadMoreYearly()">더보기</button>';
@@ -1868,29 +1860,46 @@ function _renderYearlyGridItem(m, rank) {
   return html;
 }
 
-// 연간 "더보기" — 6개씩 추가 로드
-var _yearlyLoadedCount = 7; // 초기: 1(히어로) + 6(그리드)
+// 연간 리스트 아이템 HTML 생성
+function _renderYearlyListItem(m, rank) {
+  var iconItem = { merchant: m.merchant, icon: null };
+  var html = '<div class="exp-mr-row" onclick="openMerchantDetail(\'' + _escMerchant(m.merchant) + '\')">';
+  html += '<span class="exp-yearly-list-rank">' + rank + '</span>';
+  html += getMerchantIconHtml(iconItem);
+  html += '<div class="exp-mr-info">';
+  html += '<div class="exp-mr-name">' + m.merchant + '</div>';
+  html += '<div class="exp-mr-meta">';
+  html += '<span class="exp-mr-count">' + m.count + '건</span>';
+  html += '<span class="exp-mr-pct">' + m.percent + '%</span>';
+  html += '</div>';
+  html += '</div>';
+  html += '<div class="exp-mr-amount">' + formatAmount(m.amount) + '원</div>';
+  html += '</div>';
+  return html;
+}
+
+// 연간 "더보기" — 5개씩 추가 로드
+var _yearlyLoadedCount = 5;
 function _loadMoreYearly() {
   var year = new Date(getExpenseViewYM() + '-01').getFullYear();
   var data = getYearMerchantBreakdown(year);
   if (!data || !data.merchants) return;
 
   var merchants = data.merchants;
-  var grid = document.getElementById('expYearlyGrid');
-  if (!grid) return;
+  var list = document.getElementById('expYearlyList');
+  if (!list) return;
 
   var start = _yearlyLoadedCount;
-  var end = Math.min(start + 6, merchants.length);
+  var end = Math.min(start + 5, merchants.length);
   var newHtml = '';
 
   for (var i = start; i < end; i++) {
-    newHtml += _renderYearlyGridItem(merchants[i], i + 1);
+    newHtml += _renderYearlyListItem(merchants[i], i + 1);
   }
 
-  grid.insertAdjacentHTML('beforeend', newHtml);
+  list.insertAdjacentHTML('beforeend', newHtml);
   _yearlyLoadedCount = end;
 
-  // 더 이상 데이터 없으면 버튼 숨김
   if (_yearlyLoadedCount >= merchants.length) {
     var btn = document.getElementById('expYearlyMoreWrap');
     if (btn) btn.style.display = 'none';
