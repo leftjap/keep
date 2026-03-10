@@ -120,12 +120,16 @@ function renderWritingGrid() {
     { id:'quote',   label:'어구'        },
     { id:'memo',    label:'메모'        }
   ];
-  nav.innerHTML = tabs.map(t => `
+  nav.innerHTML = tabs.map(t => {
+    const count = getTabCount(t.id);
+    return `
     <div class="side-menu ${activeTab === t.id ? 'on' : ''}" data-tab="${t.id}"
          onclick="switchTab('${t.id}'); setMobileView('list');">
       <div class="side-menu-l">${t.label}</div>
+      <span class="badge-pill">${count}</span>
       <svg class="side-arrow" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 function updateEdTabLabel() {
