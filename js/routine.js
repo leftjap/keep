@@ -295,8 +295,8 @@ function renderStreakCard() {
   let html = '<div class="streak-title">연속 기록</div>';
   if (heroIdx !== -1 && heroMax > 0) {
     const hero = streakData[heroIdx];
-    html += `<div class="streak-hero" style="background:${hero.color}12;border:1px solid ${hero.color}30;">
-      <div class="streak-hero-days" style="color:${hero.color}">${hero.current}</div>
+    html += `<div class="streak-hero">
+      <div class="streak-hero-days" style="color:#E55643">${hero.current}</div>
       <div class="streak-hero-text">
         <span class="streak-hero-name">${hero.name}</span>
         <span class="streak-hero-sub">${hero.current}일 연속 진행 중 · 최장 ${hero.best}일</span>
