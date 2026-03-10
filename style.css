@@ -1266,9 +1266,6 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
     left: 20px;
     right: 20px;
   }
-  .streak-list {
-    grid-template-columns: repeat(3, 1fr);
-  }
 }/* ═══ 스트릭 카드 ═══ */
 .routine-streak{
   margin:0;
@@ -1414,6 +1411,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 @media(max-width:768px){
   .routine-streak{margin:0}
   .routine-monthly{margin:0}
+  .streak-list{grid-template-columns:repeat(3,1fr)}
 }
 .lp-item:has(.lp-thumbs){max-height:none}
 
