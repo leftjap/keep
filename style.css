@@ -3733,20 +3733,26 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 }
 
 .exp-yearly-rank-amount {
+  width: 64px;
+  min-width: 64px;
   font-size: 15px;
   font-weight: 400;
   color: var(--tx);
   white-space: nowrap;
   flex-shrink: 0;
+  text-align: right;
   font-family: 'Pretendard', -apple-system, sans-serif;
 }
 
 .exp-yearly-rank-pct {
+  width: 42px;
+  min-width: 42px;
   font-size: 12px;
   font-weight: 400;
   color: var(--tx-hint);
   font-family: 'JetBrains Mono', monospace;
-  margin-left: 4px;
+  text-align: right;
+  flex-shrink: 0;
 }
 
 .exp-yearly-hero-icon .exp-tl-item-icon {

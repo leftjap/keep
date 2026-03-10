@@ -2017,7 +2017,8 @@ function _renderYearlyRankList(merchants, limit) {
 
     html += '<div class="exp-yearly-rank-name" style="font-weight:' + nameWeight + ';">' + m.merchant + '</div>';
 
-    html += '<div class="exp-yearly-rank-amount">' + formatAmount(m.amount) + '원 <span class="exp-yearly-rank-pct">' + m.percent + '%</span></div>';
+    html += '<div class="exp-yearly-rank-amount">' + formatAmount(m.amount) + '원</div>';
+    html += '<div class="exp-yearly-rank-pct">' + m.percent + '%</div>';
 
     html += '</div>';
   });
