@@ -2413,94 +2413,45 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   flex-shrink: 0;
 }
 
-/* ─── 캘린더 + 타임라인 2열 ─── */
-.exp-cal-timeline-row {
-  align-items: stretch;
-  margin-top: 8px;
-}
-
-.exp-cal-card {
+/* ─── PC 캘린더 컴팩트 ─── */
+.exp-pc-calendar-wrap {
   padding: 0;
-  overflow: hidden;
 }
 
-.exp-cal-card .exp-month-cal {
-  padding: 8px 12px 12px;
+.exp-pc-calendar-wrap .exp-month-cal {
+  padding: 4px 8px 8px;
 }
 
-.exp-cal-card .exp-month-grid {
-  gap: 6px;
+.exp-pc-calendar-wrap .exp-month-grid {
+  gap: 4px 8px;
 }
 
-.exp-cal-card .exp-month-day {
-  font-size: 13px;
+.exp-pc-calendar-wrap .exp-month-day {
+  aspect-ratio: auto;
+  min-height: 48px;
+  padding: 4px 0;
 }
 
-.exp-cal-card .exp-month-day-num {
+.exp-pc-calendar-wrap .exp-month-day.empty {
+  min-height: 48px;
+}
+
+.exp-pc-calendar-wrap .exp-month-day-num {
   font-size: 14px;
 }
 
-.exp-cal-card .exp-month-day-amount {
-  font-size: 9px;
+.exp-pc-calendar-wrap .exp-month-day-amount {
+  font-size: 10px;
 }
 
-.exp-cal-card .exp-month-dow {
+.exp-pc-calendar-wrap .exp-month-dow {
   font-size: 12px;
-  padding: 6px 0 8px;
+  padding: 4px 0 6px;
 }
 
-.exp-timeline-card {
-  padding: 0;
-  overflow-y: auto;
-  max-height: 420px;
-}
-
-.exp-timeline-card .exp-tl-date-group {
-  margin: 0 0 0 0;
-}
-
-.exp-timeline-card .exp-tl-date-header {
-  padding: 10px 16px 6px;
-  font-size: 12px;
-  position: sticky;
-  top: 0;
-  background: var(--bg-white);
-  z-index: 2;
-}
-
-.exp-timeline-card .exp-tl-item {
-  padding: 10px 16px;
-}
-
-.exp-timeline-card .exp-tl-item-amount {
-  font-size: 15px;
-}
-
-.exp-timeline-card .exp-tl-item-sub {
-  font-size: 12px;
-}
-
-.exp-timeline-card .exp-tl-item-icon {
-  width: 34px;
-  height: 34px;
-}
-
-.exp-timeline-card .exp-tl-item-icon img {
-  width: 34px;
-  height: 34px;
-}
-
-.exp-timeline-card .exp-tl-empty {
-  padding: 40px 16px;
-  font-size: 13px;
-}
-
-.exp-timeline-card .exp-day-detail {
-  padding: 0;
-}
-
-.exp-timeline-card .exp-day-detail .exp-tl-item {
-  padding: 10px 16px;
+/* ─── 2열 카드 상단 정렬 ─── */
+.exp-two-col-top {
+  align-items: start;
 }
 
 /* ─── 막대 차트 밀도 조정 ─── */
@@ -2677,23 +2628,6 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   .expense-trash-btn svg {
     width: 22px;
     height: 22px;
-  }
-
-  /* 태블릿: 캘린더+타임라인 2열 조정 */
-  .exp-cal-card .exp-month-grid {
-    gap: 4px;
-  }
-
-  .exp-cal-card .exp-month-day-num {
-    font-size: 13px;
-  }
-
-  .exp-cal-card .exp-month-day-amount {
-    font-size: 8px;
-  }
-
-  .exp-timeline-card {
-    max-height: 380px;
   }
 }
 
