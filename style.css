@@ -3523,25 +3523,33 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   border-radius: 4px;
   font-weight: 500;
   white-space: nowrap;
+  background: rgba(0,0,0,.05);
+  color: var(--tx-m);
+  cursor: pointer;
+  transition: background .12s;
+}
+
+.exp-mr-cat-tag:hover {
+  background: rgba(0,0,0,.1);
 }
 
 .exp-mr-bar-wrap {
-  height: 4px;
+  height: 8px;
   background: rgba(0,0,0,.04);
-  border-radius: 2px;
+  border-radius: 4px;
   overflow: hidden;
   margin-top: 2px;
 }
 
 .exp-mr-bar {
   height: 100%;
-  border-radius: 2px;
+  border-radius: 4px;
   transition: width .3s ease;
 }
 
 .exp-mr-amount {
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 400;
   color: var(--tx);
   white-space: nowrap;
   flex-shrink: 0;
@@ -3580,21 +3588,36 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 .exp-yearly-hero {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   padding: 20px;
   border-radius: 14px;
   margin-bottom: 16px;
-  cursor: default;
+  cursor: pointer;
+  transition: background .12s;
+}
+
+.exp-yearly-hero:hover {
+  opacity: .85;
+}
+
+.exp-yearly-hero-rank {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tx-hint);
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+  font-family: 'JetBrains Mono', monospace;
 }
 
 .exp-yearly-hero-icon .exp-tl-item-icon {
-  width: 52px;
-  height: 52px;
+  width: 44px;
+  height: 44px;
 }
 
 .exp-yearly-hero-icon .exp-tl-item-icon img {
-  width: 52px;
-  height: 52px;
+  width: 44px;
+  height: 44px;
 }
 
 .exp-yearly-hero-body {
@@ -3605,52 +3628,49 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   gap: 2px;
 }
 
+.exp-yearly-hero-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 .exp-yearly-hero-name {
-  font-size: 17px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 400;
   color: var(--tx);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .exp-yearly-hero-amount {
-  font-size: 20px;
-  font-weight: 300;
-  color: var(--tx);
-  letter-spacing: -0.5px;
-}
-
-.exp-yearly-hero-count {
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 400;
-  color: var(--tx-m);
-  margin-left: 4px;
+  color: var(--tx);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .exp-yearly-hero-desc {
   font-size: 13px;
   color: var(--tx-m);
-  margin-top: 2px;
-}
-
-.exp-yearly-hero-desc strong {
-  color: var(--tab-color);
-  font-weight: 600;
+  margin-top: 1px;
 }
 
 /* 그리드 (2~7위) */
 .exp-yearly-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 10px;
   margin-bottom: 12px;
 }
 
 .exp-yearly-grid-item {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  text-align: center;
-  gap: 4px;
-  padding: 16px 8px;
+  gap: 10px;
+  padding: 14px 12px;
   border-radius: 12px;
   background: var(--bg);
   border: 1px solid var(--border-l);
@@ -3663,43 +3683,70 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   background: rgba(0,0,0,.02);
 }
 
+.exp-yearly-grid-rank {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tx-hint);
+  width: 18px;
+  text-align: center;
+  flex-shrink: 0;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.exp-yearly-grid-icon {
+  flex-shrink: 0;
+}
+
 .exp-yearly-grid-icon .exp-tl-item-icon {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
 }
 
 .exp-yearly-grid-icon .exp-tl-item-icon img {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
+}
+
+.exp-yearly-grid-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
 }
 
 .exp-yearly-grid-name {
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 400;
   color: var(--tx);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 100%;
 }
 
 .exp-yearly-grid-amount {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 400;
   color: var(--tx);
   font-family: 'Pretendard', -apple-system, sans-serif;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .exp-yearly-grid-meta {
   font-size: 11px;
   color: var(--tx-hint);
   font-family: 'JetBrains Mono', monospace;
+  white-space: nowrap;
+  flex-shrink: 0;
+  display: none;
 }
 
 /* 태블릿: 2열 그리드 */
 @media (min-width: 769px) and (max-width: 1400px) {
   .exp-yearly-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 8px;
   }
 }
@@ -3713,13 +3760,13 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 
   .exp-yearly-hero {
     padding: 16px;
-    gap: 12px;
+    gap: 10px;
   }
 
   .exp-yearly-hero-icon .exp-tl-item-icon,
   .exp-yearly-hero-icon .exp-tl-item-icon img {
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
   }
 
   .exp-yearly-hero-name {
@@ -3727,7 +3774,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   }
 
   .exp-yearly-hero-amount {
-    font-size: 18px;
+    font-size: 15px;
   }
 }
 
