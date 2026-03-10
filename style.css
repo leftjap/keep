@@ -4221,6 +4221,14 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   z-index: 1;
 }
 
+/* 다른 날짜 선택 시 today 떠오름 해제 */
+.exp-month-grid:has(.exp-day-selected) .exp-month-day.today:not(.exp-day-selected) {
+  box-shadow: none;
+  transform: none;
+  z-index: auto;
+  background: var(--bg-white);
+}
+
 .exp-week-day.exp-day-selected {
   z-index: 2;
   position: relative;
@@ -4253,6 +4261,14 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   font-size: 12px;
   position: relative;
   z-index: 1;
+}
+
+/* 다른 날짜 선택 시 today 떠오름 해제 */
+.exp-week-grid:has(.exp-day-selected) .exp-week-day.today:not(.exp-day-selected) {
+  box-shadow: none;
+  transform: none !important;
+  z-index: auto;
+  background: var(--bg-white);
 }
 
 .exp-day-detail {
@@ -4349,6 +4365,13 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   z-index:1;
   font-size:12px;
   font-weight:600;
+}
+/* 다른 날짜 선택 시 today 떠오름 해제 */
+.rc-cal-grid:has(.rc-day.sel) .rc-day.today:not(.sel) {
+  box-shadow: none;
+  transform: none;
+  z-index: auto;
+  background: var(--bg-white);
 }
 .rc-day.future{opacity:.3;cursor:default}
 .rc-day-n{font-size:16px;color:var(--tx-d);font-weight:400}
