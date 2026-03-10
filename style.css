@@ -1976,11 +1976,19 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 }
 .exp-month-day {
   text-align: center; padding: 0; border-radius: 12px;
-  cursor: pointer; transition: all .12s; position: relative; margin: 0;
+  cursor: pointer; transition: transform .15s ease, box-shadow .15s ease, background .15s ease; position: relative; margin: 0;
   aspect-ratio: 1; display: flex; align-items: center; justify-content: center; flex-direction: column;
 }
 .exp-month-day.empty { cursor: default; }
 .exp-month-day:hover:not(.empty) { background: rgba(0,0,0,.03); }
+.exp-month-day:active:not(.empty) {
+  background: var(--bg-white);
+  transform: scale(1.08);
+  box-shadow: 0 2px 8px rgba(0,0,0,.1), 0 4px 16px rgba(0,0,0,.06);
+  z-index: 2;
+  position: relative;
+  transition: transform .1s ease, box-shadow .1s ease;
+}
 .exp-month-day.today {
   background: var(--bg-white); border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0,0,0,.08);
