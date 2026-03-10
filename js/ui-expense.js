@@ -693,20 +693,16 @@ function changeExpenseMonth(delta) {
   d.setMonth(d.getMonth() + delta);
   _expenseViewYM = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
 
-  var nowYM = today().slice(0, 7);
-  var isNow = (_expenseViewYM === nowYM);
-
   if (window.innerWidth > 768) {
     // PC/태블릿: 항상 단일 대시보드 렌더
     renderExpenseDashboard('pc');
   } else {
-    // 모바일: 기존 로직 유지
-    if (isNow) {
-      showExpenseDashboardFromDetail();
-      renderExpenseDashboard('mobile');
-    } else {
-      showExpenseFullDetail(_expenseViewYM);
-    }
+    // 모바일: 항상 대시보드 유지
+    var dashboard = document.getElementById('pane-expense-dashboard');
+    var detail = document.getElementById('pane-expense-detail');
+    if (detail) detail.style.display = 'none';
+    if (dashboard) dashboard.style.display = 'flex';
+    renderExpenseDashboard('mobile');
   }
 }
 
@@ -984,20 +980,16 @@ function selectMonth(ym) {
   _expenseViewYM = ym;
   closeMonthPicker();
 
-  var nowYM = today().slice(0, 7);
-  var isNow = (ym === nowYM);
-
   if (window.innerWidth > 768) {
     // PC/태블릿: 항상 단일 대시보드 렌더
     renderExpenseDashboard('pc');
   } else {
-    // 모바일: 기존 로직 유지
-    if (isNow) {
-      showExpenseDashboardFromDetail();
-      renderExpenseDashboard('mobile');
-    } else {
-      showExpenseFullDetail(ym);
-    }
+    // 모바일: 항상 대시보드 유지
+    var dashboard = document.getElementById('pane-expense-dashboard');
+    var detail = document.getElementById('pane-expense-detail');
+    if (detail) detail.style.display = 'none';
+    if (dashboard) dashboard.style.display = 'flex';
+    renderExpenseDashboard('mobile');
   }
 }
 
