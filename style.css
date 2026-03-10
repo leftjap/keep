@@ -3710,6 +3710,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   flex-shrink: 0;
   font-family: 'JetBrains Mono', monospace;
   line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 
 .exp-yearly-rank-icon {
@@ -3733,8 +3734,8 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 }
 
 .exp-yearly-rank-amount {
-  width: 64px;
-  min-width: 64px;
+  width: 72px;
+  min-width: 72px;
   font-size: 15px;
   font-weight: 400;
   color: var(--tx);
@@ -3742,6 +3743,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   flex-shrink: 0;
   text-align: right;
   font-family: 'Pretendard', -apple-system, sans-serif;
+  font-variant-numeric: tabular-nums;
 }
 
 .exp-yearly-rank-pct {
@@ -3753,6 +3755,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   font-family: 'JetBrains Mono', monospace;
   text-align: right;
   flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
 }
 
 .exp-yearly-hero-icon .exp-tl-item-icon {
@@ -3954,6 +3957,8 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 
   .exp-yearly-rank-amount {
     font-size: 14px;
+    width: 64px;
+    min-width: 64px;
   }
 }
 
