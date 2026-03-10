@@ -553,6 +553,7 @@ const EXPENSE_CATEGORIES = [
   { id: 'loan',      name: '대출/금융',  color: '#8B8B8B', bg: '#8B8B8B' },
   { id: 'pet',       name: '반려동물',   color: '#C4885A', bg: '#C4885A' },
   { id: 'gift',      name: '경조/선물',  color: '#E87461', bg: '#E87461' },
+  { id: 'invest',    name: '주식/투자',  color: '#5B6ABF', bg: '#5B6ABF' },
   { id: 'etc',       name: '기타',       color: '#B0B0B8', bg: '#B0B0B8' }
 ];
 
