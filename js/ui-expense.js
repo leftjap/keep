@@ -137,7 +137,7 @@ function renderExpenseDashboard(platform) {
 
     // ── 섹션 2: 월간 캘린더 ──
     html += '<div class="exp-pc-calendar-wrap">';
-    html += renderMonthCalendar(thisYM);
+    html += renderMonthCalendar(thisYM, 'reRenderDashboardA');
     html += '</div>';
 
     // ── 섹션 3: 월간 상호별 랭킹 ──
@@ -453,7 +453,8 @@ function renderRecentExpenses(yearMonth) {
   return html;
 }
 
-function renderMonthCalendar(yearMonth) {
+function renderMonthCalendar(yearMonth, rerenderFnName) {
+  if (!rerenderFnName) rerenderFnName = 'reRenderDetail';
   const d = new Date(yearMonth + '-01');
   const year = d.getFullYear();
   const month = d.getMonth();
@@ -492,7 +493,7 @@ function renderMonthCalendar(yearMonth) {
     } else {
       // 모바일: 기존 하단 펼침 방식
       var selectedClass = (_selectedExpenseDate === dateStr) ? ' exp-day-selected' : '';
-      html += `<div class="exp-month-day ${isToday}${selectedClass}" onclick="toggleExpenseDaySelect('${dateStr}', reRenderDetail)">
+      html += `<div class="exp-month-day ${isToday}${selectedClass}" onclick="toggleExpenseDaySelect('${dateStr}', ${rerenderFnName})">
         <div class="exp-month-day-num">${i}</div>
         ${total > 0 ? `<div class="exp-month-day-amount ${amountClass}">${total.toLocaleString()}</div>` : ''}
       </div>`;
