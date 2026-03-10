@@ -1126,6 +1126,7 @@ editor 영역 안에 다음 하위 패널이 있다. 한 번에 하나만 표시
 - [ ] 그리드 gap으로 인해 border가 끊어지는 곳은 없는가? (래퍼로 감싸서 해결)
 - [ ] SVG viewBox 비율과 CSS 렌더링 영역 비율이 일치하는가? (10번 "SVG 차트 작성 시 주의")
 - [ ] 미디어쿼리 3곳(모바일/태블릿/PC) 모두 확인했는가?
+- [ ] 캘린더 선택 효과(::before 카드) 수정 시: (1) 가계부(.exp-month-day/.exp-week-day)와 루틴(.rc-day)은 셀 콘텐츠가 달라 카드 크기가 다르다. (2) 모바일(inset 방식)과 PC/태블릿(고정 크기 방식)도 별도 규칙이다. 한 곳만 수정하면 나머지 3곳이 깨질 수 있다.
 
 ---
 
@@ -1154,4 +1155,5 @@ editor 영역 안에 다음 하위 패널이 있다. 한 번에 하나만 표시
 | 2026-03-11 | 연간 누적 섹션 교체: 리스트+바 → 버블 차트(circle packing)+랭킹 리스트(뉴트럴 그라데이션). _packCircles/_renderYearlyBubbles/_renderYearlyRankList 추가, _renderYearlyListItem/_loadMoreYearly/_yearlyLoadedCount 제거, renderYearlySection 전면 교체, CSS 버블/랭킹 스타일 추가, 8번/12번 WORKFLOW.md 갱신 |
 | 2026-03-11 | 가계부/루틴 월 네비 데이터 없는 월 이동 차단: data.js에 getOldestExpenseYM/getOldestRoutineYM/hasExpenseDataInMonth/hasRoutineDataInMonth 추가, changeExpenseMonth/renderExpenseMonthNav/openMonthPicker/selectMonth에 데이터 유무 체크 추가, changeRoutineMonth/renderRoutineMonthNav/openRoutineMonthPicker/pickRoutineMonth에 동일 체크 추가, 월 피커에서 데이터 없는 월 회색 비활성 표시 |
 | 2026-03-11 | 모바일 가계부 새 항목 진입 시 클립보드 자동 파싱: prefetchClipboardForExpense 추가, handleNew에서 가계부 탭 진입 시 호출, pasteFromClipboard에서 사전 읽기 텍스트 우선 사용, _prefetchedClipboard 전역 변수 추가 |
+| 2026-03-11 | 캘린더 선택 효과 ::before 카드 방식 완성: exp-month-day/exp-week-day/rc-day의 scale(1.2) 제거 및 ::before 통일, today 선택 시 떠오름 해제(has 선택자), PC/태블릿에서 정사각형(68px) 고정 크기로 제한, 19번 체크리스트에 분기 주의사항 추가 |
 ```
