@@ -1742,6 +1742,15 @@ function onExpCalDayClick(event, dateStr) {
   var expenses = getDayExpenses(dateStr).sort(function(a, b) {
     return (b.time || '').localeCompare(a.time || '');
   });
+
+  // 선택 효과 적용
+  _selectedExpenseDate = dateStr;
+  document.querySelectorAll('.exp-month-day.exp-day-selected').forEach(function(el) {
+    el.classList.remove('exp-day-selected');
+  });
+  var clickedCell = event.currentTarget;
+  if (clickedCell) clickedCell.classList.add('exp-day-selected');
+
   if (expenses.length === 0) return;
 
   var dateObj = new Date(dateStr + 'T00:00:00');
