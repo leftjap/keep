@@ -1310,12 +1310,19 @@ function openExpenseDatePicker() {
 }
 
 var _smsPasteMode = 'normal';
+var _prefetchedClipboard = null;
 
 async function pasteFromClipboard(mode) {
   _smsPasteMode = mode || 'normal';
   var suffix = _smsPasteMode === 'modal' ? 'Modal' : '';
   try {
-    var text = await navigator.clipboard.readText();
+    var text;
+    if (_prefetchedClipboard) {
+      text = _prefetchedClipboard;
+      _prefetchedClipboard = null;
+    } else {
+      text = await navigator.clipboard.readText();
+    }
     if (!text || !text.trim()) {
       alert('클립보드가 비어 있습니다.\n카드 문자를 먼저 복사해주세요.');
       return;
@@ -1336,6 +1343,31 @@ async function pasteFromClipboard(mode) {
     updateExpenseSaveBtn(_smsPasteMode);
   } catch (err) {
     alert('클립보드를 읽을 수 없습니다.\n브라우저 권한을 확인해주세요.');
+  }
+}
+
+async function prefetchClipboardForExpense(mode) {
+  try {
+    var text = await navigator.clipboard.readText();
+    if (!text || !text.trim()) return;
+    var parsed = parseSMS(text.trim());
+    if (!parsed) {
+      _prefetchedClipboard = text.trim();
+      return;
+    }
+    var suffix = mode === 'modal' ? 'Modal' : '';
+    document.getElementById('expenseAmountInput' + suffix).value = parsed.amount.toLocaleString();
+    document.getElementById('expenseMerchantInput' + suffix).value = parsed.merchant;
+    document.getElementById('expenseCardInput' + suffix).value = parsed.card;
+    if (parsed.date) {
+      var d = new Date(parsed.date + 'T' + (parsed.time || '00:00'));
+      document.getElementById('expenseDateValue' + suffix).textContent = formatExpenseDate(d);
+    }
+    selectCategory(parsed.category, mode);
+    updateExpenseSaveBtn(mode);
+    _prefetchedClipboard = null;
+  } catch (err) {
+    _prefetchedClipboard = null;
   }
 }
 

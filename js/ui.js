@@ -1089,10 +1089,12 @@ function handleNew() {
   if (t === 'expense') {
     if (window.innerWidth > 768) {
       openExpenseModal();
+      prefetchClipboardForExpense('modal');
     } else {
       newExpenseForm();
       renderExpenseCategoryGrid();
       setMobileView('editor');
+      prefetchClipboardForExpense('normal');
     }
     return;
   }

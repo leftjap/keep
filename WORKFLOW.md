@@ -506,9 +506,10 @@ gas-nametag/          — Google Apps Script (메인 레포와 별도 폴더)
 - `openExpenseModal(expenseId)`, `closeExpenseModal()`, `onExpenseModalOverlayClick(e)`
 
 **폼 관리:**
-- `pasteFromClipboard(mode)` — 문자 붙여넣기 하단 시트 열기
+- `pasteFromClipboard(mode)` — 문자 붙여넣기 하단 시트 열기 (사전 읽기 텍스트 우선 사용)
 - `closeSmsPasteSheet(e)` — 하단 시트 닫기
 - `handleSmsPaste()` — textarea 내용 파싱 → 폼 반영
+- `prefetchClipboardForExpense(mode)` — FAB/새글 클릭 시 클립보드 사전 읽기 + SMS 자동 폼 반영
 - `deleteExpenseFromForm(mode)` — 기존 항목 삭제 (확인 대화 포함, 모바일|모달 모드 지원)
 
 **타임라인 컨텍스트 메뉴:**
@@ -979,6 +980,7 @@ Haiku 4.5는 전체 프로젝트 맥락을 알지 못할 수 있다. 각 Step에
 | _expenseCategoryFilter | ui-expense.js | 가계부 카테고리 필터 ID |
 | _expenseCategoryFilterName | ui-expense.js | 가계부 카테고리 필터 이름 |
 | _expenseDetailSearchQuery | ui-expense.js | 가계부 전체 내역 검색어 |
+| _prefetchedClipboard | ui-expense.js | 클립보드 사전 읽기 텍스트 (사용 후 null 초기화) |
 | _routineViewYM | routine-cal.js | 루틴 캘린더 보고 있는 월 |
 | _selectedRoutineDate | routine-cal.js | 루틴 캘린더 선택 날짜 |
 | contextItemId | ui.js | 꾹누르기 팝업 대상 항목 ID |
@@ -1151,4 +1153,5 @@ editor 영역 안에 다음 하위 패널이 있다. 한 번에 하나만 표시
 | 2026-03-10 | 가계부 PC/태블릿 대시보드 레이아웃 개편: renderExpenseDashboard 재구성(요약/캘린더/2열+막대+연간), renderMerchantRanking 개선(1위빨강/태그회색/태그팝업), renderMonthlyBarChart 예상금액추가, renderYearlySection 재구성(순위/같은행/더보기), openCategoryExpensePopup/_renderYearlyGridItem/_loadMoreYearly/_yearlyLoadedCount 추가, 막대두께8px/태그스타일/금액정규화/그리드2열/모바일조정 CSS 변경 |
 | 2026-03-11 | 연간 누적 섹션 교체: 리스트+바 → 버블 차트(circle packing)+랭킹 리스트(뉴트럴 그라데이션). _packCircles/_renderYearlyBubbles/_renderYearlyRankList 추가, _renderYearlyListItem/_loadMoreYearly/_yearlyLoadedCount 제거, renderYearlySection 전면 교체, CSS 버블/랭킹 스타일 추가, 8번/12번 WORKFLOW.md 갱신 |
 | 2026-03-11 | 가계부/루틴 월 네비 데이터 없는 월 이동 차단: data.js에 getOldestExpenseYM/getOldestRoutineYM/hasExpenseDataInMonth/hasRoutineDataInMonth 추가, changeExpenseMonth/renderExpenseMonthNav/openMonthPicker/selectMonth에 데이터 유무 체크 추가, changeRoutineMonth/renderRoutineMonthNav/openRoutineMonthPicker/pickRoutineMonth에 동일 체크 추가, 월 피커에서 데이터 없는 월 회색 비활성 표시 |
+| 2026-03-11 | 모바일 가계부 새 항목 진입 시 클립보드 자동 파싱: prefetchClipboardForExpense 추가, handleNew에서 가계부 탭 진입 시 호출, pasteFromClipboard에서 사전 읽기 텍스트 우선 사용, _prefetchedClipboard 전역 변수 추가 |
 ```
