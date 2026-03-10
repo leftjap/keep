@@ -125,10 +125,6 @@ body{font-family:'Pretendard',-apple-system,'SF Pro Display',sans-serif;backgrou
 
 .side-menu-l{font-weight:inherit;font-size:16px}
 .badge-pill{font-size:11px;color:var(--tx-hint);font-family:'Pretendard',sans-serif;font-weight:400}
-/* 글쓰기 메뉴: 화살표 대신 글 개수 표시 */
-.side-menu .side-arrow {
-  display: none !important;
-}
 .side-menu::before{display:none}
 
 mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transparent);color:inherit;padding:0 2px;border-radius:3px;box-shadow:0 0 0 1px color-mix(in srgb, var(--tab-color) 10%, transparent)}
@@ -703,14 +699,6 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   right: 26px;
 }
 
-/* 가계부: 화살표 제거, 금액만 표시 */
-.expense-compact .side-arrow {
-  display: none !important;
-}
-.expense-compact-right {
-  padding-right: 0;
-}
-
 /* ═══════════════════════════════════════
    태블릿 (769px ~ 1024px) — 3단, 사이드바 다크
    ═══════════════════════════════════════ */
@@ -944,13 +932,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   .side .side-menu:hover{background:rgba(255,255,255,.06)}
   .side .side-menu.on{background:rgba(255,255,255,.1);color:#ffffff;font-weight:500}
   .side .side-menu .tab-color-dot{display:none}
-  .side .badge-pill {
-    display: block;
-    color: rgba(255,255,255,.25);
-    font-size: 13px;
-    font-weight: 400;
-    font-family: 'JetBrains Mono', monospace;
-  }
+  .side .badge-pill{display:none}
   .side .side-arrow {
     display: block;
     stroke: rgba(255,255,255, .25);
@@ -1040,13 +1022,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   .side .side-menu.on{background:rgba(255,255,255,.1);color:#ffffff;font-weight:500}
   .side .side-menu .tab-color-dot{width:14px;height:14px;border-radius:4px;margin-right:12px;border:1px solid rgba(255,255,255,.1)!important}
   .side .side-menu.on .tab-color-dot{border:1px solid rgba(255,255,255,.2)!important}
-  .side .badge-pill {
-    display: block;
-    color: rgba(255,255,255,.25);
-    font-size: 13px;
-    font-weight: 400;
-    font-family: 'JetBrains Mono', monospace;
-  }
+  .side .badge-pill{display:none}
   .side .side-arrow {
     display: block;
     stroke: rgba(255,255,255, .25);
@@ -1677,13 +1653,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
     font-weight:500 !important;
   }
   .side .side-menu .tab-color-dot{display:none !important}
-  .side .badge-pill {
-    display: block !important;
-    color: rgba(255,255,255,.25) !important;
-    font-size: 13px !important;
-    font-weight: 400 !important;
-    font-family: 'JetBrains Mono', monospace !important;
-  }
+  .side .badge-pill{display:none !important}
   .side .side-arrow {
     display: block !important;
     stroke: rgba(255,255,255, .25) !important;
