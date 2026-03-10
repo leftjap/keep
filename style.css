@@ -3703,7 +3703,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   border-radius: 12px;
   cursor: pointer;
   transition: background .12s;
-  border: 1px solid var(--border-l);
+  border: none;
   background: transparent;
 }
 
