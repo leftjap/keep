@@ -1161,7 +1161,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 
   /* 글쓰기 상위 라벨 */
   .side .sec-t{pointer-events:none;font-size:13px}
-  .side .stat-label{font-size:13px !important;color:rgba(255,255,255,.9) !important}  .side .side-menu{padding:9px 12px 9px 36px}
+  .side .stat-label{font-size:13px !important;color:rgba(255,255,255,.9) !important}  .side .side-menu{padding:9px 12px 9px 20px}
   .side .side-menu .tab-color-dot{display:none}
   /* 루틴 컴팩트 */
   .routine-full{display:none}
