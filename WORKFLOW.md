@@ -956,9 +956,9 @@ Haiku 4.5는 전체 프로젝트 맥락을 알지 못할 수 있다. 각 Step에
 - 섹션 구분선(`.sec-border::after`, `.side-hdr::after`, `.side-nav border-bottom`): 3플랫폼 모두 제거.
 
 **유지 요소:**
-- 루틴 화살표(`.routine-compact .side-arrow`): 3플랫폼 모두 표시. `right: 28px`로 `.badge-pill` 우측과 정렬.
+- 루틴 화살표(`.routine-compact .side-arrow`): 3플랫폼 모두 표시. 모바일 `right: 20px`, PC·태블릿 `right: 28px`로 정렬.
 
-**우측 정렬 기준:** 글 개수, 가계부 금액, 루틴 화살표의 우측 끝은 모두 사이드바 끝에서 28px 위치에 정렬한다. `.side-nav`의 인라인 패딩(`8px 12px 12px`)과 `.side-menu`의 우측 패딩(`16px`)의 합이 기준이다.
+**우측 정렬 기준:** 글 개수, 가계부 금액, 루틴 화살표의 우측 끝은 모두 사이드바 끝에서 정렬한다. 모바일은 20px, PC·태블릿은 28px 기준. 모바일: `.side-nav` 8px + 요소 우측 패딩/마진 12px = 20px. PC·태블릿: `.side-nav` 인라인 패딩(`8px 12px 12px`) + `.side-menu` 우측 패딩(`16px`) = 28px.
 
 **체크리스트 — 사이드바 관련 코드를 수정할 때:**
 1. `renderWritingGrid()`가 `.badge-pill`을 생성하는가?
