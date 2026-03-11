@@ -1067,7 +1067,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   .side .side-scroll{padding-bottom:env(safe-area-inset-bottom, 20px)}
   .side .sec{padding:8px 0}
   .side .sec-border{border-bottom:none !important}
-  .side .sec-t{color:rgba(255,255,255,.35);font-size:11px;padding:0 16px;margin-bottom:4px}
+  .side .sec-t{color:rgba(255,255,255,.35);font-size:11px;padding:0 20px;margin-bottom:4px}
 
   /* 글쓰기 메뉴 베어 스타일 */
   .side .writing-grid{padding:4px 0;gap:0}
@@ -1097,9 +1097,13 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
     display: none !important;
   }
   .side .routine-compact .side-arrow {
-    right: 28px;
+    right: 20px;
   }
   .side .side-menu-l{display:flex;align-items:center;font-size:16px}
+  .side .expense-compact {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
   .side .expense-compact-right {
     padding-right: 0;
   }
@@ -1109,6 +1113,8 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   }
   .side .side-nav {
     border-bottom: none !important;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
   }
   .side .sec-border {
     border-bottom: none !important;
@@ -1135,7 +1141,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
     background: none;
     border: none;
     border-radius: 0;
-    padding: 0 16px;
+    padding: 0 20px;
     box-shadow: none;
   }
   .side .quote-section .q-card:hover {
@@ -1152,16 +1158,20 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 
   /* 글쓰기 상위 라벨 */
   .side .sec-t{pointer-events:none;font-size:13px}
-  .side .stat-label{font-size:13px !important;color:rgba(255,255,255,.9) !important}  .side .side-menu{padding:9px 16px 9px 32px}
+  .side .stat-label{font-size:13px !important;color:rgba(255,255,255,.9) !important}  .side .side-menu{padding:9px 12px 9px 36px}
   .side .side-menu .tab-color-dot{display:none}
   /* 루틴 컴팩트 */
   .routine-full{display:none}
-  .routine-compact{display:flex}
+  .routine-compact{display:flex;padding-left:20px;padding-right:20px}
   .routine-compact-label{color:rgba(255,255,255,.9);font-size:16px}
   .routine-compact-sub{color:rgba(255,255,255,.5);font-size:12px}
   .routine-compact:hover{background:rgba(255,255,255,.06)}
 
   /* 기록 통계 다크 */
+  .side .sec:has(.stats-wrap) {
+    padding-left: 6px;
+    padding-right: 6px;
+  }
   .side .stats-wrap{padding:0}
   .side .stat-col{padding:8px 10px}
   .side .stat-label{color:rgba(255,255,255,.9);font-size:14px}
