@@ -1135,6 +1135,14 @@ function reRenderDetailMobile() { reRenderDetail(); }
 
 let curExpenseId = null;
 
+function clearIconUrlError(mode) {
+  var suffix = mode === 'modal' ? 'Modal' : '';
+  var urlInput = document.getElementById('expenseIconUrl' + suffix);
+  var errorEl = document.getElementById('expenseIconError' + suffix);
+  if (urlInput) urlInput.classList.remove('input-error');
+  if (errorEl) errorEl.classList.remove('show');
+}
+
 function newExpenseForm(mode = 'normal') {
   curExpenseId = null;
   // 모바일 에디터: 가계부 폼 활성 클래스 추가
@@ -1468,6 +1476,13 @@ function saveExpenseForm(mode = 'normal') {
   // 매출처 아이콘 매핑 저장
   var iconKeyword = document.getElementById('expenseIconKeyword' + suffix).value.trim();
   var iconUrl = document.getElementById('expenseIconUrl' + suffix).value.trim();
+  if (iconUrl && !iconUrl.match(/^https?:\/\//)) {
+    var urlInput = document.getElementById('expenseIconUrl' + suffix);
+    var errorEl = document.getElementById('expenseIconError' + suffix);
+    if (urlInput) urlInput.classList.add('input-error');
+    if (errorEl) errorEl.classList.add('show');
+    return;
+  }
   if (iconKeyword && iconUrl) {
     saveMerchantIcon(iconKeyword, iconUrl);
     SYNC.scheduleDatabaseSave();

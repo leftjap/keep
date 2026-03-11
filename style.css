@@ -2390,6 +2390,18 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 .expense-optional-input:focus { border-bottom-color: var(--tab-color); }
 .expense-optional-input::placeholder { color: #c7c7cc; }
 
+/* 매출처 아이콘 URL 에러 */
+.expense-optional-input.input-error { border-bottom-color: var(--red); }
+
+.expense-icon-error {
+  font-size: 12px;
+  color: var(--red);
+  margin-top: 4px;
+  display: none;
+}
+
+.expense-icon-error.show { display: block; }
+
 /* 문자 붙여넣기 버튼 */
 .expense-paste-btn {
   display: block; width: 100%; padding: 14px; margin: 24px 0 16px;
