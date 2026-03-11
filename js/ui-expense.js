@@ -2132,7 +2132,7 @@ function _renderYearlyBubbles(merchants, containerW, containerH) {
 
     var yearVal = new Date(getExpenseViewYM() + '-01').getFullYear();
     var onclick = c.item.isEtc
-      ? 'openYearlyFullPopup(' + yearVal + ')'
+      ? 'openYearlyFullPopup(' + yearVal + ',10)'
       : 'openMerchantDetail(\'' + _escMerchant(c.item.merchant) + '\',' + yearVal + ')';
 
     html += '<div class="exp-yearly-bubble" onclick="' + onclick + '" style="'
@@ -2253,12 +2253,16 @@ function loadMoreYearlyRank() {
 }
 
 // 연간 전체 상호 리스트 팝업
-function openYearlyFullPopup(year) {
+function openYearlyFullPopup(year, startFrom) {
   var data = getYearMerchantBreakdown(year);
   if (!data || !data.merchants || data.merchants.length === 0) return;
 
-  var merchants = data.merchants;
-  var title = year + '년 전체 상호';
+  var allMerchants = data.merchants;
+  var merchants = startFrom ? allMerchants.slice(startFrom) : allMerchants;
+  var rankOffset = startFrom || 0;
+  var title = startFrom ? year + '년 ' + (startFrom + 1) + '위 이하' : year + '년 전체 상호';
+
+  if (merchants.length === 0) return;
 
   var contentHtml = '<div class="exp-fp-yearly-list">';
 
@@ -2268,7 +2272,7 @@ function openYearlyFullPopup(year) {
     var iconItem = { merchant: m.merchant, icon: null };
 
     contentHtml += '<div class="exp-fp-yearly-row" style="cursor:pointer;" onclick="closeExpenseFloatingPopup(); openMerchantDetail(\'' + _escMerchant(m.merchant) + '\',' + year + ')">';
-    contentHtml += '<span class="exp-fp-yearly-rank">' + (i + 1) + '</span>';
+    contentHtml += '<span class="exp-fp-yearly-rank">' + (rankOffset + i + 1) + '</span>';
     contentHtml += getMerchantIconHtml(iconItem);
     contentHtml += '<div class="exp-fp-yearly-info">';
     contentHtml += '<div class="exp-fp-yearly-name">' + m.merchant + '</div>';
@@ -2281,9 +2285,10 @@ function openYearlyFullPopup(year) {
   contentHtml += '</div>';
 
   // 하단 합계
+  var displayTotal = merchants.reduce(function(s, m) { return s + m.amount; }, 0);
   contentHtml += '<div class="exp-fp-footer">';
   contentHtml += '<span class="exp-fp-footer-label">' + merchants.length + '개 상호 합계</span>';
-  contentHtml += '<span class="exp-fp-footer-amount">' + formatAmount(data.total) + '원</span>';
+  contentHtml += '<span class="exp-fp-footer-amount">' + formatAmount(displayTotal) + '원</span>';
   contentHtml += '</div>';
 
   var cx = window.innerWidth / 2;
