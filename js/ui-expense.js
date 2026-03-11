@@ -2267,7 +2267,7 @@ function openYearlyFullPopup(year) {
     var catColor = catObj ? catObj.color : '#B0B0B8';
     var iconItem = { merchant: m.merchant, icon: null };
 
-    contentHtml += '<div class="exp-fp-yearly-row">';
+    contentHtml += '<div class="exp-fp-yearly-row" style="cursor:pointer;" onclick="closeExpenseFloatingPopup(); openMerchantDetail(\'' + _escMerchant(m.merchant) + '\',' + year + ')">';
     contentHtml += '<span class="exp-fp-yearly-rank">' + (i + 1) + '</span>';
     contentHtml += getMerchantIconHtml(iconItem);
     contentHtml += '<div class="exp-fp-yearly-info">';
