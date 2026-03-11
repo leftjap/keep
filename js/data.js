@@ -671,16 +671,16 @@ function hasRoutineDataInMonth(ym) {
 // ═══════════════════════════════════════
 const EXPENSE_CATEGORIES = [
   { id: 'food',      name: '식비',       color: '#E55643', bg: '#E55643' },
-  { id: 'dining',    name: '외식/카페',  color: '#E8845A', bg: '#E8845A' },
-  { id: 'shopping',  name: '쇼핑/미용',  color: '#D4789A', bg: '#D4789A' },
+  { id: 'dining',    name: '외식/배달',  color: '#E8845A', bg: '#E8845A' },
+  { id: 'shopping',  name: '쇼핑',       color: '#D4789A', bg: '#D4789A' },
   { id: 'transport', name: '교통',       color: '#5A8EC4', bg: '#5A8EC4' },
-  { id: 'utility',   name: '주거/공과금', color: '#F0A848', bg: '#F0A848' },
+  { id: 'subscribe', name: '구독/통신',  color: '#F0A848', bg: '#F0A848' },
   { id: 'medical',   name: '의료',       color: '#6AB0A0', bg: '#6AB0A0' },
-  { id: 'culture',   name: '문화/여가',  color: '#9A6CB8', bg: '#9A6CB8' },
-  { id: 'loan',      name: '대출/금융',  color: '#8B8B8B', bg: '#8B8B8B' },
-  { id: 'pet',       name: '반려동물',   color: '#C4885A', bg: '#C4885A' },
-  { id: 'gift',      name: '경조/선물',  color: '#E87461', bg: '#E87461' },
-  { id: 'invest',    name: '주식/투자',  color: '#5B6ABF', bg: '#5B6ABF' },
+  { id: 'leisure',   name: '유흥',       color: '#9A6CB8', bg: '#9A6CB8' },
+  { id: 'beauty',    name: '미용',       color: '#C4885A', bg: '#C4885A' },
+  { id: 'pet',       name: '반려동물',   color: '#E87461', bg: '#E87461' },
+  { id: 'invest',    name: '투자',       color: '#5B6ABF', bg: '#5B6ABF' },
+  { id: 'utility',   name: '공과금',     color: '#8B8B8B', bg: '#8B8B8B' },
   { id: 'etc',       name: '기타',       color: '#B0B0B8', bg: '#B0B0B8' }
 ];
 
