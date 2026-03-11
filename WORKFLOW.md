@@ -520,7 +520,7 @@ gas-nametag/          — Google Apps Script (메인 레포와 별도 폴더)
 - `toggleCategoryGrid(mode)` — 카테고리 칩 클릭 시 그리드 펼침/접힘 토글
 - `newExpenseForm(mode)` — 새 항목 폼 초기화 (금액/매출처/카드/별명/아이콘 필드 초기화)
 - `loadExpense(id, mode)` — 기존 항목 로드 (별명 필드 자동 채우기)
-- `saveExpenseForm(mode)` — 폼 저장 (별명 매핑 저장 + 아이콘 매핑)
+- `saveExpenseForm(mode)` — 폼 저장 (별명 매핑 저장 + 매출처명을 키워드로 아이콘 매핑)
 
 **타임라인 컨텍스트 메뉴:**
 - `showExpensePopup(expenseId, x, y)` — 타임라인 항목 우클릭/꾹누르기 팝업 (수정/삭제)
@@ -1228,4 +1228,7 @@ editor 영역 안에 다음 하위 패널이 있다. 한 번에 하나만 표시
 | 2026-03-11 | 가계부 입력 폼 카테고리 UI 변경: 그리드 항상 펼침 → 칩(선택된 태그) + 탭하면 펼치기로 변경. toggleCategoryGrid 추가, selectCategory/clearCategorySelection/loadExpense 수정, 칩 HTML(index.html) 및 CSS 추가 |
 | 2026-03-11 | GAS 웹앱 재배포 규칙 강화: clasp push 후 재배포를 "라우팅 변경 시"에서 "항상 필수"로 변경, 템플릿에 사용자 수동 재배포 안내 필수 포함, 10번 주의사항에 재배포 항목 추가 |
 | 2026-03-11 | 매출처 별명(alias) 시스템 추가: K.merchantAliases 키 추가(storage.js), 별명 CRUD 함수 4개 추가(data.js), getMerchantBreakdown/getYearMerchantBreakdown에 별명 기준 합산 적용, getMerchantIconHtml/renderExpenseItem/openMerchantDetail에 별명 표시 적용, _renderYearlyBubbles/_renderYearlyRankList 아이콘 폴백 추가, 가계부 폼에 별명 입력 필드 추가(index.html), loadExpense/saveExpenseForm/newExpenseForm에 별명 필드 연동, WORKFLOW.md 8번/15번 업데이트 |
+| 2026-03-11 | 매출처 아이콘 URL 형식 검증 추가: style.css에 에러 상태 스타일 추가(.input-error, .expense-icon-error), index.html 모바일/모달 폼에 에러 메시지 요소 + oninput 핸들러 추가, ui-expense.js에 clearIconUrlError() 함수 추가, saveExpenseForm에서 URL 형식 검증(/^https?:\/\//) 추가 |
+| 2026-03-11 | 가계부 폼 매출처 아이콘 키워드 필드 제거: index.html 모바일/모달 폼에서 expenseIconKeyword 입력 제거, ui-expense.js newExpenseForm/loadExpense/saveExpenseForm에서 키워드 필드 참조 제거, saveExpenseForm에서 merchant를 키워드로 자동 사용 |
+| 2026-03-11 | 별명 매출처 아이콘 매칭 실패 수정: reverseAlias()(data.js) 추가하여 별명→원본 역조회, findMerchantIcon()에서 직접 매칭 실패 시 역조회 후 재검색, WORKFLOW.md 8번/ui-expense.js 폼 관리 설명 갱신 |
 ```
