@@ -1116,6 +1116,9 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
     padding-left: 8px !important;
     padding-right: 8px !important;
   }
+  .side .side-nav .sec-t {
+    padding-left: 12px !important;
+  }
   .side .sec-border {
     border-bottom: none !important;
   }
