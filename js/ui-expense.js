@@ -1473,23 +1473,13 @@ function saveExpenseForm(mode = 'normal') {
     return;
   }
   if (merchant && iconUrl) {
-    // orphan 매핑 정리: merchant를 포함하는 기존 매핑 중 keyword가 merchant와 다른 것 제거
-    var icons = getMerchantIcons();
-    var cleaned = icons.filter(function(item) {
-      if (item.keyword === merchant) return true;
-      if (merchant.indexOf(item.keyword) !== -1) return false;
-      return true;
-    });
-    if (cleaned.length !== icons.length) saveMerchantIcons(cleaned);
     saveMerchantIcon(merchant, iconUrl);
     SYNC.scheduleDatabaseSave();
   } else if (merchant && !iconUrl) {
-    // URL이 비워졌으면 해당 merchant의 매핑 제거
+    // URL이 비워졌으면 해당 merchant의 정확 일치 매핑만 제거
     var icons = getMerchantIcons();
     var cleaned = icons.filter(function(item) {
-      if (item.keyword === merchant) return false;
-      if (merchant.indexOf(item.keyword) !== -1) return false;
-      return true;
+      return item.keyword !== merchant;
     });
     if (cleaned.length !== icons.length) {
       saveMerchantIcons(cleaned);
