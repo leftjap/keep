@@ -1231,4 +1231,5 @@ editor 영역 안에 다음 하위 패널이 있다. 한 번에 하나만 표시
 | 2026-03-11 | 매출처 아이콘 URL 형식 검증 추가: style.css에 에러 상태 스타일 추가(.input-error, .expense-icon-error), index.html 모바일/모달 폼에 에러 메시지 요소 + oninput 핸들러 추가, ui-expense.js에 clearIconUrlError() 함수 추가, saveExpenseForm에서 URL 형식 검증(/^https?:\/\//) 추가 |
 | 2026-03-11 | 가계부 폼 매출처 아이콘 키워드 필드 제거: index.html 모바일/모달 폼에서 expenseIconKeyword 입력 제거, ui-expense.js newExpenseForm/loadExpense/saveExpenseForm에서 키워드 필드 참조 제거, saveExpenseForm에서 merchant를 키워드로 자동 사용 |
 | 2026-03-11 | 별명 매출처 아이콘 매칭 실패 수정: reverseAlias()(data.js) 추가하여 별명→원본 역조회, findMerchantIcon()에서 직접 매칭 실패 시 역조회 후 재검색, WORKFLOW.md 8번/ui-expense.js 폼 관리 설명 갱신 |
+| 2026-03-11 | 아이콘 매핑 orphan 방지: saveExpenseForm에서 saveMerchantIcon 호출 전 해당 merchant의 이전 키워드 매핑 정리, URL 비우면 매핑 제거 |
 ```
