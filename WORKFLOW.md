@@ -542,6 +542,7 @@ gas-nametag/          — Google Apps Script (메인 레포와 별도 폴더)
 - `_renderYearlyBubbles(merchants, containerW, containerH)` — 버블 차트 HTML 생성 (상위 10개 + 기타, 파비콘 표시, 카테고리 배경색)
 - `_renderYearlyRankList(merchants, limit)` — 랭킹 리스트 HTML 생성 (뉴트럴 그라데이션 배경, 순위+파비콘+상호명+금액)
 - `_renderYearlyGridItem(m, rank)` — 연간 그리드 아이템 HTML 생성 (월간 히어로 그리드에서 사용)
+- `loadMoreYearlyRank()` — 연간 랭킹 리스트 로드모어 (10개씩 추가 표시, DOM data-attribute로 카운트 관리)
 - `openYearlyFullPopup(year)` — 연간 전체 상호 리스트 팝업 (순위+파비콘+상호명+금액 리스트)
 
 **주요 렌더 함수 출력 구조:**
@@ -1232,4 +1233,5 @@ editor 영역 안에 다음 하위 패널이 있다. 한 번에 하나만 표시
 | 2026-03-11 | 가계부 폼 매출처 아이콘 키워드 필드 제거: index.html 모바일/모달 폼에서 expenseIconKeyword 입력 제거, ui-expense.js newExpenseForm/loadExpense/saveExpenseForm에서 키워드 필드 참조 제거, saveExpenseForm에서 merchant를 키워드로 자동 사용 |
 | 2026-03-11 | 별명 매출처 아이콘 매칭 실패 수정: reverseAlias()(data.js) 추가하여 별명→원본 역조회, findMerchantIcon()에서 직접 매칭 실패 시 역조회 후 재검색, WORKFLOW.md 8번/ui-expense.js 폼 관리 설명 갱신 |
 | 2026-03-11 | 아이콘 매핑 orphan 방지: saveExpenseForm에서 saveMerchantIcon 호출 전 해당 merchant의 이전 키워드 매핑 정리, URL 비우면 매핑 제거 |
+| 2026-03-11 | 연간 랭킹 "전체 순위 보기" → "더 보기" 로드모어 변경: renderYearlySection에서 버튼/래퍼 교체, loadMoreYearlyRank 추가, 8번 상세 맵 갱신 |
 ```

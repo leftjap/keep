@@ -2011,12 +2011,14 @@ function renderYearlySection(year) {
 
   // 랭킹 리스트 (10개)
   var rankLimit = Math.min(10, merchants.length);
+  html += '<div id="yearlyRankListWrap" data-year="' + year + '" data-loaded="' + rankLimit + '">';
   html += _renderYearlyRankList(merchants, rankLimit, year);
+  html += '</div>';
 
-  // "전체 순위 보기" 버튼 (10개 초과 시)
-  if (merchants.length > 10) {
-    html += '<div class="exp-mr-more-wrap">';
-    html += '<button class="exp-cat-more-btn" onclick="openYearlyFullPopup(' + year + ')">전체 순위 보기</button>';
+  // "더 보기" 버튼 (10개 초과 시)
+  if (merchants.length > rankLimit) {
+    html += '<div class="exp-mr-more-wrap" id="yearlyRankMoreWrap">';
+    html += '<button class="exp-cat-more-btn" onclick="loadMoreYearlyRank()">더 보기</button>';
     html += '</div>';
   }
 
@@ -2205,6 +2207,59 @@ function _renderYearlyRankList(merchants, limit, year) {
 
   html += '</div>';
   return html;
+}
+
+// 연간 랭킹 로드모어
+function loadMoreYearlyRank() {
+  var wrap = document.getElementById('yearlyRankListWrap');
+  var moreWrap = document.getElementById('yearlyRankMoreWrap');
+  if (!wrap) return;
+
+  var year = parseInt(wrap.getAttribute('data-year'));
+  var loaded = parseInt(wrap.getAttribute('data-loaded'));
+  var data = getYearMerchantBreakdown(year);
+  if (!data || !data.merchants) return;
+
+  var merchants = data.merchants;
+  var nextBatch = merchants.slice(loaded, loaded + 10);
+  if (nextBatch.length === 0) return;
+
+  // 랭킹 리스트 컨테이너 (exp-yearly-rank-list) 찾기
+  var listEl = wrap.querySelector('.exp-yearly-rank-list');
+  if (!listEl) return;
+
+  // 추가 항목 HTML 생성
+  var html = '';
+  nextBatch.forEach(function(m, i) {
+    var rank = loaded + i + 1;
+    var rankSize = rank <= 3 ? '20px' : '15px';
+    var rankWeight = rank <= 3 ? '700' : '600';
+    var rankColor = 'var(--tx-m)';
+    var nameWeight = rank === 1 ? '600' : '400';
+
+    var src = findMerchantIcon(m.merchant) || findMerchantIcon(resolveAlias(m.merchant)) || DEFAULT_ICON_URL;
+
+    html += '<div class="exp-yearly-rank-row" onclick="openMerchantDetail(\'' + _escMerchant(m.merchant) + '\',' + year + ')">';
+    html += '<span class="exp-yearly-rank-num" style="font-size:' + rankSize + ';font-weight:' + rankWeight + ';color:' + rankColor + ';">' + rank + '</span>';
+    html += '<div class="exp-yearly-rank-icon">';
+    html += '<img src="' + src + '" width="36" height="36" style="border-radius:50%;object-fit:cover;" onerror="this.onerror=null;this.src=\'' + DEFAULT_ICON_URL + '\';">';
+    html += '</div>';
+    html += '<div class="exp-yearly-rank-name" style="font-weight:' + nameWeight + ';">' + m.merchant + '</div>';
+    html += '<div class="exp-yearly-rank-amount">' + formatAmount(m.amount) + '원</div>';
+    html += '<div class="exp-yearly-rank-pct">' + m.percent + '%</div>';
+    html += '</div>';
+  });
+
+  listEl.insertAdjacentHTML('beforeend', html);
+
+  // loaded 카운트 갱신
+  var newLoaded = loaded + nextBatch.length;
+  wrap.setAttribute('data-loaded', newLoaded);
+
+  // 더 이상 항목이 없으면 버튼 숨김
+  if (newLoaded >= merchants.length && moreWrap) {
+    moreWrap.style.display = 'none';
+  }
 }
 
 // 연간 전체 상호 리스트 팝업
