@@ -342,7 +342,7 @@ gas-nametag/          — Google Apps Script (메인 레포와 별도 폴더)
 **역할:** 모든 데이터 타입의 CRUD + 통계 + 가계부 상수.
 
 **전역 상수:**
-- `EXPENSE_CATEGORIES` — 가계부 카테고리 배열 [{id, name, color, bg}, ...]
+- `EXPENSE_CATEGORIES` — 가계부 카테고리 배열 12개 [{id, name, color, bg}, ...] (food, dining, shopping, transport, subscribe, medical, leisure, beauty, pet, invest, utility, etc)
 - `MERCHANT_LOGOS` — 매출처 키워드 → 도메인 매핑 (Google 파비콘용)
 
 **전역 상태:**
@@ -641,7 +641,7 @@ gas-nametag/          — Google Apps Script (메인 레포와 별도 폴더)
 
 **함수:**
 - `parseSMS(text)` — 문자열 → {amount, merchant, card, date, time, category}. 카드사 짧은 키워드(삼성, 신한 등) → 풀네임 변환 (CARD_MAP), 마스킹 이름(고*진) 제거, 누적 금액 제거, 카드+숫자 패턴 제거
-- `autoMatchCategory(merchant)` — 가맹점명 → 카테고리 자동 매칭
+- `autoMatchCategory(merchant)` — 가맹점명 → 카테고리 자동 매칭 (12개 카테고리: food, dining, shopping, transport, subscribe, medical, leisure, beauty, pet, invest, utility, etc). Code.gs의 `autoMatchCategoryServer()`와 동일 규칙 유지 필수
 
 **이 파일을 업로드해야 할 때:** 문자 파싱 규칙 변경, 카테고리 매칭 규칙 추가
 
@@ -685,6 +685,7 @@ gas-nametag/          — Google Apps Script (메인 레포와 별도 폴더)
 - `ROOT_FOLDER_NAME` — 드라이브 루트 폴더명 ('글방')
 - `CARD_NAME_MAP` — 카드번호 → 풀네임 매핑 (예: '삼성1337' → '삼성카드 & MILEAGE PLATINUM')
 - `GOOGLE_CSE_API_KEY`, `GOOGLE_CSE_CX` — Google Custom Search API 키 (매출처 로고 검색용)
+- `GEMINI_API_KEY` — Gemini API 키 (카테고리 자동 분류용)
 
 **인증:**
 - `verifyUser(idToken)` — JWT 디코딩 → 이메일 확인
@@ -712,9 +713,11 @@ gas-nametag/          — Google Apps Script (메인 레포와 별도 폴더)
 - `uploadImageToDrive(bytes, mimeType, filename)` — base64 → Blob → '첨부이미지' 폴더에 파일 생성, 링크 공유 설정
 
 **SMS 가계부:**
-- `saveExpenseFromSMS(smsText)` — SMS 텍스트 → 파싱 → `app_database.json`의 `gb_expenses`에 추가. LockService 사용
+- `saveExpenseFromSMS(smsText)` — SMS 텍스트 → 파싱 → Gemini 카테고리 분류(`classifyMerchantWithGemini`) → 실패 시 규칙 기반 폴백(`autoMatchCategoryServer`) → `app_database.json`의 `gb_expenses`에 추가. LockService 사용
 - `parseSMSServer(text)` — SMS 문자열 파싱 → {amount, merchant, card, date, time, category}. 거절/취소 필터, 카드사+번호 매핑(CARD_NAME_MAP), 가맹점 정제
-- `autoMatchCategoryServer(merchant)` — 가맹점명 → 카테고리 매칭 (food, dining, shopping, transport, utility, loan, medical, pet, culture, etc)
+- `autoMatchCategoryServer(merchant)` — 가맹점명 → 카테고리 규칙 기반 매칭 (12개 카테고리). Gemini 실패 시 폴백. sms-parser.js의 `autoMatchCategory()`와 동일 규칙 유지 필수
+- `classifyMerchantWithGemini(merchant)` — Gemini 2.5 Flash API로 매출처 → 카테고리 분류. 12개 카테고리 ID 중 하나 반환. 실패 시 null → `autoMatchCategoryServer()` 폴백
+- `reclassifyAllExpenses()` — 기존 가계부 전체 재분류 (GAS 편집기에서 수동 실행). 고유 매출처만 Gemini 호출, ScriptProperties 캐시, 6분 제한 대응 재실행 방식
 
 **일괄 유틸 (GAS 편집기에서 수동 실행):**
 - `importCardSmsSheet()` — card_sms 스프레드시트에서 가계부 일괄 가져오기 (중복 체크, 날짜순 정렬)
@@ -1060,6 +1063,15 @@ editor 영역 안에 다음 하위 패널이 있다. 한 번에 하나만 표시
 → 중복 로드 체크 → curIds 갱신 → 에디터 필드 반영 → updateWC() → updateMetaBar() → renderListPanel()
 ```
 
+### saveExpenseFromSMS(smsText) [GAS 서버]
+```
+→ parseSMSServer(smsText)
+→ classifyMerchantWithGemini(merchant)
+→ [실패 시] autoMatchCategoryServer(merchant)
+→ app_database.json에 expense 추가
+→ [클라이언트] visibilitychange → SYNC.mergeServerExpenses() → 대시보드 리렌더
+```
+
 ### setMobileView(view)
 ```
 → 태블릿: tablet-side-open / tablet-list-closed 토글
@@ -1192,4 +1204,5 @@ editor 영역 안에 다음 하위 패널이 있다. 한 번에 하나만 표시
 | 2026-03-11 | 사이드바 화살표/글 개수 변경 롤백 — 원래 상태(전체 화살표 + badge-pill 숨김)로 복원, 10번/19번 관련 항목 제거 |
 | 2026-03-11 | 모바일 스트릭 그리드 3열 복원, 19번 체크리스트에 스트릭 그리드 보호 규칙 추가 |
 | 2026-03-11 | 사이드바 디자인 보호 규칙 추가(10번): 어구/글개수/화살표/구분선 3플랫폼 통일 규칙, 19번 체크리스트에 badge-pill/quote-section 항목 추가 |
+| 2026-03-11 | 가계부 카테고리 AI 자동 분류: EXPENSE_CATEGORIES 12개 재구성(data.js), autoMatchCategory 규칙 업데이트(sms-parser.js/Code.gs), Gemini 2.5 Flash 연동(classifyMerchantWithGemini/reclassifyAllExpenses 추가, Code.gs), saveExpenseFromSMS에 Gemini→폴백 흐름 추가, 14번 호출 체인에 SMS 가계부 흐름 추가 |
 ```
