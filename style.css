@@ -4637,13 +4637,10 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 
 /* 다른 날짜 선택 시 today 떠오름 해제 */
 .exp-month-grid:has(.exp-day-selected) .exp-month-day.today:not(.exp-day-selected) {
-  box-shadow:
-    2px 6px 10px rgba(0,0,0,.10),
-    4px 12px 28px rgba(0,0,0,.16),
-    6px 20px 40px rgba(0,0,0,.12);
-  transform: translate(-1px, -3px);
-  z-index: 2;
-  background: var(--bg-white);
+  box-shadow: none;
+  transform: none;
+  z-index: auto;
+  background: transparent;
 }
 
 .exp-week-day.exp-day-selected {
@@ -4682,13 +4679,10 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 
 /* 다른 날짜 선택 시 today 떠오름 해제 */
 .exp-week-grid:has(.exp-day-selected) .exp-week-day.today:not(.exp-day-selected) {
-  box-shadow:
-    2px 6px 10px rgba(0,0,0,.10),
-    4px 12px 28px rgba(0,0,0,.16),
-    6px 20px 40px rgba(0,0,0,.12) !important;
-  transform: translate(-1px, -3px) !important;
-  z-index: 2;
-  background: var(--bg-white);
+  box-shadow: none !important;
+  transform: none !important;
+  z-index: auto;
+  background: transparent;
 }
 
 .exp-day-detail {
@@ -4786,11 +4780,11 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   font-size:12px;
   font-weight:600;
 }
-/* 다른 날짜 선택 시 today 셀 자체 스타일 해제 (::before 카드는 유지) */
+/* 다른 날짜 선택 시 today 강조 해제 */
 .rc-cal-grid:has(.rc-day.sel) .rc-day.today:not(.sel) {
   box-shadow: none;
   transform: none;
-  z-index: 2;
+  z-index: auto;
   background: transparent;
 }
 .rc-day.future{opacity:.3;cursor:default}
@@ -4920,13 +4914,10 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
     left: 50%;
     transform: translate(-53%, -53%);
   }
-  /* 다른 날짜 선택 시 today 카드 유지 (기존 :has 규칙을 강화) */
+  /* 다른 날짜 선택 시 today 카드 해제 */
   .rc-cal-grid:has(.rc-day.sel) .rc-day.today:not(.sel)::before {
-    box-shadow:
-      2px 6px 10px rgba(0,0,0,.10),
-      4px 12px 28px rgba(0,0,0,.16),
-      6px 20px 40px rgba(0,0,0,.12);
-    background: var(--bg-white);
+    box-shadow: none;
+    background: transparent;
   }
 
   /* ── 가계부 월간 today: 카드 크기 68px + 강한 그림자 ── */
@@ -4951,17 +4942,14 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
       6px 20px 40px rgba(0,0,0,.12);
     border-radius: 16px;
   }
-  /* 다른 날짜 선택 시 today 카드 유지 (해제하지 않음) */
+  /* 다른 날짜 선택 시 today 카드 해제 */
   .exp-pc-calendar-wrap .exp-month-grid:has(.exp-day-selected) .exp-month-day.today:not(.exp-day-selected)::before {
-    box-shadow:
-      2px 6px 10px rgba(0,0,0,.10),
-      4px 12px 28px rgba(0,0,0,.16),
-      6px 20px 40px rgba(0,0,0,.12);
-    background: var(--bg-white);
+    box-shadow: none;
+    background: transparent;
   }
   .exp-pc-calendar-wrap .exp-month-grid:has(.exp-day-selected) .exp-month-day.today:not(.exp-day-selected) .exp-month-day-num {
-    font-weight: 700;
-    color: var(--tx);
+    font-weight: 400;
+    color: var(--tx-d);
   }
 
   /* ── 가계부 주간 today: ::before 카드 방식 추가 ── */
@@ -5006,12 +4994,9 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
     height: 68px;
     transform: translate(-53%, -53%);
   }
-  /* 다른 날짜 선택 시 today 카드 유지 */
+  /* 다른 날짜 선택 시 today 카드 해제 */
   .exp-week-grid:has(.exp-day-selected) .exp-week-day.today:not(.exp-day-selected)::before {
-    box-shadow:
-      2px 6px 10px rgba(0,0,0,.10),
-      4px 12px 28px rgba(0,0,0,.16),
-      6px 20px 40px rgba(0,0,0,.12);
-    background: var(--bg-white);
+    box-shadow: none;
+    background: transparent;
   }
 }
