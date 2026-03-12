@@ -95,7 +95,7 @@ function parseSMS(text) {
   // 가맹점 추출 (불필요한 정보 모두 제거)
   let mt = text;
   mt = mt.replace(/\[Web발신\]/g, '').replace(/\[웹발신\]/g, '');
-  mt = mt.replace(/\[현대백화점카드\]/g, '');
+  mt = mt.replace(/\[[^\]]+\]/g, '');
   mt = mt.replace(/신촌점|본점|무역점|판교점|목동점|천호점|중동점|킨텍스점|디큐브점|압구정본점/g, '');
   mt = mt.replace(/([\d,]+)\s*원/g, '');
   mt = mt.replace(/\(금액\)/g, '');
@@ -111,10 +111,11 @@ function parseSMS(text) {
   mt = mt.replace(/\([^)]*\)/g, '');
   mt = mt.replace(/[|\-\/·,]/g, ' ').replace(/\s+/g, ' ').trim();
 
+  const cardNames = ['신한','삼성','국민','현대','롯데','하나','우리','체크','신용','승인'];
   const tokens = mt.split(' ');
   const filtered = [];
   for (let j = 0; j < tokens.length; j++) {
-    if (tokens[j].length >= 2) filtered.push(tokens[j]);
+    if (tokens[j].length >= 2 && cardNames.indexOf(tokens[j]) === -1) filtered.push(tokens[j]);
   }
   result.merchant = filtered.join(' ').substring(0, 30);
 

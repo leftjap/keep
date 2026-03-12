@@ -1137,6 +1137,58 @@ function reRenderDetailMobile() { reRenderDetail(); }
 
 let curExpenseId = null;
 
+// ═══ 별명 칩 목록 렌더링 ═══
+function renderAliasSuggestions(mode) {
+  var suffix = mode === 'modal' ? 'Modal' : '';
+  var container = document.getElementById('expenseAliasChips' + suffix);
+  if (!container) return;
+
+  var aliases = getMerchantAliases();
+  if (!aliases || aliases.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
+
+  // 별명 기준으로 중복 제거 + 아이콘이 있는 것만 필터
+  var seen = {};
+  var chips = [];
+  for (var i = 0; i < aliases.length; i++) {
+    var alias = aliases[i].alias;
+    var original = aliases[i].original;
+    if (seen[alias]) continue;
+    // 별명 또는 원본 매출처명으로 아이콘 검색
+    var iconUrl = findMerchantIcon(alias) || findMerchantIcon(original);
+    if (!iconUrl) continue;
+    seen[alias] = true;
+    chips.push({ alias: alias, iconUrl: iconUrl });
+  }
+
+  if (chips.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
+
+  var html = '';
+  chips.forEach(function(chip) {
+    var escapedAlias = chip.alias.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    html += '<div class="expense-alias-chip" onclick="selectAliasChip(\'' + escapedAlias + '\',\'' + (mode || 'normal') + '\')">';
+    html += '<img class="expense-alias-chip-icon" src="' + chip.iconUrl + '" onerror="this.onerror=null;this.src=\'' + DEFAULT_ICON_URL + '\';">';
+    html += '<span class="expense-alias-chip-text">' + chip.alias + '</span>';
+    html += '</div>';
+  });
+
+  container.innerHTML = html;
+}
+
+function selectAliasChip(alias, mode) {
+  var suffix = mode === 'modal' ? 'Modal' : '';
+  var aliasInput = document.getElementById('expenseAliasInput' + suffix);
+  if (aliasInput) {
+    aliasInput.value = alias;
+    aliasInput.focus();
+  }
+}
+
 function clearIconUrlError(mode) {
   var suffix = mode === 'modal' ? 'Modal' : '';
   var urlInput = document.getElementById('expenseIconUrl' + suffix);
@@ -1165,6 +1217,7 @@ function newExpenseForm(mode = 'normal') {
   const now = new Date();
   document.getElementById('expenseDateValue' + suffix).textContent = formatExpenseDate(now);
   clearCategorySelection(mode);
+  renderAliasSuggestions(mode);
   updateExpenseSaveBtn(mode);
 }
 
@@ -1207,6 +1260,7 @@ function loadExpense(id, mode = 'normal') {
   var trashBtn = document.getElementById(mode === 'modal' ? 'expenseTrashBtnModal' : 'expenseTrashBtn');
   if (trashBtn) trashBtn.style.display = 'flex';
 
+  renderAliasSuggestions(mode);
   updateExpenseSaveBtn(mode);
 }
 

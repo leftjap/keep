@@ -2417,6 +2417,62 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 
 .expense-icon-error.show { display: block; }
 
+/* ═══ 별명 칩 목록 (가계부 폼) ═══ */
+.expense-alias-chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 0 12px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.expense-alias-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.expense-alias-chips:empty {
+  display: none;
+}
+
+.expense-alias-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--border-l);
+  border-radius: 16px;
+  background: var(--bg);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: border-color .12s, background .12s;
+}
+
+.expense-alias-chip:hover {
+  border-color: var(--border);
+  background: rgba(0,0,0,.03);
+}
+
+.expense-alias-chip:active {
+  background: rgba(0,0,0,.06);
+}
+
+.expense-alias-chip-icon {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.expense-alias-chip-text {
+  font-size: 13px;
+  color: var(--tx-d);
+  font-family: 'Pretendard', -apple-system, sans-serif;
+  font-weight: 400;
+}
+
 /* 문자 붙여넣기 버튼 */
 .expense-paste-btn {
   display: block; width: 100%; padding: 14px; margin: 24px 0 16px;
