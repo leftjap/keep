@@ -4205,6 +4205,8 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   border: 1px solid var(--border-l);
   cursor: pointer;
   transition: .12s;
+  overflow: hidden;
+  min-width: 0;
 }
 
 .exp-yearly-grid-item:hover {
@@ -4239,9 +4241,8 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 
 .exp-yearly-grid-row {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 6px;
+  flex-direction: column;
+  gap: 0;
   flex: 1;
   min-width: 0;
 }
