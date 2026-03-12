@@ -346,7 +346,17 @@ async function handleMediaUpload(e) {
       const res       = await SYNC.uploadImage(base64Data, filename, mimeType);
       const directUrl = `https://drive.google.com/thumbnail?id=${res.id}&sz=w1000`;
       const editor    = activeTab === 'memo' ? document.getElementById('memo-body') : document.getElementById('edBody');
-      const imgEl     = editor.querySelector(`#${tempId}`);
+      var imgEl       = editor.querySelector(`#${tempId}`);
+      // 자동저장으로 tempId가 사라진 경우 blob URL로 재검색
+      if (!imgEl) {
+        var allImgs = editor.querySelectorAll('img');
+        for (var ii = 0; ii < allImgs.length; ii++) {
+          if (allImgs[ii].src && allImgs[ii].src.indexOf('blob:') === 0) {
+            imgEl = allImgs[ii];
+            break;
+          }
+        }
+      }
       if (imgEl) { imgEl.src = directUrl; imgEl.style.border = '1px solid var(--border-l)'; imgEl.removeAttribute('id'); }
       if (textTypes.includes(activeTab)) saveCurDoc(activeTab); else saveMemo();
     } catch (err) {
@@ -382,7 +392,17 @@ async function handlePaste(e) {
           const res       = await SYNC.uploadImage(base64Data, filename, mimeType);
           const directUrl = `https://drive.google.com/thumbnail?id=${res.id}&sz=w1000`;
           const editor    = activeTab === 'memo' ? document.getElementById('memo-body') : document.getElementById('edBody');
-          const imgEl     = editor.querySelector(`#${tempId}`);
+          var imgEl       = editor.querySelector(`#${tempId}`);
+          // 자동저장으로 tempId가 사라진 경우 blob URL로 재검색
+          if (!imgEl) {
+            var allImgs = editor.querySelectorAll('img');
+            for (var ii = 0; ii < allImgs.length; ii++) {
+              if (allImgs[ii].src && allImgs[ii].src.indexOf('blob:') === 0) {
+                imgEl = allImgs[ii];
+                break;
+              }
+            }
+          }
           if (imgEl) { imgEl.src = directUrl; imgEl.style.border = '1px solid var(--border-l)'; imgEl.removeAttribute('id'); }
           if (textTypes.includes(activeTab)) saveCurDoc(activeTab); else saveMemo();
         } catch (err) {

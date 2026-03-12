@@ -240,6 +240,8 @@ function delQuote(id, e) {
 }
 
 function showRandomQuote() {
+  // quote 탭이 없는 사용자는 어구 표시 안 함
+  if (!TAB_META.quote) return;
   const quotes = getQuotes();
   if (!quotes.length) {
     if (document.getElementById('quoteText')) document.getElementById('quoteText').textContent = '어구록에 문장을 추가해보세요';
@@ -868,6 +870,16 @@ function applyServerConfig(config) {
   // folderMap 저장 (sync.js에서 사용)
   if (config.folderMap) {
     window._serverFolderMap = config.folderMap;
+  }
+
+  // 어구 섹션 표시/숨김
+  var quoteSection = document.querySelector('.quote-section');
+  if (quoteSection) {
+    if (config.tabs && config.tabs.indexOf('quote') === -1) {
+      quoteSection.style.display = 'none';
+    } else {
+      quoteSection.style.display = '';
+    }
   }
 }
 
