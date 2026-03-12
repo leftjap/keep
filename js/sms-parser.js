@@ -59,7 +59,12 @@ function parseSMS(text) {
     const m = ('0' + dateMatch[1]).slice(-2);
     const d = ('0' + dateMatch[2]).slice(-2);
     const now = new Date();
-    const y = now.getFullYear();
+    let y = now.getFullYear();
+    // 파싱된 날짜가 오늘보다 미래이면 연도를 1년씩 뺀다
+    const todayStr = now.getFullYear() + '-' + ('0' + (now.getMonth()+1)).slice(-2) + '-' + ('0' + now.getDate()).slice(-2);
+    while (y + '-' + m + '-' + d > todayStr && y > 2020) {
+      y--;
+    }
     result.date = y + '-' + m + '-' + d;
   } else {
     result.date = today();
