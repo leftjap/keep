@@ -1046,6 +1046,33 @@ Haiku 4.5는 전체 프로젝트 맥락을 알지 못할 수 있다. 각 Step에
 - Code.gs는 메인 레포의 Git 관리 대상이 아니다. Code.gs 변경 사항은 `clasp push`로만 배포하며, Git 커밋 메시지에 Code.gs 변경 내용을 포함하지 않는다.
 - `clasp push`만으로는 GAS 웹앱 URL에 최신 코드가 반영되지 않는다. **Code.gs를 수정할 때마다** GAS 편집기에서 웹앱 재배포(배포 > 배포 관리 > 연필 아이콘 > 버전: 새 버전 > 배포)를 실행해야 한다. 이것은 사용자가 수동으로 수행하며, 작업지시서의 `clasp push` Step에 항상 안내를 포함한다.
 
+### 멀티유저 보호 규칙
+
+이 앱은 복수의 사용자(`USER_CONFIG`)가 같은 코드베이스를 공유한다. 한 사용자의 설정을 변경할 때 다른 사용자의 설정이 영향받지 않아야 한다.
+
+**절대 규칙:**
+1. `USER_CONFIG`의 개별 사용자 설정(expenseCategories, routines, tabs, tabNames, textTypes, cardNameMap, folderMap)은 **해당 사용자의 명시적 요청 없이 변경하지 않는다.** 카테고리 name, 루틴 항목명, 탭 구성 등은 사용자가 직접 결정한 값이다.
+2. 코드 리팩토링이나 기능 추가 시 `USER_CONFIG`의 기존 값을 "정리" 명목으로 수정하지 않는다.
+3. `data.js`의 하드코딩 기본값(`EXPENSE_CATEGORIES`, `ROUTINE_META`, `TAB_META`, `textTypes`)은 **서버 config 적용 전 폴백용**이다. 이 값을 변경할 때 `USER_CONFIG`의 모든 사용자 설정과 충돌하지 않는지 확인한다.
+4. `applyServerConfig()`는 서버 config으로 클라이언트 상태를 덮어쓰는 유일한 진입점이다. 이 함수의 로직을 변경할 때는 모든 사용자의 config가 정상 적용되는지 확인한다.
+
+**작업지시서 체크리스트 — USER_CONFIG 또는 applyServerConfig 관련 코드를 수정할 때:**
+1. 모든 사용자의 `expenseCategories`가 각자의 name을 유지하는가?
+2. 모든 사용자의 `routines`가 각자의 항목을 유지하는가?
+3. 모든 사용자의 `tabs`/`tabNames`/`textTypes`가 각자의 구성을 유지하는가?
+4. 새 필드를 추가할 때, 해당 필드가 없는 기존 사용자에게 안전한 폴백이 있는가?
+5. `data.js`의 기본값 변경이 서버 config 미적용 상태에서 다른 사용자에게 노출되지 않는가?
+
+**사용자별 설정 현황 (변경 시 이 표도 갱신):**
+
+| 설정 항목 | leftjap@gmail.com | soyoun312@gmail.com |
+|---|---|---|
+| 탭 구성 | navi, fiction, blog, book, quote, memo, expense | soyoun_navi, flight_diary, soyoun_blog, book, expense |
+| 루틴 | 운동, 비타민, 영어, 일본어, 그림, 우쿨렐레, 금주 (7개) | 운동, 영어, 독서, 글쓰기 (4개) |
+| 가계부 카테고리 | 12개 (food~etc) | 12개 (dining~etc, 별도 구성) |
+| 어구 시트 | 있음 | 없음 |
+| SMS 시트 | 있음 | 있음 |
+
 ### 사이드바 디자인 보호 규칙
 
 사이드바 디자인은 3플랫폼(모바일/태블릿/PC)에서 동일한 구조를 유지한다. 다음 항목을 변경하거나 롤백할 때는 3플랫폼 모두 일괄 적용해야 한다.
@@ -1293,6 +1320,9 @@ editor 영역 안에 다음 하위 패널이 있다. 한 번에 하나만 표시
 - [ ] 모바일 스트릭 그리드(`.streak-list`)가 3열(`repeat(3, 1fr)`)을 유지하는가? `auto-fill`이나 `minmax`로 변경하면 패딩에 따라 4열이 되어 텍스트가 넘칠 수 있다.
 - [ ] `renderWritingGrid()`에서 `.badge-pill`(글 개수)을 생성하는가? 롤백/리팩토링 시 HTML 생성 코드가 빠지면 CSS만으로는 표시되지 않는다.
 - [ ] `.quote-section`이 3플랫폼 모두 `display:block`인가? 개별 미디어쿼리에서 `display:none`이 남아있으면 안 된다.
+- [ ] `USER_CONFIG`의 개별 사용자 설정(expenseCategories name, routines name, tabNames 등)을 명시적 요청 없이 변경하지 않았는가? (10번 "멀티유저 보호 규칙")
+- [ ] `data.js`의 하드코딩 기본값을 변경할 때, 서버 config 미적용 상태에서 다른 사용자에게 잘못된 값이 노출되지 않는가?
+- [ ] `applyServerConfig()` 수정 시, 모든 사용자의 config가 정상 적용되는가?
 
 ---
 
@@ -1332,6 +1362,7 @@ editor 영역 안에 다음 하위 패널이 있다. 한 번에 하나만 표시
 | 2026-03-11 | 가계부 카테고리 AI 자동 분류: EXPENSE_CATEGORIES 12개 재구성(data.js), autoMatchCategory 규칙 업데이트(sms-parser.js/Code.gs), Gemini 2.5 Flash 연동(classifyMerchantWithGemini/reclassifyAllExpenses 추가, Code.gs), saveExpenseFromSMS에 Gemini→폴백 흐름 추가, 14번 호출 체인에 SMS 가계부 흐름 추가 |
 | 2026-03-11 | 가계부 입력 폼 카테고리 UI 변경: 그리드 항상 펼침 → 칩(선택된 태그) + 탭하면 펼치기로 변경. toggleCategoryGrid 추가, selectCategory/clearCategorySelection/loadExpense 수정, 칩 HTML(index.html) 및 CSS 추가 |
 | 2026-03-11 | GAS 웹앱 재배포 규칙 강화: clasp push 후 재배포를 "라우팅 변경 시"에서 "항상 필수"로 변경, 템플릿에 사용자 수동 재배포 안내 필수 포함, 10번 주의사항에 재배포 항목 추가 |
+| 2026-03-12 | 10번 멀티유저 보호 규칙 추가: USER_CONFIG 개별 사용자 설정 변경 금지, applyServerConfig 수정 시 전체 사용자 검증, 사용자별 설정 현황 표 추가. 19번 체크리스트에 멀티유저 관련 3개 항목 추가 |
 | 2026-03-11 | 매출처 별명(alias) 시스템 추가: K.merchantAliases 키 추가(storage.js), 별명 CRUD 함수 4개 추가(data.js), getMerchantBreakdown/getYearMerchantBreakdown에 별명 기준 합산 적용, getMerchantIconHtml/renderExpenseItem/openMerchantDetail에 별명 표시 적용, _renderYearlyBubbles/_renderYearlyRankList 아이콘 폴백 추가, 가계부 폼에 별명 입력 필드 추가(index.html), loadExpense/saveExpenseForm/newExpenseForm에 별명 필드 연동, WORKFLOW.md 8번/15번 업데이트 |
 | 2026-03-11 | 매출처 아이콘 URL 형식 검증 추가: style.css에 에러 상태 스타일 추가(.input-error, .expense-icon-error), index.html 모바일/모달 폼에 에러 메시지 요소 + oninput 핸들러 추가, ui-expense.js에 clearIconUrlError() 함수 추가, saveExpenseForm에서 URL 형식 검증(/^https?:\/\//) 추가 |
 | 2026-03-11 | 가계부 폼 매출처 아이콘 키워드 필드 제거: index.html 모바일/모달 폼에서 expenseIconKeyword 입력 제거, ui-expense.js newExpenseForm/loadExpense/saveExpenseForm에서 키워드 필드 참조 제거, saveExpenseForm에서 merchant를 키워드로 자동 사용 |
