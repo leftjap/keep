@@ -176,8 +176,17 @@ function autoMatchCategory(merchant) {
               '법원행정처','한국필립모리']
   };
 
-  for (const [category, keywords] of Object.entries(rules)) {
-    for (const kw of keywords) {
+  // 좋은 범위 → 넓은 범위 순서로 검사 (Object.entries는 순서 보장이 불완전)
+  const checkOrder = [
+    'cafe', 'convenience', 'cat', 'gift', 'overseas',
+    'pet', 'beauty', 'fashion', 'health', 'medical',
+    'culture', 'leisure', 'subscribe', 'transport', 'invest', 'utility',
+    'dining', 'food', 'shopping', 'etc'
+  ];
+
+  for (const category of checkOrder) {
+    if (!rules[category]) continue;
+    for (const kw of rules[category]) {
       if (m.includes(kw.toLowerCase())) return category;
     }
   }
