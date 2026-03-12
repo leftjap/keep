@@ -8,7 +8,8 @@ let CARD_NAME_MAP = {
   '삼성2737': '삼성카드 iD SIMPLE',
   '삼성': '삼성카드 iD SIMPLE',
   '신한8244': '신한카드 Air',
-  '신한8579': 'K-패스 신한카드 체크'
+  '신한8579': 'K-패스 신한카드 체크',
+  '신한8619': 'K-패스 신한카드 체크'
 };
 
 function parseSMS(text) {
@@ -94,7 +95,10 @@ function parseSMS(text) {
   // 가맹점 추출 (불필요한 정보 모두 제거)
   let mt = text;
   mt = mt.replace(/\[Web발신\]/g, '').replace(/\[웹발신\]/g, '');
+  mt = mt.replace(/\[현대백화점카드\]/g, '');
+  mt = mt.replace(/신촌점|본점|무역점|판교점|목동점|천호점|중동점|킨텍스점|디큐브점|압구정본점/g, '');
   mt = mt.replace(/([\d,]+)\s*원/g, '');
+  mt = mt.replace(/\(금액\)/g, '');
   mt = mt.replace(/누적[\d,]*원?/g, '');
   mt = mt.replace(/(삼성|신한|국민|현대|롯데|하나|우리|BC|NH|KB)\d{4}/g, '');
   mt = mt.replace(/\w*카드[^()\s]*/g, '');
