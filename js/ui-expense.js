@@ -2866,15 +2866,14 @@ function renderCategoryTreemap(year, endYM) {
     var showAmount = true;
     if (Math.round(item.amount / 10000) === 0) showAmount = false;
 
-    // 세로/가로 배치 판단
-    var useVertical = cellPxH >= 32;
+    // 세로 배치: 이름+금액+패딩이 확실히 들어가는 44px 이상에서만
+    var useVertical = cellPxH >= 44;
 
-    if (useVertical) {
-      // 세로: 높이가 이름+금액 못 담으면 금액 숨김
-      if (cellPxH < 38) showAmount = false;
-    } else {
-      // 가로: 너비가 이름+금액 못 담으면 금액 숨김
+    if (!useVertical) {
+      // 가로 배치: 너비가 이름+금액 못 담으면 금액 숨김
       if (cellPxW < 45) showAmount = false;
+      // 높이가 한 줄도 빠듯하면 금액 숨김
+      if (cellPxH < 18) showAmount = false;
     }
 
     // 이름도 못 담으면 셀 자체를 렌더하지 않음
