@@ -4118,21 +4118,17 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 
 /* ═══ 연간 "그 외" 인라인 태그 ═══ */
 .exp-yearly-etc-tag {
-  position: absolute;
-  right: 8px;
-  bottom: 8px;
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 6px 10px;
-  background: rgba(255,255,255,.85);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  padding: 6px 12px;
+  background: var(--bg);
   border: 1px solid var(--border-l);
   border-radius: 16px;
   cursor: pointer;
   transition: background .12s, border-color .12s;
-  z-index: 3;
+  float: right;
+  margin-top: 8px;
 }
 
 .exp-yearly-etc-tag:hover {

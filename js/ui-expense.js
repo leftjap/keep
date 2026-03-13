@@ -2284,32 +2284,6 @@ function _packCircles(items, containerW, containerH) {
       if (c.y - c.r < 0) c.y = c.r;
       if (c.y + c.r > containerH) c.y = containerH - c.r;
     }
-    // 우하단 "그 외" 태그 영역 회피 (120x36 사각형 + 여백)
-    var avoidW = 130;
-    var avoidH = 44;
-    var avoidLeft = containerW - avoidW;
-    var avoidTop = containerH - avoidH;
-    for (var i = 0; i < circles.length; i++) {
-      var c = circles[i];
-      // 원과 사각형 충돌 검사: 원의 중심에서 사각형까지의 최근접점
-      var closestX = Math.max(avoidLeft, Math.min(c.x, containerW));
-      var closestY = Math.max(avoidTop, Math.min(c.y, containerH));
-      var distX = c.x - closestX;
-      var distY = c.y - closestY;
-      var dist = Math.sqrt(distX * distX + distY * distY);
-      if (dist < c.r + 4) {
-        // 충돌: 사각형 바깥으로 밀어냄
-        var pushDist = c.r + 4 - dist;
-        if (dist > 0) {
-          c.x += (distX / dist) * pushDist;
-          c.y += (distY / dist) * pushDist;
-        } else {
-          // 정확히 겹치면 왼쪽 위로 밀기
-          c.x -= pushDist;
-          c.y -= pushDist;
-        }
-      }
-    }
   }
 
   return circles;
@@ -2393,12 +2367,13 @@ function _renderYearlyBubbles(merchants, containerW, containerH) {
     html += '</div>';
   });
 
-  // 5. "그 외" 태그 — 버블 영역 우하단
+  html += '</div>';
+
+  // "그 외" 태그 — 버블 영역 바로 아래 우측 정렬
   if (etcItemCount > 0) {
     html += _renderEtcBanner(etcItemCount, yearVal);
   }
 
-  html += '</div>';
   return html;
 }
 
