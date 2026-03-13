@@ -1149,17 +1149,16 @@ function renderAliasSuggestions(mode) {
     return;
   }
 
-  // 별명 기준으로 중복 제거 + 아이콘이 있는 것만 필터
+  // 별명 기준으로 중복 제거
   var seen = {};
   var chips = [];
   for (var i = 0; i < aliases.length; i++) {
     var alias = aliases[i].alias;
     var original = aliases[i].original;
     if (seen[alias]) continue;
-    // 별명 또는 원본 매출처명으로 아이콘 검색
-    var iconUrl = findMerchantIcon(alias) || findMerchantIcon(original);
-    if (!iconUrl) continue;
     seen[alias] = true;
+    // 별명 또는 원본 매출처명으로 아이콘 검색 (없으면 기본 아이콘)
+    var iconUrl = findMerchantIcon(alias) || findMerchantIcon(original) || DEFAULT_ICON_URL;
     chips.push({ alias: alias, iconUrl: iconUrl });
   }
 
