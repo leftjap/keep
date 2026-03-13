@@ -2305,15 +2305,9 @@ function _renderYearlyBubbles(merchants, containerW, containerH) {
   // 2. 브랜드 상위 20개만 버블 대상
   var bubbleLimit = 20;
   var bubbleSrc = brandItems.slice(0, bubbleLimit);
-  var overflowItems = brandItems.slice(bubbleLimit); // 21위 이하
+  var overflowItems = brandItems.slice(bubbleLimit);
 
   // 3. "그 외" 합산: 카테고리 기타 전체 + 21위 이하 전체
-  var etcTotal = 0;
-  var etcCount = 0;
-  etcItems.forEach(function(m) { etcTotal += m.amount; etcCount += m.count; });
-  overflowItems.forEach(function(m) { etcTotal += m.amount; etcCount += m.count; });
-  var grandTotal = merchants.reduce(function(s, m) { return s + m.amount; }, 0);
-  var etcPct = grandTotal > 0 ? Math.round(etcTotal / grandTotal * 1000) / 10 : 0;
   var etcItemCount = etcItems.length + overflowItems.length;
 
   // 4. 버블 아이템 준비
@@ -2327,13 +2321,14 @@ function _renderYearlyBubbles(merchants, containerW, containerH) {
     };
   });
 
+  var yearVal = new Date(getExpenseViewYM() + '-01').getFullYear();
+
   if (bubbleItems.length === 0) {
-    // 브랜드 항목이 없으면 빈 영역
-    var html = '<div class="exp-yearly-bubble-wrap" style="width:100%;height:40px;"></div>';
-    if (etcTotal > 0) {
-      var yearVal = new Date(getExpenseViewYM() + '-01').getFullYear();
-      html += _renderEtcBanner(etcTotal, etcPct, etcItemCount, yearVal);
+    var html = '<div class="exp-yearly-bubble-wrap" style="width:100%;height:40px;position:relative;">';
+    if (etcItemCount > 0) {
+      html += _renderEtcBanner(etcItemCount, yearVal);
     }
+    html += '</div>';
     return html;
   }
 
@@ -2342,13 +2337,11 @@ function _renderYearlyBubbles(merchants, containerW, containerH) {
   var html = '<div class="exp-yearly-bubble-wrap" style="width:100%;height:' + containerH + 'px;position:relative;overflow:hidden;">';
 
   circles.forEach(function(c) {
-    var catObj = EXPENSE_CATEGORIES.find(function(cat) { return cat.id === c.item.category; });
     var size = Math.round(c.r * 2);
     var left = Math.round(c.x - c.r);
     var top = Math.round(c.y - c.r);
     var imgSize = Math.round(c.r * 2 - 4);
 
-    var yearVal = new Date(getExpenseViewYM() + '-01').getFullYear();
     var onclick = 'openMerchantDetail(\'' + _escMerchant(c.item.merchant) + '\',' + yearVal + ')';
 
     html += '<div class="exp-yearly-bubble" onclick="' + onclick + '" style="'
@@ -2374,28 +2367,21 @@ function _renderYearlyBubbles(merchants, containerW, containerH) {
     html += '</div>';
   });
 
-  html += '</div>';
-
-  // 5. "그 외" 배너
-  if (etcTotal > 0) {
-    var yearVal = new Date(getExpenseViewYM() + '-01').getFullYear();
-    html += _renderEtcBanner(etcTotal, etcPct, etcItemCount, yearVal);
+  // 5. "그 외" 태그 — 버블 영역 우하단
+  if (etcItemCount > 0) {
+    html += _renderEtcBanner(etcItemCount, yearVal);
   }
 
+  html += '</div>';
   return html;
 }
 
-// "그 외" 하단 배너 HTML
-function _renderEtcBanner(etcTotal, etcPct, etcItemCount, year) {
-  var html = '<div class="exp-yearly-etc-banner" onclick="openYearlyFullPopup(' + year + ',20)">';
-  html += '<div class="exp-yearly-etc-left">';
-  html += '<span class="exp-yearly-etc-label">그 외 ' + etcItemCount + '개</span>';
-  html += '<span class="exp-yearly-etc-amount">' + formatAmount(etcTotal) + '원</span>';
-  html += '<span class="exp-yearly-etc-pct">' + etcPct + '%</span>';
-  html += '</div>';
-  html += '<svg class="exp-yearly-etc-arrow" width="16" height="16" viewBox="0 0 16 16"><polyline points="6 3 11 8 6 13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-  html += '</div>';
-  return html;
+// "그 외" 인라인 태그 HTML (버블 영역 내부 우하단)
+function _renderEtcBanner(etcItemCount, year) {
+  return '<div class="exp-yearly-etc-tag" onclick="openYearlyFullPopup(' + year + ',20)">'
+    + '<span class="exp-yearly-etc-tag-text">그 외 ' + etcItemCount + '개</span>'
+    + '<svg width="12" height="12" viewBox="0 0 12 12"><polyline points="4.5 2 8.5 6 4.5 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+    + '</div>';
 }
 
 // 랭킹 리스트 HTML 생성

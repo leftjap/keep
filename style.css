@@ -4116,72 +4116,44 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   transform: scale(0.96);
 }
 
-/* ═══ 연간 "그 외" 배너 ═══ */
-.exp-yearly-etc-banner {
-  display: flex;
+/* ═══ 연간 "그 외" 인라인 태그 ═══ */
+.exp-yearly-etc-tag {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 14px 20px;
-  margin: 0 0 8px;
-  background: var(--bg);
+  gap: 4px;
+  padding: 6px 10px;
+  background: rgba(255,255,255,.85);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   border: 1px solid var(--border-l);
-  border-radius: 12px;
+  border-radius: 16px;
   cursor: pointer;
   transition: background .12s, border-color .12s;
+  z-index: 3;
 }
 
-.exp-yearly-etc-banner:hover {
-  background: rgba(0,0,0,.03);
+.exp-yearly-etc-tag:hover {
+  background: rgba(255,255,255,.95);
   border-color: var(--border);
 }
 
-.exp-yearly-etc-banner:active {
-  background: rgba(0,0,0,.05);
+.exp-yearly-etc-tag:active {
+  background: rgba(0,0,0,.04);
 }
 
-.exp-yearly-etc-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.exp-yearly-etc-label {
-  font-size: 15px;
+.exp-yearly-etc-tag-text {
+  font-size: 13px;
   font-weight: 500;
-  color: var(--tx);
-}
-
-.exp-yearly-etc-amount {
-  font-size: 15px;
-  font-weight: 400;
   color: var(--tx-m);
-  font-family: 'Pretendard', -apple-system, sans-serif;
+  white-space: nowrap;
 }
 
-.exp-yearly-etc-pct {
-  font-size: 12px;
-  font-weight: 400;
-  color: var(--tx-hint);
-  font-family: 'JetBrains Mono', monospace;
-}
-
-.exp-yearly-etc-arrow {
+.exp-yearly-etc-tag svg {
   color: var(--tx-hint);
   flex-shrink: 0;
-}
-
-@media (max-width: 768px) {
-  .exp-yearly-etc-banner {
-    padding: 12px 16px;
-    margin: 0 0 6px;
-  }
-  .exp-yearly-etc-label {
-    font-size: 16px;
-  }
-  .exp-yearly-etc-amount {
-    font-size: 15px;
-  }
 }
 
 /* ═══ 연간 랭킹 리스트 ═══ */

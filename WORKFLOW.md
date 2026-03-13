@@ -587,8 +587,8 @@ gas-nametag/          — Google Apps Script (메인 레포와 별도 폴더)
 - `_squarify(values, x, y, w, h)` — squarified treemap 레이아웃 계산
 - `_worstAspect(row, rowTotal, totalArea, shortSide)` — aspect ratio 평가 헬퍼
 - `_packCircles(items, containerW, containerH)` — circle packing 알고리즘 (force-based, 금액 비례 반지름)
-- `_renderYearlyBubbles(merchants, containerW, containerH)` — 버블 차트 HTML 생성 (브랜드/상호 상위 20개만 버블, isCategoryEtc와 21위 이하는 "그 외" 배너로 분리)
-- `_renderEtcBanner(etcTotal, etcPct, etcItemCount, year)` — 연간 "그 외" 하단 배너 HTML 생성
+- `_renderYearlyBubbles(merchants, containerW, containerH)` — 버블 차트 HTML 생성 (브랜드/상호 상위 20개만 버블, isCategoryEtc와 21위 이하는 "그 외" 인라인 태그로 분리)
+- `_renderEtcBanner(etcItemCount, year)` — 연간 "그 외" 인라인 태그 HTML 생성 (버블 영역 우하단)
 - `_renderYearlyRankList(merchants, limit)` — 랭킹 리스트 HTML 생성 (뉴트럴 그라데이션 배경, 순위+파비콘+상호명+금액)
 - `_renderYearlyGridItem(m, rank)` — 연간 그리드 아이템 HTML 생성 (월간 히어로 그리드에서 사용)
 - `loadMoreYearlyRank()` — 연간 랭킹 리스트 로드모어 (10개씩 추가 표시, DOM data-attribute로 카운트 관리)
@@ -860,7 +860,7 @@ gas-nametag/          — Google Apps Script (메인 레포와 별도 폴더)
 - `.exp-week-*`, `.exp-month-*`, `.exp-bar-*`, `.exp-tl-*`, `.exp-cat-*` → 12번 가계부
 - `.exp-fp-*` (`.exp-fp-overlay`, `.exp-fp-card`, `.exp-fp-header`, `.exp-fp-body`, `.exp-fp-footer`) → 12번 가계부 플로팅 팝업
 - `.exp-mr-*` (`.exp-mr-list`, `.exp-mr-row`, `.exp-mr-info`, `.exp-mr-bar-wrap`, `.exp-mr-amount` 등) → 12번 상호별 랭킹 카드
-- `.exp-yearly-*` (`.exp-yearly-section`, `.exp-yearly-bubble-wrap`, `.exp-yearly-bubble`, `.exp-yearly-etc-banner`, `.exp-yearly-etc-left`, `.exp-yearly-etc-label`, `.exp-yearly-etc-amount`, `.exp-yearly-etc-pct`, `.exp-yearly-etc-arrow`, `.exp-yearly-rank-list`, `.exp-yearly-rank-row`, `.exp-yearly-rank-num`, `.exp-yearly-rank-icon`, `.exp-yearly-rank-name`, `.exp-yearly-rank-amount`, `.exp-yearly-grid`, `.exp-yearly-grid-item`, `.exp-yearly-header`, `.exp-yearly-title` 등) → 12번 연간 누적 섹션
+- `.exp-yearly-*` (`.exp-yearly-section`, `.exp-yearly-bubble-wrap`, `.exp-yearly-bubble`, `.exp-yearly-etc-tag`, `.exp-yearly-etc-tag-text`, `.exp-yearly-rank-list`, `.exp-yearly-rank-row`, `.exp-yearly-rank-num`, `.exp-yearly-rank-icon`, `.exp-yearly-rank-name`, `.exp-yearly-rank-amount`, `.exp-yearly-grid`, `.exp-yearly-grid-item`, `.exp-yearly-header`, `.exp-yearly-title` 등) → 12번 연간 누적 섹션
 - `.exp-treemap-*` (`.exp-treemap-wrap`, `.exp-treemap-cell`, `.exp-treemap-name`, `.exp-treemap-amount`, `.exp-treemap-pct`) → 12번 연간 누적 섹션 (카테고리 트리맵)
 - `.exp-fp-yearly-*` (`.exp-fp-yearly-list`, `.exp-fp-yearly-row`, `.exp-fp-yearly-rank`, `.exp-fp-yearly-amount` 등) → 12번 연간 전체 보기 팝업 내부
 - `.exp-day-selected`, `.exp-day-detail` → 13번 가계부 캘린더 선택
