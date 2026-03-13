@@ -721,7 +721,7 @@ gas-nametag/          — Google Apps Script (메인 레포와 별도 폴더)
 **SYNC 메서드:**
 - `setSyncStatus(text, type)` — 동기화 상태 표시
 - `_post(data)` — GAS 통신
-- `loadDatabase()` — 앱 시작 시 DB 불러오기
+- `loadDatabase()` — 앱 시작 시 DB 불러오기. masterBrandIcons를 LocalStorage의 brandIcons와 병합 (마스터 기본 + 사용자 것 우선)
 - `saveDatabase()`, `scheduleDatabaseSave()` — DB 저장 (3초 디바운스)
 - `uploadImage(base64, filename, mime)` — 이미지 → 구글 드라이브
 - `saveDocToGDrive(id, type)`, `scheduleDocSave(type)` — 문서 → 드라이브 (5초 디바운스)
@@ -735,7 +735,7 @@ gas-nametag/          — Google Apps Script (메인 레포와 별도 폴더)
 
 ---
 
-### gas-nametag/Code.gs (~380줄)
+### gas-nametag/Code.js (~1150줄)
 **역할:** Google Apps Script 서버. DB 동기화, 문서 저장, 이미지 업로드, 루틴/어구 시트 저장, SMS 가계부 자동 저장, 매출처 로고 검색 프록시.
 
 **경로:** 메인 레포(`nametag-game`)와 별도 폴더. `~/바이브 코딩/gas-nametag/`
@@ -767,7 +767,7 @@ gas-nametag/          — Google Apps Script (메인 레포와 별도 폴더)
 **문서/DB:**
 - `saveDocument(docId, driveId, folderName, title, content)` — 구글 Docs 생성/업데이트 (driveId → description 검색 → 신규 생성 순). LockService 사용
 - `saveDatabase(dbData)` — `app_database.json`에 전체 DB 저장
-- `loadDatabase()` — `app_database.json`에서 전체 DB 로드
+- `loadDatabase(config)` — `app_database.json`에서 전체 DB 로드. 항상 leftjap의 brandIcons를 마스터로 읽어서 응답에 masterBrandIcons 필드로 포함
 
 **시트 저장:**
 - `saveRoutineToSheet(dateStr, checks)` — 루틴 체크 스프레드시트 저장 (날짜 기준 행 갱신/추가). LockService 사용
@@ -1411,6 +1411,7 @@ editor 영역 안에 다음 하위 패널이 있다. 한 번에 하나만 표시
 | 2026-03-11 | 모바일 스트릭 그리드 3열 복원, 19번 체크리스트에 스트릭 그리드 보호 규칙 추가 |
 | 2026-03-11 | 사이드바 디자인 보호 규칙 추가(10번): 어구/글개수/화살표/구분선 3플랫폼 통일 규칙, 19번 체크리스트에 badge-pill/quote-section 항목 추가 |
 | 2026-03-11 | 가계부 카테고리 AI 자동 분류: EXPENSE_CATEGORIES 12개 재구성(data.js), autoMatchCategory 규칙 업데이트(sms-parser.js/Code.gs), Gemini 2.5 Flash 연동(classifyMerchantWithGemini/reclassifyAllExpenses 추가, Code.gs), saveExpenseFromSMS에 Gemini→폴백 흐름 추가, 14번 호출 체인에 SMS 가계부 흐름 추가 |
+| 2026-03-13 | 브랜드 아이콘 마스터 공유: Code.js loadDatabase에서 leftjap의 brandIcons를 항상 마스터로 읽어서 masterBrandIcons로 응답 포함, sync.js loadDatabase에서 masterBrandIcons를 LocalStorage brandIcons와 병합(마스터 기본+사용자 우선), 8번 Code.js/sync.js 설명 갱신 |
 | 2026-03-11 | 가계부 입력 폼 카테고리 UI 변경: 그리드 항상 펼침 → 칩(선택된 태그) + 탭하면 펼치기로 변경. toggleCategoryGrid 추가, selectCategory/clearCategorySelection/loadExpense 수정, 칩 HTML(index.html) 및 CSS 추가 |
 | 2026-03-11 | GAS 웹앱 재배포 규칙 강화: clasp push 후 재배포를 "라우팅 변경 시"에서 "항상 필수"로 변경, 템플릿에 사용자 수동 재배포 안내 필수 포함, 10번 주의사항에 재배포 항목 추가 |
 | 2026-03-12 | 10번 멀티유저 보호 규칙 추가: USER_CONFIG 개별 사용자 설정 변경 금지, applyServerConfig 수정 시 전체 사용자 검증, 사용자별 설정 현황 표 추가. 19번 체크리스트에 멀티유저 관련 3개 항목 추가 |
