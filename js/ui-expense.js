@@ -2371,7 +2371,7 @@ function _renderYearlyBubbles(merchants, containerW, containerH) {
 
   // "그 외" 태그 — 버블 영역 바로 아래 우측 정렬
   if (etcItemCount > 0) {
-    html += '<div style="display:flex;justify-content:flex-end;padding:8px 20px 0;">';
+    html += '<div style="display:flex;justify-content:flex-end;padding:4px 0 20px;">';
     html += _renderEtcBanner(etcItemCount, yearVal);
     html += '</div>';
   }
