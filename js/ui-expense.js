@@ -2822,31 +2822,37 @@ function renderCategoryTreemap(year) {
     var cellPxW = r.w / 100 * actualW;
     var cellPxH = r.h;
 
-    // 기타: 항목명만, 작은 폰트
+    // 기타: 항목명만, 작은 폰트 (셀이 매우 작으면 축소)
     if (item.isEtc) {
+      var etcFontSize = 11;
+      if (cellPxW < 40) etcFontSize = 9;
+      if (cellPxH < 20) etcFontSize = 8;
       html += '<div class="exp-treemap-cell" onclick="openCategoryExpensePopup(\'' + item.id + '\',\'' + item.name.replace(/'/g, "\\'") + '\',' + year + ')" style="';
       html += 'left:' + r.x + '%;top:' + r.y + 'px;width:' + r.w + '%;height:' + r.h + 'px;';
       html += 'background:' + item.color + ';align-items:center;justify-content:center;">';
-      html += '<span class="exp-treemap-name" style="font-size:11px;">' + item.name + '</span>';
+      html += '<span class="exp-treemap-name" style="font-size:' + etcFontSize + 'px;">' + item.name + '</span>';
       html += '</div>';
       return;
     }
 
-    // 비중에 따른 폰트 크기
+    // 비중에 따른 폰트 크기 — 셀이 작으면 줄임
     var ratio = item.amount / maxAmount;
-    var nameFontSize = Math.round(11 + ratio * 7);
-    var amountFontSize = Math.round(9 + ratio * 4);
+    var baseName = Math.round(11 + ratio * 7);
+    var baseAmount = Math.round(9 + ratio * 4);
 
-    // 셀 면적 기준 표시 판단
-    var showName = cellPxH >= 22 && cellPxW >= 30;
+    // 셀이 좁으면 폰트 축소
+    var nameFontSize = baseName;
+    var amountFontSize = baseAmount;
+    if (cellPxW < 50) nameFontSize = Math.min(nameFontSize, 10);
+    if (cellPxH < 30) nameFontSize = Math.min(nameFontSize, 9);
+
+    // 금액 표시: 셀에 여유가 있을 때만
     var showAmount = cellPxH >= 35 && cellPxW >= 45;
 
     html += '<div class="exp-treemap-cell" onclick="openCategoryExpensePopup(\'' + item.id + '\',\'' + item.name.replace(/'/g, "\\'") + '\',' + year + ')" style="';
     html += 'left:' + r.x + '%;top:' + r.y + 'px;width:' + r.w + '%;height:' + r.h + 'px;';
     html += 'background:' + item.color + ';align-items:center;justify-content:center;">';
-    if (showName) {
-      html += '<span class="exp-treemap-name" style="font-size:' + nameFontSize + 'px;">' + item.name + '</span>';
-    }
+    html += '<span class="exp-treemap-name" style="font-size:' + nameFontSize + 'px;">' + item.name + '</span>';
     if (showAmount) {
       html += '<span class="exp-treemap-amount" style="font-size:' + amountFontSize + 'px;">' + Math.round(item.amount / 10000) + '만</span>';
     }
