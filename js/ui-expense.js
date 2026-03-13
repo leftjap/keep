@@ -1136,6 +1136,7 @@ function reRenderDetailMobile() { reRenderDetail(); }
 // ═══════════════════════════════════════
 
 let curExpenseId = null;
+var _originalMerchant = null;
 
 // ═══ 별명 칩 목록 렌더링 ═══
 function renderAliasSuggestions(mode) {
@@ -1203,6 +1204,7 @@ function clearIconUrlError(mode) {
 
 function newExpenseForm(mode = 'normal') {
   curExpenseId = null;
+  _originalMerchant = null;
   // 모바일 에디터: 가계부 폼 활성 클래스 추가
   if (mode === 'normal') {
     var editorEl = document.querySelector('.editor');
@@ -1234,6 +1236,7 @@ function loadExpense(id, mode = 'normal') {
   const e = getExpenses().find(x => x.id === id);
   if (!e) return;
   curExpenseId = id;
+  _originalMerchant = (e.merchant || '').trim();
   const suffix = mode === 'modal' ? 'Modal' : '';
   document.getElementById('expenseAmountInput' + suffix).value = e.amount.toLocaleString();
   document.getElementById('expenseMerchantInput' + suffix).value = e.merchant;
@@ -1511,6 +1514,14 @@ function saveExpenseForm(mode = 'normal') {
   if (!amount || amount <= 0) return;
 
   const merchant = document.getElementById('expenseMerchantInput' + suffix).value.trim();
+
+  // 기존 항목 수정 시 매출처명 변경 감지
+  if (curExpenseId && _originalMerchant && merchant !== _originalMerchant) {
+    if (!confirm('매출처명이 "' + _originalMerchant + '"에서 "' + merchant + '"(으)로 변경되었습니다.\n기존 별명/아이콘 매핑이 끊어질 수 있습니다.\n계속할까요?')) {
+      return;
+    }
+  }
+
   const card = document.getElementById('expenseCardInput' + suffix).value.trim();
   const memo = '';
   const category = getSelectedCategory(mode);

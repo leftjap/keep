@@ -1151,6 +1151,7 @@ Haiku 4.5는 전체 프로젝트 맥락을 알지 못할 수 있다. 각 Step에
 | curQuoteId | data.js | 현재 편집 중인 어구 ID |
 | curMemoId | data.js | 현재 편집 중인 메모 ID |
 | curExpenseId | editor.js | 현재 편집 중인 가계부 항목 ID |
+| _originalMerchant | ui-expense.js | 폼에 로드된 항목의 원본 매출처명 (변경 감지용) |
 | currentLoadedDoc | data.js | 에디터에 로드된 문서 {type, id} |
 | currentSearchQuery | data.js | 현재 검색어 |
 | currentListView | data.js | 리스트 뷰 모드 (list/photo/calendar) |
