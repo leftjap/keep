@@ -2240,35 +2240,33 @@ function _packCircles(items, containerW, containerH) {
 
   var maxAmount = items[0].amount;
   var minR = 14;
-  var maxR = Math.min(containerW * 0.35, containerH * 0.42);
+  var maxR = Math.min(containerW * 0.32, containerH * 0.40);
   var cx = containerW / 2;
   var cy = containerH / 2;
 
-  // 반지름 계산 (면적 비례)
   var circles = items.map(function(item, i) {
     var ratio = Math.sqrt(item.amount / maxAmount);
     var r = Math.max(minR, ratio * maxR);
     return { x: cx, y: cy, r: r, item: item, index: i };
   });
 
-  // 최대 반지름 (중앙 끌기 힘 정규화용)
   var maxR_actual = circles[0].r;
 
-  // 첫 번째 원은 정확히 중앙
+  // 첫 번째 원(가장 큰)은 정확히 중앙
   circles[0].x = cx;
   circles[0].y = cy;
 
-  // 나머지 원: 크기 순서대로 중앙에서 가까운 곳에 초기 배치
+  // 나머지 원: 크기 순서대로 중앙 근처에서 시작
   for (var i = 1; i < circles.length; i++) {
-    var angle = i * 2.4;
+    var angle = i * 2.4; // golden angle
     var dist = circles[0].r + circles[i].r + 4;
-    circles[i].x = cx + Math.cos(angle) * dist * 0.6;
-    circles[i].y = cy + Math.sin(angle) * dist * 0.6;
+    circles[i].x = cx + Math.cos(angle) * dist * 0.5;
+    circles[i].y = cy + Math.sin(angle) * dist * 0.5;
   }
 
   // Force simulation
-  for (var iter = 0; iter < 150; iter++) {
-    // 원끼리 겹침 해소
+  for (var iter = 0; iter < 200; iter++) {
+    // 겹침 해소: 작은 원이 더 많이 밀려남
     for (var i = 0; i < circles.length; i++) {
       for (var j = i + 1; j < circles.length; j++) {
         var dx = circles[j].x - circles[i].x;
@@ -2279,10 +2277,9 @@ function _packCircles(items, containerW, containerH) {
           var overlap = (minDist - dist) / 2;
           var nx = dx / dist;
           var ny = dy / dist;
-          // 작은 원이 더 많이 밀려남
           var totalR = circles[i].r + circles[j].r;
-          var ratioI = circles[j].r / totalR; // i가 클수록 적게 밀림
-          var ratioJ = circles[i].r / totalR; // j가 클수록 적게 밀림
+          var ratioI = circles[j].r / totalR;
+          var ratioJ = circles[i].r / totalR;
           circles[i].x -= nx * overlap * ratioI;
           circles[i].y -= ny * overlap * ratioI;
           circles[j].x += nx * overlap * ratioJ;
@@ -2291,14 +2288,14 @@ function _packCircles(items, containerW, containerH) {
       }
     }
 
-    // 중앙으로 끌어당기기 — 큰 원이 강하게, 작은 원이 약하게
+    // 중앙 끌기: 큰 원 강하게, 작은 원 약하게
     for (var i = 0; i < circles.length; i++) {
-      var strength = 0.03 + 0.07 * (circles[i].r / maxR_actual);
+      var strength = 0.02 + 0.08 * (circles[i].r / maxR_actual);
       circles[i].x += (cx - circles[i].x) * strength;
       circles[i].y += (cy - circles[i].y) * strength;
     }
 
-    // 컨테이너 경계 안에 유지
+    // 경계 안에 유지
     for (var i = 0; i < circles.length; i++) {
       var c = circles[i];
       if (c.x - c.r < 0) c.x = c.r;
@@ -2780,83 +2777,50 @@ function renderCategoryTreemap(year, endYM) {
     }
   });
 
-  // 총액 대비 2% 미만 카테고리 제외 (트리맵에서 시각적으로 의미 없음)
+  // 총액 대비 2% 미만 카테고리 제외
   var minThreshold = total * 0.02;
-  items = items.filter(function(item) {
-    return item.amount >= minThreshold;
-  });
+  items = items.filter(function(item) { return item.amount >= minThreshold; });
 
   if (items.length === 0) return '';
 
-  // 기타를 분리하고 나머지를 금액 내림차순 정렬
+  // 기타 분리 → 마지막에 배치
   var etcItem = null;
   var mainItems = [];
   items.forEach(function(item) {
-    if (item.id === 'etc') {
-      etcItem = item;
-    } else {
-      mainItems.push(item);
-    }
+    if (item.id === 'etc') etcItem = item;
+    else mainItems.push(item);
   });
   mainItems.sort(function(a, b) { return b.amount - a.amount; });
+  if (etcItem) mainItems.push(etcItem);
 
-  // 기타를 맨 마지막에 최소 크기로 추가
-  if (etcItem) {
-    var minAmount = mainItems.length > 0 ? mainItems[mainItems.length - 1].amount : etcItem.amount;
-    etcItem.forcedAmount = Math.min(minAmount * 0.5, etcItem.amount);
-    mainItems.push(etcItem);
-  }
-
-  // 코랄 단색 그라데이션 팔레트 (순위 기반, 전체 흰색 텍스트)
+  // 코랄 단색 그라데이션 팔레트
   var coralPalette = [
-    'hsl(4, 65%, 52%)',  // 1위 — 진한 코랄
-    'hsl(4, 55%, 57%)',  // 2위
-    'hsl(4, 48%, 61%)',  // 3위
-    'hsl(4, 42%, 65%)',  // 4위
-    'hsl(4, 36%, 68%)',  // 5위
-    'hsl(4, 36%, 68%)',  // 6위
-    'hsl(4, 30%, 71%)',  // 7위
-    'hsl(4, 30%, 71%)',  // 8위
-    'hsl(4, 25%, 73%)',  // 9위
-    'hsl(4, 25%, 73%)',  // 10위
-    'hsl(4, 20%, 75%)',  // 11위
-    'hsl(4, 20%, 75%)'   // 12위
+    'hsl(4, 65%, 52%)', 'hsl(4, 55%, 57%)', 'hsl(4, 48%, 61%)',
+    'hsl(4, 42%, 65%)', 'hsl(4, 36%, 68%)', 'hsl(4, 36%, 68%)',
+    'hsl(4, 30%, 71%)', 'hsl(4, 30%, 71%)', 'hsl(4, 25%, 73%)',
+    'hsl(4, 25%, 73%)', 'hsl(4, 20%, 75%)', 'hsl(4, 20%, 75%)'
   ];
 
-  // 비율 과장: pow(1.5) 적용
+  // 면적 조정: pow(0.7)로 차이 완화 (1위가 지배하지 않도록)
   var adjustedItems = mainItems.map(function(item, idx) {
-    var val = item.forcedAmount || item.amount;
+    var val = item.amount;
     var colorIdx = Math.min(idx, coralPalette.length - 1);
-    // 기타는 항상 가장 연한 색
     if (item.id === 'etc') colorIdx = coralPalette.length - 1;
     return {
       id: item.id, name: item.name,
       treemapColor: coralPalette[colorIdx],
       amount: item.amount,
-      adjusted: Math.pow(val, 1.5),
+      adjusted: Math.pow(val, 0.7),
       isEtc: item.id === 'etc'
     };
   });
 
-  // 10% 이내 차이 항목은 동일 크기로 통합
-  for (var gi = 1; gi < adjustedItems.length; gi++) {
-    var prev = adjustedItems[gi - 1];
-    var cur = adjustedItems[gi];
-    if (prev.isEtc || cur.isEtc) continue;
-    var diff = Math.abs(prev.adjusted - cur.adjusted) / Math.max(prev.adjusted, 1);
-    if (diff < 0.10) {
-      cur.adjusted = prev.adjusted;
-    }
-  }
-
-  // 최소 비율 보장 (기타 제외)
+  // 최소 비율 보장 (기타 제외): 전체의 5% 미만이면 5%로 올림
   var adjustedTotal = adjustedItems.reduce(function(s, it) { return s + it.adjusted; }, 0);
   adjustedItems.forEach(function(it) {
     if (it.isEtc) return;
     var pct = it.adjusted / adjustedTotal * 100;
-    if (pct < 4) {
-      it.adjusted = adjustedTotal * 4 / 96;
-    }
+    if (pct < 5) it.adjusted = adjustedTotal * 5 / 95;
   });
   adjustedTotal = adjustedItems.reduce(function(s, it) { return s + it.adjusted; }, 0);
 
@@ -2867,8 +2831,40 @@ function renderCategoryTreemap(year, endYM) {
   // squarified treemap 레이아웃
   var rects = _squarify(adjustedItems.map(function(it) { return it.adjusted; }), 0, 0, containerW, containerH);
 
-  // 최대 금액 (폰트 크기 계산용, 기타 제외)
-  var maxAmount = mainItems[0].amount;
+  // 실제 픽셀 너비 (셀 크기 판단용)
+  var actualW = window.innerWidth <= 768 ? window.innerWidth - 40 : Math.min(680, window.innerWidth - 80);
+
+  // 셀이 이름 한 줄도 담을 수 없으면 제외 후 재계산
+  var tooSmall = false;
+  for (var si = 0; si < adjustedItems.length; si++) {
+    var sr = rects[si];
+    if (!sr) continue;
+    var sPxW = sr.w / 100 * actualW;
+    var sPxH = sr.h;
+    if (sPxH < 24 || sPxW < 36) {
+      adjustedItems.splice(si, 1);
+      tooSmall = true;
+      break;
+    }
+  }
+  if (tooSmall) {
+    // 재계산
+    adjustedTotal = adjustedItems.reduce(function(s, it) { return s + it.adjusted; }, 0);
+    rects = _squarify(adjustedItems.map(function(it) { return it.adjusted; }), 0, 0, containerW, containerH);
+    // 한 번 더 체크 (연쇄적으로 작아지는 셀이 있을 수 있음)
+    for (var si2 = adjustedItems.length - 1; si2 >= 0; si2--) {
+      var sr2 = rects[si2];
+      if (!sr2) continue;
+      var sPxW2 = sr2.w / 100 * actualW;
+      var sPxH2 = sr2.h;
+      if (sPxH2 < 24 || sPxW2 < 36) {
+        adjustedItems.splice(si2, 1);
+      }
+    }
+    rects = _squarify(adjustedItems.map(function(it) { return it.adjusted; }), 0, 0, containerW, containerH);
+  }
+
+  if (adjustedItems.length === 0) return '';
 
   var html = '<div class="exp-treemap-wrap" style="height:' + containerH + 'px;">';
 
@@ -2876,57 +2872,37 @@ function renderCategoryTreemap(year, endYM) {
     var r = rects[i];
     if (!r) return;
 
-    var actualW = window.innerWidth <= 768 ? window.innerWidth - 40 : 680;
     var cellPxW = r.w / 100 * actualW;
     var cellPxH = r.h;
 
-    // 비중에 따른 폰트 크기
-    var ratio = item.amount / maxAmount;
-    var nameFontSize = Math.round(11 + ratio * 7);
-    var amountFontSize = Math.round(9 + ratio * 4);
-
-    // 셀이 좁으면 폰트 축소
-    if (cellPxW < 50) nameFontSize = Math.min(nameFontSize, 10);
-    if (cellPxH < 30) nameFontSize = Math.min(nameFontSize, 9);
-    if (item.isEtc) {
-      nameFontSize = 11;
-      if (cellPxW < 40) nameFontSize = 9;
-      if (cellPxH < 20) nameFontSize = 8;
-    }
+    // 폰트 크기: 셀 면적에 비례
+    var area = cellPxW * cellPxH;
+    var nameFontSize = Math.round(Math.min(18, Math.max(10, Math.sqrt(area) * 0.12)));
+    var amountFontSize = Math.round(Math.min(14, Math.max(9, Math.sqrt(area) * 0.09)));
 
     // 금액 텍스트
     var amountText = Math.round(item.amount / 10000) + '만';
 
-    // 레이아웃 판단
+    // 레이아웃: 세로 배치 가능 여부
     var useVertical = cellPxH >= 42;
     var showAmount = !item.isEtc;
-    var showName = true;
 
-    // 가로 배치인데 너비 부족하면 금액 숨김
-    if (!useVertical && cellPxW < 70) showAmount = false;
-    // 셀 높이가 이름+금액 세로 배치에 부족하면 금액 숨김
-    if (cellPxH < 32) showAmount = false;
-    // 셀이 한 줄 텍스트도 담을 수 없으면 이름도 숨김
-    if (cellPxH < 22 || cellPxW < 32) {
-      showName = false;
-      showAmount = false;
-    }
+    // 가로 배치일 때 너비 부족하면 금액 숨김
+    if (!useVertical && cellPxW < 75) showAmount = false;
+    // 세로 배치인데 높이 부족하면 금액 숨김
+    if (cellPxH < 34) showAmount = false;
 
     var cellStyle = 'left:' + r.x + '%;top:' + r.y + 'px;width:' + r.w + '%;height:' + r.h + 'px;'
       + 'background:' + item.treemapColor + ';';
 
     if (useVertical) {
-      // 세로 배치: flex-direction column
       cellStyle += 'flex-direction:column;gap:1px;';
     } else {
-      // 가로 배치: flex-direction row (CSS 기본값)
       cellStyle += 'gap:0 5px;';
     }
 
     html += '<div class="exp-treemap-cell" onclick="openCategoryExpensePopup(\'' + item.id + '\',\'' + item.name.replace(/'/g, "\\'") + '\',' + year + ')" style="' + cellStyle + '">';
-    if (showName) {
-      html += '<span class="exp-treemap-name" style="font-size:' + nameFontSize + 'px;">' + item.name + '</span>';
-    }
+    html += '<span class="exp-treemap-name" style="font-size:' + nameFontSize + 'px;">' + item.name + '</span>';
     if (showAmount) {
       html += '<span class="exp-treemap-amount" style="font-size:' + amountFontSize + 'px;">' + amountText + '</span>';
     }
