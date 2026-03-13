@@ -491,6 +491,8 @@ gas-nametag/          — Google Apps Script (메인 레포와 별도 폴더)
 **전역 상태:**
 - `_expenseViewYM` — 현재 보고 있는 월 (YYYY-MM)
 - `_selectedExpenseDate` — 캘린더에서 선택된 날짜
+- `_yearlyRankLoaded` — 연간 랭킹 현재 로드된 개수 (초기값 10)
+- `_yearlyEndYM` — 연간 섹션이 집계하는 마지막 월 (YYYY-MM). renderYearlySection에서 설정, 팝업 함수에서 참조
 - `_expenseDetailSearchQuery` — 전체 내역 검색어
 - `_expenseCategoryFilter` — 카테고리 필터 ID
 - `_expenseCategoryFilterName` — 카테고리 필터 표시명
@@ -582,18 +584,19 @@ gas-nametag/          — Google Apps Script (메인 레포와 별도 폴더)
 - `openMerchantDetail(merchant)` — 상호 클릭 → 월간 내역을 플로팅 팝업으로 표시
 
 **연간 누적 섹션 (버블 차트 + 카테고리 트리맵 + 랭킹):**
-- `renderYearlySection(year, endYM)` — 연간 누적 섹션 (카테고리 트리맵 + 버블 차트 + 랭킹 리스트 10개 + "더 보기") HTML 생성. endYM이 주어지면 해당 월까지만 집계
-- `renderCategoryTreemap(year, endYM)` — 연간 카테고리 트리맵 HTML 생성 (squarified 알고리즘). endYM이 주어지면 해당 월까지만 집계
+- `renderYearlySection(year, endYM)` — 연간 누적 섹션 (카테고리 트리맵 + 버블 차트 + 랭킹 리스트 10개 + "더 보기") HTML 생성. endYM이 주어지면 해당 월까지만 집계. _yearlyEndYM 전역 변수 설정
+- `renderCategoryTreemap(year, endYM)` — 연간 카테고리 트리맵 HTML 생성 (squarified 알고리즘, 코랄 단색 그라데이션). endYM이 주어지면 해당 월까지만 집계
 - `_squarify(values, x, y, w, h)` — squarified treemap 레이아웃 계산
 - `_worstAspect(row, rowTotal, totalArea, shortSide)` — aspect ratio 평가 헬퍼
 - `_packCircles(items, containerW, containerH)` — circle packing 알고리즘 (force-based, 금액 비례 반지름)
-- `_renderYearlyBubbles(merchants, containerW, containerH)` — 버블 차트 HTML 생성 (브랜드/상호 상위 20개만 버블, isCategoryEtc와 21위 이하는 "그 외" 인라인 태그로 분리)
+- `_renderYearlyBubbles(merchants, containerW, containerH)` — 버블 차트 HTML 생성 (브랜드/상호 상위 20개만 버블, isEtcGroup과 21위 이하는 "그 외" 인라인 태그로 분리)
 - `_renderEtcBanner(etcItemCount, year)` — 연간 "그 외" 인라인 태그 HTML 생성 (버블 영역 우하단)
-- `_renderYearlyRankList(merchants, limit)` — 랭킹 리스트 HTML 생성 (뉴트럴 그라데이션 배경, 순위+파비콘+상호명+금액)
-- `_renderYearlyGridItem(m, rank)` — 연간 그리드 아이템 HTML 생성 (월간 히어로 그리드에서 사용)
-- `loadMoreYearlyRank()` — 연간 랭킹 리스트 로드모어 (10개씩 추가 표시, DOM data-attribute로 카운트 관리)
-- `openYearlyFullPopup(year)` — 연간 전체 상호 리스트 팝업 (순위+파비콘+상호명+금액 리스트)
-- `openEtcGroupPopup(year)` — 연간 "기타" 묶음(1만원 이하) 클릭 시 소액 항목 리스트 팝업
+- `_renderYearlyRankList(merchants, limit, year)` — 랭킹 리스트 HTML 생성 (뉴트럴 톤, 순위+파비콘+상호명+금액+퍼센트)
+- `_renderYearlyGridItem(m, rank, year)` — 연간 그리드 아이템 HTML 생성 (월간 히어로 그리드에서도 사용)
+- `loadMoreYearlyRank()` — 연간 랭킹 리스트 로드모어 (10개씩 추가 표시, DOM data-attribute로 카운트/endYM 관리)
+- `openYearlyFullPopup(year, startFrom)` — 연간 전체 상호 리스트 팝업 (순위+파비콘+상호명+금액 리스트). _yearlyEndYM 참조
+- `openEtcGroupPopup(year)` — 연간 "기타" 묶음(1만원 이하) 클릭 시 소액 항목 리스트 팝업. _yearlyEndYM 참조
+- `openCategoryEtcPopup(catId, displayName, year)` — 연간 카테고리별 기타 클릭 → 해당 카테고리 내 상호별 소계 플로팅 팝업. _yearlyEndYM 참조
 
 **주요 렌더 함수 출력 구조:**
 - `renderWeeklyCalendar()` → `.exp-week-cal > .exp-week-grid > (.exp-week-dow-row > .exp-week-dow×7) + .exp-week-day×7` + `#expWeekDaySlot`
@@ -1418,6 +1421,7 @@ editor 영역 안에 다음 하위 패널이 있다. 한 번에 하나만 표시
 | 2026-03-11 | 아이콘 매핑 orphan 방지: saveExpenseForm에서 saveMerchantIcon 호출 전 해당 merchant의 이전 키워드 매핑 정리, URL 비우면 매핑 제거 |
 | 2026-03-11 | 연간 랭킹 "전체 순위 보기" → "더 보기" 로드모어 변경: renderYearlySection에서 버튼/래퍼 교체, loadMoreYearlyRank 추가, 8번 상세 맵 갱신 |
 | 2026-03-12 | 아내 가계부 카드 매핑 보강: soyoun312 cardNameMap에 신한8619 추가, parseSMSServer/parseSMS에 현대백화점카드 태그/지점명/신한체크 (금액) 태그 정제 추가, WORKFLOW.md 10번에 사용자별 카드 현황 표 추가 |
+| 2026-03-13 | 연간 "그 외" 태그/기타 팝업 반영: WORKFLOW.md 8번에 _renderEtcBanner, openEtcGroupPopup, openCategoryEtcPopup 추가, _renderYearlyBubbles 설명 갱신(isEtcGroup), getYearMerchantBreakdown 설명 갱신(isEtcGroup) |
 | 2026-03-13 | 브랜드 시스템 2-1: getMerchantBreakdown/getYearMerchantBreakdown를 brand 기준 그룹핑으로 변경, getMerchantIconHtml 조회순서 변경(brandIcons→merchantIcons→카테고리폴백), _logoFallback 추가, renderExpenseItem brand명 표시, _renderYearlyBubbles/_renderYearlyRankList/loadMoreYearlyRank 아이콘 조회 변경, openMerchantDetail 필터 brand 기준으로 변경, 8번 갱신 |
 | 2026-03-13 | 연간 누적 섹션 월별 집계: getYearMerchantBreakdown에 endYM 매개변수 추가, renderYearlySection/renderCategoryTreemap에 endYM 전달, renderExpenseDashboard에서 thisYM 전달, 연간 팝업 함수들(_yearlyEndYM 참조), 전역변수 _yearlyEndYM 추가, 8번/12번 갱신 |
 ```
