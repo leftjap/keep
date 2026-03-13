@@ -1176,6 +1176,11 @@ function renderAliasSuggestions(mode) {
     html += '</div>';
   });
 
+  // 관리 버튼 추가
+  html += '<div class="expense-alias-chip expense-alias-manage-btn" onclick="openAliasManager(\'' + (mode || 'normal') + '\')">';
+  html += '<span class="expense-alias-chip-text" style="color:var(--tx-hint);">관리</span>';
+  html += '</div>';
+
   container.innerHTML = html;
 }
 
@@ -2362,4 +2367,125 @@ function openYearlyFullPopup(year, startFrom) {
   var cx = window.innerWidth / 2;
   var cy = window.innerHeight / 2 - 50;
   openExpenseFloatingPopup(title, contentHtml, cx, cy);
+}
+
+// ═══════════════════════════════════════
+// 별명 일괄 관리 팝업
+// ═══════════════════════════════════════
+function openAliasManager(mode) {
+  var aliases = getMerchantAliases();
+  if (!aliases || aliases.length === 0) {
+    alert('등록된 별명이 없습니다.');
+    return;
+  }
+
+  // 별명 기준으로 그룹핑
+  var groups = {};
+  var groupOrder = [];
+  for (var i = 0; i < aliases.length; i++) {
+    var alias = aliases[i].alias;
+    var original = aliases[i].original;
+    if (!groups[alias]) {
+      groups[alias] = [];
+      groupOrder.push(alias);
+    }
+    groups[alias].push(original);
+  }
+
+  var contentHtml = '<div class="alias-mgr-list">';
+
+  groupOrder.forEach(function(alias) {
+    var originals = groups[alias];
+    var iconUrl = findMerchantIcon(alias);
+    // 별명에 아이콘 없으면 첫 번째 원본에서 검색
+    if (!iconUrl) {
+      for (var j = 0; j < originals.length; j++) {
+        iconUrl = findMerchantIcon(originals[j]);
+        if (iconUrl) break;
+      }
+    }
+    var iconSrc = iconUrl || DEFAULT_ICON_URL;
+    var escapedAlias = alias.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    var groupId = 'aliasGroup_' + alias.replace(/[^a-zA-Z0-9가-힣]/g, '_');
+
+    contentHtml += '<div class="alias-mgr-group">';
+
+    // 그룹 헤더 (클릭하면 펼침/접힘)
+    contentHtml += '<div class="alias-mgr-group-hdr" onclick="toggleAliasGroup(\'' + groupId + '\')">';
+    contentHtml += '<img class="alias-mgr-icon" src="' + iconSrc + '" onerror="this.onerror=null;this.src=\'' + DEFAULT_ICON_URL + '\';">';
+    contentHtml += '<div class="alias-mgr-group-info">';
+    contentHtml += '<div class="alias-mgr-alias-name">' + alias + '</div>';
+    contentHtml += '<div class="alias-mgr-count">' + originals.length + '개 매출처</div>';
+    contentHtml += '</div>';
+    contentHtml += '<svg class="alias-mgr-chevron" width="16" height="16" viewBox="0 0 16 16"><polyline points="4 6 8 10 12 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    contentHtml += '</div>';
+
+    // 원본 매출처 목록 (접힌 상태)
+    contentHtml += '<div class="alias-mgr-originals" id="' + groupId + '" style="display:none;">';
+    originals.forEach(function(orig) {
+      var origIconUrl = findMerchantIcon(orig) || DEFAULT_ICON_URL;
+      var escapedOrig = orig.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+      // 해당 매출처의 최근 거래 ID 찾기
+      var recentExpense = getExpenses().find(function(e) {
+        return (e.merchant || '').trim() === orig;
+      });
+      var expenseId = recentExpense ? recentExpense.id : null;
+
+      contentHtml += '<div class="alias-mgr-orig-row">';
+      contentHtml += '<img class="alias-mgr-orig-icon" src="' + origIconUrl + '" onerror="this.onerror=null;this.src=\'' + DEFAULT_ICON_URL + '\';">';
+      contentHtml += '<span class="alias-mgr-orig-name">' + orig + '</span>';
+
+      if (expenseId) {
+        contentHtml += '<button class="alias-mgr-edit-btn" onclick="openAliasEdit(\'' + expenseId + '\',\'' + (mode || 'normal') + '\')">수정</button>';
+      }
+
+      contentHtml += '<button class="alias-mgr-del-btn" onclick="deleteAlias(\'' + escapedOrig + '\',\'' + (mode || 'normal') + '\')">삭제</button>';
+      contentHtml += '</div>';
+    });
+    contentHtml += '</div>';
+
+    contentHtml += '</div>';
+  });
+
+  contentHtml += '</div>';
+
+  var cx = window.innerWidth / 2;
+  var cy = window.innerHeight / 2 - 50;
+  openExpenseFloatingPopup('별명 관리', contentHtml, cx, cy);
+}
+
+function toggleAliasGroup(groupId) {
+  var el = document.getElementById(groupId);
+  if (!el) return;
+  var isOpen = el.style.display !== 'none';
+  el.style.display = isOpen ? 'none' : 'block';
+  // 화살표 회전
+  var hdr = el.previousElementSibling;
+  if (hdr) {
+    var chevron = hdr.querySelector('.alias-mgr-chevron');
+    if (chevron) {
+      chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
+    }
+  }
+}
+
+function openAliasEdit(expenseId, mode) {
+  closeExpenseFloatingPopup();
+  if (window.innerWidth > 768) {
+    openExpenseModal(expenseId);
+  } else {
+    loadExpense(expenseId, 'normal');
+    setMobileView('editor');
+  }
+}
+
+function deleteAlias(originalMerchant, mode) {
+  if (!confirm('"' + originalMerchant + '"의 별명을 삭제할까요?')) return;
+  setMerchantAlias(originalMerchant, '');
+  SYNC.scheduleDatabaseSave();
+  // 팝업 닫고 다시 열기
+  closeExpenseFloatingPopup();
+  setTimeout(function() {
+    openAliasManager(mode);
+  }, 300);
 }

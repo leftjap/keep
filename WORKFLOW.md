@@ -550,6 +550,12 @@ gas-nametag/          — Google Apps Script (메인 레포와 별도 폴더)
 - `loadExpense(id, mode)` — 기존 항목 로드 (별명 필드 자동 채우기)
 - `saveExpenseForm(mode)` — 폼 저장 (별명 매핑 저장 + 매출처명을 키워드로 아이콘 매핑)
 
+**별명 관리:**
+- `openAliasManager(mode)` — 별명 일괄 관리 플로팅 팝업 (그룹별 목록, 수정/삭제)
+- `toggleAliasGroup(groupId)` — 별명 그룹 펼침/접힘 토글
+- `openAliasEdit(expenseId, mode)` — 팝업 닫고 해당 거래를 기존 입력 폼으로 열기
+- `deleteAlias(originalMerchant, mode)` — 개별 매출처의 별명 매핑 삭제
+
 **타임라인 컨텍스트 메뉴:**
 - `showExpensePopup(expenseId, x, y)` — 타임라인 항목 우클릭/꾹누르기 팝업 (수정/삭제)
 - `_deleteExpenseFromPopup(expenseId)` — 팝업에서 삭제 실행 + PC/태블릿: 항상 통합 대시보드 렌더, 모바일: 현재 화면에 따라 리렌더
