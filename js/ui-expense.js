@@ -2306,15 +2306,6 @@ function _renderYearlyBubbles(merchants, containerW, containerH) {
     };
   });
 
-  // 기타 묶기
-  if (merchants.length > 40) {
-    var etcAmount = 0;
-    for (var i = 40; i < merchants.length; i++) etcAmount += merchants[i].amount;
-    if (etcAmount > 0) {
-      bubbleItems.push({ merchant: '기타', amount: etcAmount, category: 'etc', icon: null, isEtc: true });
-    }
-  }
-
   var circles = _packCircles(bubbleItems, containerW, containerH);
 
   var html = '<div class="exp-yearly-bubble-wrap" style="width:100%;height:' + containerH + 'px;position:relative;overflow:hidden;">';
@@ -2330,9 +2321,7 @@ function _renderYearlyBubbles(merchants, containerW, containerH) {
 
     var yearVal = new Date(getExpenseViewYM() + '-01').getFullYear();
     var onclick;
-    if (c.item.isEtc) {
-      onclick = 'openYearlyFullPopup(' + yearVal + ',30)';
-    } else if (c.item.isCategoryEtc) {
+    if (c.item.isCategoryEtc) {
       onclick = 'openCategoryEtcPopup(\'' + c.item.category + '\',\'' + _escMerchant(c.item.merchant) + '\',' + yearVal + ')';
     } else {
       onclick = 'openMerchantDetail(\'' + _escMerchant(c.item.merchant) + '\',' + yearVal + ')';
@@ -2351,9 +2340,7 @@ function _renderYearlyBubbles(merchants, containerW, containerH) {
       + 'cursor:pointer;transition:transform .15s,box-shadow .15s;'
       + '">';
 
-    if (c.item.isEtc) {
-      html += '<span style="font-size:' + Math.max(11, Math.round(c.r * 0.45)) + 'px;color:var(--tx-m);font-weight:500;">기타</span>';
-    } else if (c.item.isCategoryEtc) {
+    if (c.item.isCategoryEtc) {
       // 카테고리 기타: 카테고리 색상 원 + 카테고리명
       var etcCatObj = EXPENSE_CATEGORIES.find(function(cat) { return cat.id === c.item.category; });
       var etcCatColor = etcCatObj ? etcCatObj.color : '#B0B0B8';
