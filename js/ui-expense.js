@@ -7,16 +7,51 @@ var DEFAULT_ICON_URL = 'default-icon.jpg';
 
 function getMerchantIconHtml(item) {
   var merchant = (item.merchant || '').trim();
-  var resolved = resolveAlias(merchant);
-  // 1. 사용자 지정 아이콘 매핑 확인 (별명 → 원본 순서로 검색)
-  var iconUrl = findMerchantIcon(resolved) || findMerchantIcon(merchant);
-  // 2. 항목 자체에 icon 필드가 있으면 우선
+  var brand = item.brand || null;
+  var iconUrl = null;
+
+  // 1. brand가 있으면 brandIcons에서 조회
+  if (brand) {
+    iconUrl = getBrandIcon(brand);
+  }
+
+  // 2. brandIcons에 없으면 merchantIcons에서 조회 (별명 역조회 포함)
+  if (!iconUrl) {
+    var resolved = resolveAlias(merchant);
+    iconUrl = findMerchantIcon(resolved) || findMerchantIcon(merchant);
+  }
+
+  // 3. 항목 자체에 icon 필드가 있으면 우선
   if (item.icon) iconUrl = item.icon;
-  // 3. 아이콘 URL이 있으면 해당 이미지, 없으면 고양이
-  var src = iconUrl || DEFAULT_ICON_URL;
-  return '<div class="exp-tl-item-icon exp-tl-item-icon-img">'
-    + '<img src="' + src + '" width="40" height="40" onerror="this.onerror=null;this.src=\'' + DEFAULT_ICON_URL + '\';">'
+
+  // 4. 아이콘이 있으면 이미지, 없으면 카테고리 아이콘 폴백
+  if (iconUrl) {
+    var category = item.category || 'etc';
+    return '<div class="exp-tl-item-icon exp-tl-item-icon-img">'
+      + '<img src="' + iconUrl + '" width="40" height="40" onerror="_logoFallback(this,\'' + category + '\')">'
+      + '</div>';
+  }
+
+  // 5. 카테고리 아이콘 폴백
+  var catId = item.category || 'etc';
+  var catObj = EXPENSE_CATEGORIES.find(function(c) { return c.id === catId; });
+  var catColor = catObj ? catObj.color : '#B0B0B8';
+  var catName = catObj ? catObj.name : '기타';
+  return '<div class="exp-tl-item-icon exp-tl-item-icon-cat" style="background:' + catColor + ';">'
+    + '<span style="color:#fff;font-size:11px;font-weight:600;">' + catName.substring(0, 2) + '</span>'
     + '</div>';
+}
+
+function _logoFallback(el, category) {
+  var catObj = EXPENSE_CATEGORIES.find(function(c) { return c.id === category; });
+  var catColor = catObj ? catObj.color : '#B0B0B8';
+  var catName = catObj ? catObj.name : '기타';
+  var parent = el.parentElement;
+  if (parent) {
+    parent.className = 'exp-tl-item-icon exp-tl-item-icon-cat';
+    parent.style.background = catColor;
+    parent.innerHTML = '<span style="color:#fff;font-size:11px;font-weight:600;">' + catName.substring(0, 2) + '</span>';
+  }
 }
 
 function updateExpenseCompact() {
@@ -379,7 +414,7 @@ function renderWeeklyCalendar(thisYM) {
 
 // 지출 항목 하나를 HTML로 생성
 function renderExpenseItem(item, clickAction) {
-  var displayMerchant = resolveAlias((item.merchant || '').trim()) || '미분류';
+  var displayMerchant = item.brand || (item.merchant || '').trim() || '미분류';
   var html = '<div class="exp-tl-item" data-expense-id="' + item.id + '" onclick="' + clickAction + '">';
   html += getMerchantIconHtml(item);
   html += '<div class="exp-tl-item-left">';
@@ -1846,14 +1881,23 @@ function openMerchantDetail(merchant, year) {
     // 연간 모드: 해당 연도 전체 내역
     var yearStr = String(year);
     expenses = getExpenses()
-      .filter(function(e) { return e.date && e.date.startsWith(yearStr) && resolveAlias((e.merchant || '').trim()) === merchant; })
+      .filter(function(e) {
+        if (!e.date || !e.date.startsWith(yearStr)) return false;
+        if (e.brand && e.brand === merchant) return true;
+        if (!e.brand && (e.merchant || '').trim() === merchant) return true;
+        return false;
+      })
       .sort(function(a, b) { return (b.date + ' ' + (b.time || '')).localeCompare(a.date + ' ' + (a.time || '')); });
     titleSuffix = year + '년';
   } else {
     // 월간 모드: 현재 보고 있는 월
     var ym = getExpenseViewYM();
     expenses = getMonthExpenses(ym)
-      .filter(function(e) { return resolveAlias((e.merchant || '').trim()) === merchant; })
+      .filter(function(e) {
+        if (e.brand && e.brand === merchant) return true;
+        if (!e.brand && (e.merchant || '').trim() === merchant) return true;
+        return false;
+      })
       .sort(function(a, b) { return (b.date + ' ' + (b.time || '')).localeCompare(a.date + ' ' + (a.time || '')); });
     var parts = ym.split('-');
     var mo = parseInt(parts[1]);
@@ -2204,7 +2248,7 @@ function _packCircles(items, containerW, containerH) {
 function _renderYearlyBubbles(merchants, containerW, containerH) {
   // 상위 20개 + 나머지를 "기타"로 묶기
   var bubbleItems = merchants.slice(0, 20).map(function(m) {
-    return { merchant: m.merchant, amount: m.amount, category: m.category, icon: null };
+    return { merchant: m.merchant, amount: m.amount, category: m.category, icon: null, brand: m.isBrand ? m.merchant : null };
   });
 
   // 기타 묶기
@@ -2250,10 +2294,12 @@ function _renderYearlyBubbles(merchants, containerW, containerH) {
     if (c.item.isEtc) {
       html += '<span style="font-size:' + Math.max(11, Math.round(c.r * 0.45)) + 'px;color:var(--tx-m);font-weight:500;">기타</span>';
     } else {
-      var iconItem = { merchant: c.item.merchant, icon: c.item.icon };
-      // 파비콘만 — getMerchantIconHtml의 img 태그 크기 조정
-      var src = findMerchantIcon(c.item.merchant) || findMerchantIcon(resolveAlias(c.item.merchant)) || DEFAULT_ICON_URL;
-      html += '<img src="' + src + '" width="' + imgSize + '" height="' + imgSize + '" style="border-radius:50%;object-fit:cover;" onerror="this.onerror=null;this.src=\'' + DEFAULT_ICON_URL + '\';">';
+      var src = null;
+      if (c.item.brand) src = getBrandIcon(c.item.brand);
+      if (!src) src = findMerchantIcon(c.item.merchant) || findMerchantIcon(resolveAlias(c.item.merchant));
+      if (!src) src = DEFAULT_ICON_URL;
+      var category = c.item.category || 'etc';
+      html += '<img src="' + src + '" width="' + imgSize + '" height="' + imgSize + '" style="border-radius:50%;object-fit:cover;" onerror="_logoFallback(this,\'' + category + '\')">';
     }
 
     html += '</div>';
@@ -2276,14 +2322,18 @@ function _renderYearlyRankList(merchants, limit, year) {
     var rankColor = 'var(--tx-m)';
     var nameWeight = rank === 1 ? '600' : '400';
 
-    var src = findMerchantIcon(m.merchant) || findMerchantIcon(resolveAlias(m.merchant)) || DEFAULT_ICON_URL;
+    var src = null;
+    if (m.isBrand) src = getBrandIcon(m.merchant);
+    if (!src) src = findMerchantIcon(m.merchant) || findMerchantIcon(resolveAlias(m.merchant));
+    if (!src) src = DEFAULT_ICON_URL;
 
     html += '<div class="exp-yearly-rank-row" onclick="openMerchantDetail(\'' + _escMerchant(m.merchant) + '\',' + year + ')">';
 
     html += '<span class="exp-yearly-rank-num" style="font-size:' + rankSize + ';font-weight:' + rankWeight + ';color:' + rankColor + ';">' + rank + '</span>';
 
     html += '<div class="exp-yearly-rank-icon">';
-    html += '<img src="' + src + '" width="36" height="36" style="border-radius:50%;object-fit:cover;" onerror="this.onerror=null;this.src=\'' + DEFAULT_ICON_URL + '\';">';
+    var catForFallback = m.category || 'etc';
+    html += '<img src="' + src + '" width="36" height="36" style="border-radius:50%;object-fit:cover;" onerror="_logoFallback(this,\'' + catForFallback + '\')">';
     html += '</div>';
 
     html += '<div class="exp-yearly-rank-name" style="font-weight:' + nameWeight + ';">' + m.merchant + '</div>';
@@ -2326,12 +2376,16 @@ function loadMoreYearlyRank() {
     var rankColor = 'var(--tx-m)';
     var nameWeight = rank === 1 ? '600' : '400';
 
-    var src = findMerchantIcon(m.merchant) || findMerchantIcon(resolveAlias(m.merchant)) || DEFAULT_ICON_URL;
+    var src = null;
+    if (m.isBrand) src = getBrandIcon(m.merchant);
+    if (!src) src = findMerchantIcon(m.merchant) || findMerchantIcon(resolveAlias(m.merchant));
+    if (!src) src = DEFAULT_ICON_URL;
 
     html += '<div class="exp-yearly-rank-row" onclick="openMerchantDetail(\'' + _escMerchant(m.merchant) + '\',' + year + ')">';
     html += '<span class="exp-yearly-rank-num" style="font-size:' + rankSize + ';font-weight:' + rankWeight + ';color:' + rankColor + ';">' + rank + '</span>';
     html += '<div class="exp-yearly-rank-icon">';
-    html += '<img src="' + src + '" width="36" height="36" style="border-radius:50%;object-fit:cover;" onerror="this.onerror=null;this.src=\'' + DEFAULT_ICON_URL + '\';">';
+    var catForFallback = m.category || 'etc';
+    html += '<img src="' + src + '" width="36" height="36" style="border-radius:50%;object-fit:cover;" onerror="_logoFallback(this,\'' + catForFallback + '\')">';
     html += '</div>';
     html += '<div class="exp-yearly-rank-name" style="font-weight:' + nameWeight + ';">' + m.merchant + '</div>';
     html += '<div class="exp-yearly-rank-amount">' + formatAmount(m.amount) + '원</div>';

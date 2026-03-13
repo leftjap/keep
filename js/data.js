@@ -544,9 +544,16 @@ function getMerchantBreakdown(ym) {
   var map = {};
   expenses.forEach(function(e) {
     var raw = (e.merchant || '미분류').trim();
-    var key = resolveAlias(raw);
+    var key;
+    var isBrand = false;
+    if (e.brand) {
+      key = e.brand;
+      isBrand = true;
+    } else {
+      key = raw;
+    }
     if (!map[key]) {
-      map[key] = { merchant: key, amount: 0, count: 0, catCount: {} };
+      map[key] = { merchant: key, amount: 0, count: 0, catCount: {}, isBrand: isBrand };
     }
     map[key].amount += e.amount;
     map[key].count += 1;
@@ -570,7 +577,8 @@ function getMerchantBreakdown(ym) {
       amount: item.amount,
       count: item.count,
       percent: total > 0 ? Math.round(item.amount / total * 1000) / 10 : 0,
-      category: bestCat
+      category: bestCat,
+      isBrand: item.isBrand
     });
   });
   result.sort(function(a, b) { return b.amount - a.amount; });
@@ -592,9 +600,16 @@ function getYearMerchantBreakdown(year) {
   var map = {};
   yearExpenses.forEach(function(e) {
     var raw = (e.merchant || '미분류').trim();
-    var key = resolveAlias(raw);
+    var key;
+    var isBrand = false;
+    if (e.brand) {
+      key = e.brand;
+      isBrand = true;
+    } else {
+      key = raw;
+    }
     if (!map[key]) {
-      map[key] = { merchant: key, amount: 0, count: 0, catCount: {} };
+      map[key] = { merchant: key, amount: 0, count: 0, catCount: {}, isBrand: isBrand };
     }
     map[key].amount += e.amount;
     map[key].count += 1;
@@ -618,7 +633,8 @@ function getYearMerchantBreakdown(year) {
       amount: item.amount,
       count: item.count,
       percent: total > 0 ? Math.round(item.amount / total * 1000) / 10 : 0,
-      category: bestCat
+      category: bestCat,
+      isBrand: item.isBrand
     });
   });
   merchants.sort(function(a, b) { return b.amount - a.amount; });

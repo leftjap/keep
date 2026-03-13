@@ -3709,6 +3709,16 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   object-fit: cover;
 }
 
+.exp-tl-item-icon-cat {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
 /* ═══════════════════════════════════════
    월 헤더 인라인 (상단 네비 바)
    ═══════════════════════════════════════ */

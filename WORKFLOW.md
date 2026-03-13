@@ -406,8 +406,8 @@ gas-nametag/          — Google Apps Script (메인 레포와 별도 폴더)
 - `getTopCategoryChange(ym)` — 전월 대비 가장 변화폭이 큰 카테고리 {name, diff}
 - `getMonthlyTrend(count)` — 월별 추이 (count: 개월수, 기본값 6)
 - `getMonthlyTrendAround(centerYM)` — 중심 월 기준 월별 추이
-- `getMerchantBreakdown(ym)` — 월간 상호별 지출 분석 [{merchant, amount, count, percent, category}, ...]
-- `getYearMerchantBreakdown(year)` — 연간 상호별 지출 분석 {startDate, endDate, total, merchants: [...]}
+- `getMerchantBreakdown(ym)` — 월간 상호별 지출 분석. brand 기준 그룹핑 (brand 있으면 brand로, 없으면 매출처명으로 그룹). [{merchant, amount, count, percent, category, isBrand}, ...]
+- `getYearMerchantBreakdown(year)` — 연간 상호별 지출 분석. brand 기준 그룹핑. {startDate, endDate, total, merchants: [{..., isBrand}, ...]}
 
 **매출처 별명:**
 - `getMerchantAliases()`, `saveMerchantAliases(arr)` — 별명 매핑 읽기/쓰기
@@ -500,7 +500,7 @@ gas-nametag/          — Google Apps Script (메인 레포와 별도 폴더)
 - `CATEGORY_ICONS` — 카테고리별 SVG 아이콘 매핑
 - `getCategoryIcon(item)`, `getCategoryBg(item)` — 아이콘/배경색 조회
 - `_findMerchantDomain(merchant)` — MERCHANT_LOGOS 매핑에서 매출처 도메인 검색 (긴 키워드 우선)
-- `getMerchantIconHtml(item)` — 매출처 파비콘 또는 카테고리 아이콘 HTML. MERCHANT_LOGOS 매핑 사용
+- `getMerchantIconHtml(item)` — 매출처 아이콘 HTML. 조회 순서: brandIcons → merchantIcons → 카테고리 아이콘 폴백
 - `_logoFallback(el, category)` — 이미지 로드 실패 시 카테고리 아이콘으로 대체
 - `updateExpenseCompact()` — 사이드바 가계부 금액 업데이트
 
@@ -1414,4 +1414,5 @@ editor 영역 안에 다음 하위 패널이 있다. 한 번에 하나만 표시
 | 2026-03-11 | 아이콘 매핑 orphan 방지: saveExpenseForm에서 saveMerchantIcon 호출 전 해당 merchant의 이전 키워드 매핑 정리, URL 비우면 매핑 제거 |
 | 2026-03-11 | 연간 랭킹 "전체 순위 보기" → "더 보기" 로드모어 변경: renderYearlySection에서 버튼/래퍼 교체, loadMoreYearlyRank 추가, 8번 상세 맵 갱신 |
 | 2026-03-12 | 아내 가계부 카드 매핑 보강: soyoun312 cardNameMap에 신한8619 추가, parseSMSServer/parseSMS에 현대백화점카드 태그/지점명/신한체크 (금액) 태그 정제 추가, WORKFLOW.md 10번에 사용자별 카드 현황 표 추가 |
+| 2026-03-13 | 브랜드 시스템 2-1: getMerchantBreakdown/getYearMerchantBreakdown를 brand 기준 그룹핑으로 변경, getMerchantIconHtml 조회순서 변경(brandIcons→merchantIcons→카테고리폴백), _logoFallback 추가, renderExpenseItem brand명 표시, _renderYearlyBubbles/_renderYearlyRankList/loadMoreYearlyRank 아이콘 조회 변경, openMerchantDetail 필터 brand 기준으로 변경, 8번 갱신 |
 ```
