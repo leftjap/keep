@@ -771,11 +771,11 @@ gas-nametag/          — Google Apps Script (메인 레포와 별도 폴더)
 - `uploadImageToDrive(bytes, mimeType, filename)` — base64 → Blob → '첨부이미지' 폴더에 파일 생성, 링크 공유 설정
 
 **SMS 가계부:**
-- `saveExpenseFromSMS(smsText)` — SMS 텍스트 → 파싱 → Gemini 카테고리 분류(`classifyMerchantWithGemini`) → 실패 시 규칙 기반 폴백(`autoMatchCategoryServer`) → `app_database.json`의 `gb_expenses`에 추가. LockService 사용
-- `parseSMSServer(text)` — SMS 문자열 파싱 → {amount, merchant, card, date, time, category}. 거절/취소 필터, 카드사+번호 매핑(CARD_NAME_MAP), 가맹점 정제
-- `autoMatchCategoryServer(merchant)` — 가맹점명 → 카테고리 규칙 기반 매칭 (12개 카테고리). Gemini 실패 시 폴백. sms-parser.js의 `autoMatchCategory()`와 동일 규칙 유지 필수
-- `classifyMerchantWithGemini(merchant)` — Gemini 2.5 Flash API로 매출처 → 카테고리 분류. 12개 카테고리 ID 중 하나 반환. 실패 시 null → `autoMatchCategoryServer()` 폴백
-- `reclassifyAllExpenses()` — 기존 가계부 전체 재분류 (GAS 편집기에서 수동 실행). 고유 매출처만 Gemini 호출, ScriptProperties 캐시, 6분 제한 대응 재실행 방식
+- `saveExpenseFromSMS(smsText, config)` — SMS 텍스트 → 파싱 → Gemini 분류(카테고리+브랜드) → brandOverrides 체크 → expense에 brand 필드 추가 후 저장. LockService 사용
+- `parseSMSServer(text, config)` — SMS 문자열 파싱 → {amount, merchant, card, date, time, category}. config.cardNameMap 사용, 거절/취소 필터, 카드사+번호 매핑, 가맹점 정제
+- `autoMatchCategoryServer(merchant, config)` — 가맹점명 → 카테고리 규칙 기반 매칭 (config.expenseCategories 동적 필터). Gemini 실패 시 폴백. sms-parser.js의 `autoMatchCategory()`와 동일 규칙 유지 필수
+- `classifyMerchantWithGemini(merchant, card, config)` — Gemini 2.5 Flash API로 매출처 → {category, brand} 분류. JSON 응답 파싱 + 텍스트 매칭 폴백. card 매개변수는 프롬프트 힌트용. 실패 시 {category: autoMatchCategoryServer(...), brand: null}
+- `reclassifyAllExpenses(email)` — 기존 가계부 전체 재분류 (GAS 편집기에서 수동 실행). 고유 매출처만 Gemini 호출, ScriptProperties 캐시, 6분 제한 대응 재실행 방식. brandOverrides에 있는 매출처명 건너뜀
 
 **일괄 유틸 (GAS 편집기에서 수동 실행):**
 - `importCardSmsSheet()` — card_sms 스프레드시트에서 가계부 일괄 가져오기 (중복 체크, 날짜순 정렬)
@@ -1241,9 +1241,10 @@ editor 영역 안에 다음 하위 패널이 있다. 한 번에 하나만 표시
 ### saveExpenseFromSMS(smsText, config) [GAS 서버]
 ```
 → parseSMSServer(smsText, config) [config.cardNameMap 사용]
-→ classifyMerchantWithGemini(merchant, config) [config.expenseCategories 동적 프롬프트]
-→ [실패 시] autoMatchCategoryServer(merchant, config) [config.expenseCategories 필터]
-→ getDatabaseFile(config)에 expense 추가
+→ classifyMerchantWithGemini(merchant, card, config) → {category, brand}
+→ [실패 시] autoMatchCategoryServer(merchant, config) → category만, brand는 null
+→ brandOverrides 체크 → 최종 brand 결정
+→ getDatabaseFile(config)에 expense(brand 포함) 추가
 → [클라이언트] visibilitychange → SYNC.mergeServerExpenses() → 대시보드 리렌더
 ```
 
@@ -1281,7 +1282,7 @@ editor 영역 안에 다음 하위 패널이 있다. 한 번에 하나만 표시
 
 ### 가계부 (K.expenses)
 ```
-{ id, amount, category, merchant, card, memo, date, time, created, source }
+{ id, amount, category, merchant, card, memo, date, time, created, source, brand }
 ```
 
 ### 루틴 체크 (K.checks)
@@ -1393,6 +1394,7 @@ editor 영역 안에 다음 하위 패널이 있다. 한 번에 하나만 표시
 | 2026-03-11 | 연간 누적 섹션 교체: 리스트+바 → 버블 차트(circle packing)+랭킹 리스트(뉴트럴 그라데이션). _packCircles/_renderYearlyBubbles/_renderYearlyRankList 추가, _renderYearlyListItem/_loadMoreYearly/_yearlyLoadedCount 제거, renderYearlySection 전면 교체, CSS 버블/랭킹 스타일 추가, 8번/12번 WORKFLOW.md 갱신 |
 | 2026-03-11 | 가계부/루틴 월 네비 데이터 없는 월 이동 차단: data.js에 getOldestExpenseYM/getOldestRoutineYM/hasExpenseDataInMonth/hasRoutineDataInMonth 추가, changeExpenseMonth/renderExpenseMonthNav/openMonthPicker/selectMonth에 데이터 유무 체크 추가, changeRoutineMonth/renderRoutineMonthNav/openRoutineMonthPicker/pickRoutineMonth에 동일 체크 추가, 월 피커에서 데이터 없는 월 회색 비활성 표시 |
 | 2026-03-11 | 모바일 가계부 새 항목 진입 시 클립보드 자동 파싱: prefetchClipboardForExpense 추가, handleNew에서 가계부 탭 진입 시 호출, pasteFromClipboard에서 사전 읽기 텍스트 우선 사용, _prefetchedClipboard 전역 변수 추가 |
+| 2026-03-13 | 브랜드 시스템 1-2단계: classifyMerchantWithGemini 인터페이스 변경(merchant,card,config), JSON 응답(category+brand) 파싱 추가, saveExpenseFromSMS에 brand 저장+brandOverrides 적용, reclassifyAllExpenses에 brand 지원+brandOverrides 보호, importCardSmsSheet에 brand:null 추가, _cleanSoyounMerchants 임시 함수 삭제. 8번 SMS 가계부 설명/14번 saveExpenseFromSMS 흐름/15번 가계부 스키마 갱신 |
 | 2026-03-11 | 캘린더 선택 효과 ::before 카드 방식 완성: exp-month-day/exp-week-day/rc-day의 scale(1.2) 제거 및 ::before 통일, today 선택 시 떠오름 해제(has 선택자), PC/태블릿에서 정사각형(68px) 고정 크기로 제한, 19번 체크리스트에 분기 주의사항 추가 |
 | 2026-03-11 | 루틴 주간 날짜 표시 수정(getMonth()+1 우선순위), 미래 날짜 체크 차단, 연속 기록 계산 개선(현재+이번주최장+전체최장) |
 | 2026-03-11 | 사이드바 글쓰기 메뉴 화살표→글 개수 표시, 가계부 화살표 제거, 19번 체크리스트에 badge-pill/캘린더 선택 효과 주의사항 추가 |
