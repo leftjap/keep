@@ -2779,11 +2779,31 @@ function renderCategoryTreemap(year) {
     mainItems.push(etcItem);
   }
 
+  // 코랄 단색 그라데이션 팔레트 (순위 기반, 전체 흰색 텍스트)
+  var coralPalette = [
+    'hsl(4, 65%, 52%)',  // 1위 — 진한 코랄
+    'hsl(4, 55%, 57%)',  // 2위
+    'hsl(4, 48%, 61%)',  // 3위
+    'hsl(4, 42%, 65%)',  // 4위
+    'hsl(4, 36%, 68%)',  // 5위
+    'hsl(4, 36%, 68%)',  // 6위
+    'hsl(4, 30%, 71%)',  // 7위
+    'hsl(4, 30%, 71%)',  // 8위
+    'hsl(4, 25%, 73%)',  // 9위
+    'hsl(4, 25%, 73%)',  // 10위
+    'hsl(4, 20%, 75%)',  // 11위
+    'hsl(4, 20%, 75%)'   // 12위
+  ];
+
   // 비율 과장: pow(1.5) 적용
-  var adjustedItems = mainItems.map(function(item) {
+  var adjustedItems = mainItems.map(function(item, idx) {
     var val = item.forcedAmount || item.amount;
+    var colorIdx = Math.min(idx, coralPalette.length - 1);
+    // 기타는 항상 가장 연한 색
+    if (item.id === 'etc') colorIdx = coralPalette.length - 1;
     return {
-      id: item.id, name: item.name, color: item.color,
+      id: item.id, name: item.name,
+      treemapColor: coralPalette[colorIdx],
       amount: item.amount,
       adjusted: Math.pow(val, 1.5),
       isEtc: item.id === 'etc'
@@ -2832,9 +2852,6 @@ function renderCategoryTreemap(year) {
     var cellPxW = r.w / 100 * actualW;
     var cellPxH = r.h;
 
-    // 색상 톤다운: opacity 0.7 적용
-    var cellColor = item.color;
-
     // 비중에 따른 폰트 크기
     var ratio = item.amount / maxAmount;
     var nameFontSize = Math.round(11 + ratio * 7);
@@ -2860,7 +2877,7 @@ function renderCategoryTreemap(year) {
     if (!useVertical && cellPxW < 70) showAmount = false;
 
     var cellStyle = 'left:' + r.x + '%;top:' + r.y + 'px;width:' + r.w + '%;height:' + r.h + 'px;'
-      + 'background:' + cellColor + ';opacity:0.75;';
+      + 'background:' + item.treemapColor + ';';
 
     if (useVertical) {
       // 세로 배치: flex-direction column
