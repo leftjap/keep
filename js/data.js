@@ -665,7 +665,7 @@ function getYearMerchantBreakdown(year) {
     var catObj = EXPENSE_CATEGORIES.find(function(c) { return c.id === catId; });
     var catName = catObj ? catObj.name : '기타';
     grouped.push({
-      merchant: catName + ' 기타',
+      merchant: catId === 'etc' ? '기타' : catName + ' 기타',
       amount: info.totalAmount,
       count: info.totalCount,
       percent: total > 0 ? Math.round(info.totalAmount / total * 1000) / 10 : 0,

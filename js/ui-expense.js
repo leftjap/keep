@@ -1959,7 +1959,7 @@ function openCategoryEtcPopup(catId, displayName, year) {
 
   var catObj = EXPENSE_CATEGORIES.find(function(c) { return c.id === catId; });
   var catName = catObj ? catObj.name : '기타';
-  var title = catName + ' 기타 · ' + year + '년';
+  var title = (catId === 'etc' ? '기타' : catName + ' 기타') + ' · ' + year + '년';
 
   var items = etcEntry.etcItems.slice().sort(function(a, b) { return b.amount - a.amount; });
   var total = items.reduce(function(s, m) { return s + m.amount; }, 0);
@@ -2293,8 +2293,8 @@ function _packCircles(items, containerW, containerH) {
 
 // 버블 차트 HTML 생성
 function _renderYearlyBubbles(merchants, containerW, containerH) {
-  // 상위 30개 + 나머지를 "기타"로 묶기
-  var bubbleItems = merchants.slice(0, 30).map(function(m) {
+  // 상위 40개 + 나머지를 "기타"로 묶기
+  var bubbleItems = merchants.slice(0, 40).map(function(m) {
     return {
       merchant: m.merchant,
       amount: m.amount,
@@ -2307,9 +2307,9 @@ function _renderYearlyBubbles(merchants, containerW, containerH) {
   });
 
   // 기타 묶기
-  if (merchants.length > 30) {
+  if (merchants.length > 40) {
     var etcAmount = 0;
-    for (var i = 30; i < merchants.length; i++) etcAmount += merchants[i].amount;
+    for (var i = 40; i < merchants.length; i++) etcAmount += merchants[i].amount;
     if (etcAmount > 0) {
       bubbleItems.push({ merchant: '기타', amount: etcAmount, category: 'etc', icon: null, isEtc: true });
     }
