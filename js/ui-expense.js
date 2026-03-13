@@ -2399,7 +2399,7 @@ function _renderYearlyRankList(merchants, limit, year) {
 
     var src = null;
     var useCatIcon = false;
-    if (m.isCategoryEtc) {
+    if (m.isEtcGroup) {
       useCatIcon = true;
     } else {
       if (m.isBrand) src = getBrandIcon(m.merchant);
@@ -2407,8 +2407,8 @@ function _renderYearlyRankList(merchants, limit, year) {
       if (!src) src = DEFAULT_ICON_URL;
     }
 
-    var rankOnclick = m.isCategoryEtc
-      ? 'openCategoryEtcPopup(\'' + m.category + '\',\'' + _escMerchant(m.merchant) + '\',' + year + ')'
+    var rankOnclick = m.isEtcGroup
+      ? 'openYearlyFullPopup(' + year + ',0)'
       : 'openMerchantDetail(\'' + _escMerchant(m.merchant) + '\',' + year + ')';
     html += '<div class="exp-yearly-rank-row" onclick="' + rankOnclick + '">';
 
@@ -2470,7 +2470,7 @@ function loadMoreYearlyRank() {
 
     var src = null;
     var useCatIcon = false;
-    if (m.isCategoryEtc) {
+    if (m.isEtcGroup) {
       useCatIcon = true;
     } else {
       if (m.isBrand) src = getBrandIcon(m.merchant);
@@ -2478,8 +2478,8 @@ function loadMoreYearlyRank() {
       if (!src) src = DEFAULT_ICON_URL;
     }
 
-    var rankOnclick = m.isCategoryEtc
-      ? 'openCategoryEtcPopup(\'' + m.category + '\',\'' + _escMerchant(m.merchant) + '\',' + year + ')'
+    var rankOnclick = m.isEtcGroup
+      ? 'openYearlyFullPopup(' + year + ',0)'
       : 'openMerchantDetail(\'' + _escMerchant(m.merchant) + '\',' + year + ')';
     html += '<div class="exp-yearly-rank-row" onclick="' + rankOnclick + '">';
     html += '<span class="exp-yearly-rank-num" style="font-size:' + rankSize + ';font-weight:' + rankWeight + ';color:' + rankColor + ';">' + rank + '</span>';
@@ -2534,12 +2534,12 @@ function openYearlyFullPopup(year, startFrom) {
     var catColor = catObj ? catObj.color : '#B0B0B8';
     var iconItem = { merchant: m.merchant, icon: null, category: m.category };
 
-    var fpOnclick = m.isCategoryEtc
-      ? 'closeExpenseFloatingPopup(); openCategoryEtcPopup(\'' + m.category + '\',\'' + _escMerchant(m.merchant) + '\',' + year + ')'
+    var fpOnclick = m.isEtcGroup
+      ? ''
       : 'closeExpenseFloatingPopup(); openMerchantDetail(\'' + _escMerchant(m.merchant) + '\',' + year + ')';
     contentHtml += '<div class="exp-fp-yearly-row" style="cursor:pointer;" onclick="' + fpOnclick + '">';
     contentHtml += '<span class="exp-fp-yearly-rank">' + (rankOffset + i + 1) + '</span>';
-    if (m.isCategoryEtc) {
+    if (m.isEtcGroup) {
       var fpCatObj = EXPENSE_CATEGORIES.find(function(c) { return c.id === m.category; });
       var fpCatColor = fpCatObj ? fpCatObj.color : '#B0B0B8';
       var fpCatName = fpCatObj ? fpCatObj.name : '기타';

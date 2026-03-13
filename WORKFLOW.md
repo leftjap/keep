@@ -407,7 +407,7 @@ gas-nametag/          — Google Apps Script (메인 레포와 별도 폴더)
 - `getMonthlyTrend(count)` — 월별 추이 (count: 개월수, 기본값 6)
 - `getMonthlyTrendAround(centerYM)` — 중심 월 기준 월별 추이
 - `getMerchantBreakdown(ym)` — 월간 상호별 지출 분석. brand 기준 그룹핑 (brand 있으면 brand로, 없으면 매출처명으로 그룹). [{merchant, amount, count, percent, category, isBrand}, ...]
-- `getYearMerchantBreakdown(year)` — 연간 상호별 지출 분석. brand 기준 그룹핑. 비브랜드+1건+10만원이하는 카테고리별 기타로 묶기 (isCategoryEtc, etcItems 필드 포함). {startDate, endDate, total, merchants: [{..., isBrand, isCategoryEtc, etcItems}, ...]}
+- `getYearMerchantBreakdown(year)` — 연간 상호별 지출 분석. brand 기준 그룹핑. 1만원 이하는 단일 "기타"로 묶기 (isEtcGroup, etcItems 필드 포함). {startDate, endDate, total, merchants: [{..., isBrand, isEtcGroup, etcItems}, ...]}
 
 **매출처 별명:**
 - `getMerchantAliases()`, `saveMerchantAliases(arr)` — 별명 매핑 읽기/쓰기
