@@ -2236,36 +2236,38 @@ function _renderYearlyGridItem(m, rank, year) {
 // 버블 차트 — Circle Packing
 // ═══════════════════════════════════════
 function _packCircles(items, containerW, containerH) {
-  // items: [{merchant, amount, ...}], 금액 내림차순 정렬 전제
   if (!items || items.length === 0) return [];
 
   var maxAmount = items[0].amount;
   var minR = 14;
-  var maxR = Math.min(containerW * 0.4, containerH * 0.45);
+  var maxR = Math.min(containerW * 0.35, containerH * 0.42);
   var cx = containerW / 2;
   var cy = containerH / 2;
 
-  // 반지름 계산 (면적 비례: r = sqrt(amount/max) * maxR)
+  // 반지름 계산 (면적 비례)
   var circles = items.map(function(item, i) {
     var ratio = Math.sqrt(item.amount / maxAmount);
     var r = Math.max(minR, ratio * maxR);
     return { x: cx, y: cy, r: r, item: item, index: i };
   });
 
-  // 첫 번째 원은 중앙
+  // 최대 반지름 (중앙 끌기 힘 정규화용)
+  var maxR_actual = circles[0].r;
+
+  // 첫 번째 원은 정확히 중앙
   circles[0].x = cx;
   circles[0].y = cy;
 
-  // 나머지 원들을 나선형으로 배치 후 충돌 해소
+  // 나머지 원: 크기 순서대로 중앙에서 가까운 곳에 초기 배치
   for (var i = 1; i < circles.length; i++) {
-    var angle = i * 2.4; // golden angle ~137.5°
+    var angle = i * 2.4;
     var dist = circles[0].r + circles[i].r + 4;
-    circles[i].x = cx + Math.cos(angle) * dist * 0.8;
-    circles[i].y = cy + Math.sin(angle) * dist * 0.8;
+    circles[i].x = cx + Math.cos(angle) * dist * 0.6;
+    circles[i].y = cy + Math.sin(angle) * dist * 0.6;
   }
 
-  // 간단한 force simulation (80회 반복)
-  for (var iter = 0; iter < 120; iter++) {
+  // Force simulation
+  for (var iter = 0; iter < 150; iter++) {
     // 원끼리 겹침 해소
     for (var i = 0; i < circles.length; i++) {
       for (var j = i + 1; j < circles.length; j++) {
@@ -2277,18 +2279,25 @@ function _packCircles(items, containerW, containerH) {
           var overlap = (minDist - dist) / 2;
           var nx = dx / dist;
           var ny = dy / dist;
-          circles[i].x -= nx * overlap;
-          circles[i].y -= ny * overlap;
-          circles[j].x += nx * overlap;
-          circles[j].y += ny * overlap;
+          // 작은 원이 더 많이 밀려남
+          var totalR = circles[i].r + circles[j].r;
+          var ratioI = circles[j].r / totalR; // i가 클수록 적게 밀림
+          var ratioJ = circles[i].r / totalR; // j가 클수록 적게 밀림
+          circles[i].x -= nx * overlap * ratioI;
+          circles[i].y -= ny * overlap * ratioI;
+          circles[j].x += nx * overlap * ratioJ;
+          circles[j].y += ny * overlap * ratioJ;
         }
       }
     }
-    // 중앙으로 약하게 끌어당기기
+
+    // 중앙으로 끌어당기기 — 큰 원이 강하게, 작은 원이 약하게
     for (var i = 0; i < circles.length; i++) {
-      circles[i].x += (cx - circles[i].x) * 0.05;
-      circles[i].y += (cy - circles[i].y) * 0.05;
+      var strength = 0.03 + 0.07 * (circles[i].r / maxR_actual);
+      circles[i].x += (cx - circles[i].x) * strength;
+      circles[i].y += (cy - circles[i].y) * strength;
     }
+
     // 컨테이너 경계 안에 유지
     for (var i = 0; i < circles.length; i++) {
       var c = circles[i];
@@ -2889,18 +2898,16 @@ function renderCategoryTreemap(year, endYM) {
     var amountText = Math.round(item.amount / 10000) + '만';
 
     // 레이아웃 판단
-    var useVertical = cellPxH >= 40;
+    var useVertical = cellPxH >= 42;
     var showAmount = !item.isEtc;
     var showName = true;
 
     // 가로 배치인데 너비 부족하면 금액 숨김
     if (!useVertical && cellPxW < 70) showAmount = false;
-
-    // 셀이 너무 작으면 금액 숨김
-    if (cellPxH < 30) showAmount = false;
-
-    // 셀이 극히 작으면 이름도 숨김 (높이 18px 미만 또는 너비 30px 미만)
-    if (cellPxH < 18 || cellPxW < 30) {
+    // 셀 높이가 이름+금액 세로 배치에 부족하면 금액 숨김
+    if (cellPxH < 32) showAmount = false;
+    // 셀이 한 줄 텍스트도 담을 수 없으면 이름도 숨김
+    if (cellPxH < 22 || cellPxW < 32) {
       showName = false;
       showAmount = false;
     }
