@@ -5253,14 +5253,15 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   position: absolute;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-end;
-  padding: 8px 10px;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 6px;
   cursor: pointer;
   transition: opacity .12s;
   overflow: hidden;
   box-sizing: border-box;
   border: 1px solid rgba(255,255,255,.2);
+  gap: 1px;
 }
 
 .exp-treemap-cell:hover {
@@ -5275,12 +5276,13 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   color: #fff;
   font-weight: 600;
   font-family: 'Pretendard', -apple-system, sans-serif;
-  line-height: 1.3;
+  line-height: 1.2;
   text-shadow: 0 1px 3px rgba(0,0,0,.3);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
+  text-align: center;
 }
 
 .exp-treemap-amount {
@@ -5288,9 +5290,10 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   font-size: 11px;
   font-weight: 400;
   font-family: 'Pretendard', -apple-system, sans-serif;
-  line-height: 1.3;
+  line-height: 1.2;
   text-shadow: 0 1px 2px rgba(0,0,0,.2);
   white-space: nowrap;
+  text-align: center;
 }
 
 .exp-treemap-pct {
