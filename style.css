@@ -2417,6 +2417,51 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 
 .expense-icon-error.show { display: block; }
 
+/* ═══ 브랜드 표시 필드 (가계부 폼) ═══ */
+.expense-brand-field {
+  margin-bottom: 16px;
+}
+
+.expense-brand-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-l);
+}
+
+.expense-brand-name {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--tx);
+  font-family: 'Pretendard', -apple-system, sans-serif;
+}
+
+.expense-brand-edit-btn,
+.expense-brand-remove-btn {
+  flex-shrink: 0;
+  padding: 4px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: none;
+  font-size: 12px;
+  color: var(--tx-m);
+  cursor: pointer;
+  font-family: 'Pretendard', sans-serif;
+  transition: .12s;
+}
+
+.expense-brand-edit-btn:hover {
+  border-color: var(--tx-hint);
+  color: var(--tx-d);
+}
+
+.expense-brand-remove-btn:hover {
+  border-color: var(--red);
+  color: var(--red);
+}
+
 /* ═══ 별명 칩 목록 (가계부 폼) ═══ */
 .expense-alias-chips {
   display: flex;

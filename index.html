@@ -511,15 +511,15 @@
                  class="expense-optional-input" placeholder="카드/결제수단 (선택)">
         </div>
 
-        <!-- 매출처 별명 -->
-        <div class="expense-optional-field">
-          <label class="expense-section-label">매출처 별명</label>
-          <input type="text" id="expenseAliasInput"
-                 class="expense-optional-input" placeholder="별명 (예: 노래방) — 같은 별명끼리 합산됩니다">
+        <!-- 브랜드 표시 -->
+        <div class="expense-brand-field" id="expenseBrandField" style="display:none;">
+          <label class="expense-section-label">브랜드</label>
+          <div class="expense-brand-row">
+            <span class="expense-brand-name" id="expenseBrandName"></span>
+            <button class="expense-brand-edit-btn" id="expenseBrandEditBtn" onclick="openBrandEditPopup('normal')" type="button">수정</button>
+            <button class="expense-brand-remove-btn" id="expenseBrandRemoveBtn" onclick="removeBrandFromForm('normal')" type="button">삭제</button>
+          </div>
         </div>
-
-        <!-- 별명 칩 목록 -->
-        <div class="expense-alias-chips" id="expenseAliasChips"></div>
 
         <!-- 매출처 아이콘 -->
         <div class="expense-optional-field">
@@ -604,15 +604,15 @@
                class="expense-optional-input" placeholder="카드/결제수단 (선택)">
       </div>
 
-      <!-- 매출처 별명 -->
-      <div class="expense-optional-field">
-        <label class="expense-section-label">매출처 별명</label>
-        <input type="text" id="expenseAliasInputModal"
-               class="expense-optional-input" placeholder="별명 (예: 노래방) — 같은 별명끼리 합산됩니다">
+      <!-- 브랜드 표시 -->
+      <div class="expense-brand-field" id="expenseBrandFieldModal" style="display:none;">
+        <label class="expense-section-label">브랜드</label>
+        <div class="expense-brand-row">
+          <span class="expense-brand-name" id="expenseBrandNameModal"></span>
+          <button class="expense-brand-edit-btn" id="expenseBrandEditBtnModal" onclick="openBrandEditPopup('modal')" type="button">수정</button>
+          <button class="expense-brand-remove-btn" id="expenseBrandRemoveBtnModal" onclick="removeBrandFromForm('modal')" type="button">삭제</button>
+        </div>
       </div>
-
-      <!-- 별명 칩 목록 -->
-      <div class="expense-alias-chips" id="expenseAliasChipsModal"></div>
 
       <!-- 매출처 아이콘 -->
       <div class="expense-optional-field">
