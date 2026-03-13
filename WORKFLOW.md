@@ -407,7 +407,7 @@ gas-nametag/          — Google Apps Script (메인 레포와 별도 폴더)
 - `getMonthlyTrend(count)` — 월별 추이 (count: 개월수, 기본값 6)
 - `getMonthlyTrendAround(centerYM)` — 중심 월 기준 월별 추이
 - `getMerchantBreakdown(ym)` — 월간 상호별 지출 분석. brand 기준 그룹핑 (brand 있으면 brand로, 없으면 매출처명으로 그룹). [{merchant, amount, count, percent, category, isBrand}, ...]
-- `getYearMerchantBreakdown(year)` — 연간 상호별 지출 분석. brand 기준 그룹핑. {startDate, endDate, total, merchants: [{..., isBrand}, ...]}
+- `getYearMerchantBreakdown(year)` — 연간 상호별 지출 분석. brand 기준 그룹핑. 비브랜드+1건+10만원이하는 카테고리별 기타로 묶기 (isCategoryEtc, etcItems 필드 포함). {startDate, endDate, total, merchants: [{..., isBrand, isCategoryEtc, etcItems}, ...]}
 
 **매출처 별명:**
 - `getMerchantAliases()`, `saveMerchantAliases(arr)` — 별명 매핑 읽기/쓰기
@@ -517,6 +517,7 @@ gas-nametag/          — Google Apps Script (메인 레포와 별도 폴더)
 - `clearCategoryFilter()` — 카테고리 필터 초기화
 - `renderCategoryBarCompact(catBreakdown, total)` — 스택 바
 - `openCategoryExpensePopup(catId, catName, year)` — 카테고리 태그/트리맵 셀 클릭 → 월간(year 없음) 또는 연간(year 있음) 내역 플로팅 팝업
+- `openCategoryEtcPopup(catId, displayName, year)` — 연간 카테고리별 기타 클릭 → 해당 카테고리 내 상호별 소계 플로팅 팝업
 
 **전체 내역 B:**
 - `showExpenseFullDetail(ym)` — PC/태블릿: 통합 대시보드 렌더 (B화면 진입 차단), 모바일: B 표시

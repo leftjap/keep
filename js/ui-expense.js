@@ -1945,6 +1945,53 @@ function openMerchantDetail(merchant, year) {
   openExpenseFloatingPopup(title, contentHtml, cx, cy);
 }
 
+// 연간 카테고리별 기타 클릭 → 해당 카테고리 내 상호별 소계 팝업
+function openCategoryEtcPopup(catId, displayName, year) {
+  var data = getYearMerchantBreakdown(year);
+  if (!data || !data.merchants) return;
+
+  // 해당 카테고리 기타 항목 찾기
+  var etcEntry = data.merchants.find(function(m) {
+    return m.isCategoryEtc && m.category === catId;
+  });
+
+  if (!etcEntry || !etcEntry.etcItems || etcEntry.etcItems.length === 0) return;
+
+  var catObj = EXPENSE_CATEGORIES.find(function(c) { return c.id === catId; });
+  var catName = catObj ? catObj.name : '기타';
+  var title = catName + ' 기타 · ' + year + '년';
+
+  var items = etcEntry.etcItems.slice().sort(function(a, b) { return b.amount - a.amount; });
+  var total = items.reduce(function(s, m) { return s + m.amount; }, 0);
+
+  var contentHtml = '<div class="exp-fp-yearly-list">';
+
+  items.forEach(function(m, i) {
+    var iconItem = { merchant: m.merchant, icon: null, category: m.category };
+
+    contentHtml += '<div class="exp-fp-yearly-row" style="cursor:pointer;" onclick="closeExpenseFloatingPopup(); openMerchantDetail(\'' + _escMerchant(m.merchant) + '\',' + year + ')">';
+    contentHtml += '<span class="exp-fp-yearly-rank">' + (i + 1) + '</span>';
+    contentHtml += getMerchantIconHtml(iconItem);
+    contentHtml += '<div class="exp-fp-yearly-info">';
+    contentHtml += '<div class="exp-fp-yearly-name">' + m.merchant + '</div>';
+    contentHtml += '<div class="exp-fp-yearly-meta">' + m.count + '건 · ' + m.percent + '%</div>';
+    contentHtml += '</div>';
+    contentHtml += '<div class="exp-fp-yearly-amount">' + formatAmount(m.amount) + '원</div>';
+    contentHtml += '</div>';
+  });
+
+  contentHtml += '</div>';
+
+  contentHtml += '<div class="exp-fp-footer">';
+  contentHtml += '<span class="exp-fp-footer-label">' + items.length + '개 상호 합계</span>';
+  contentHtml += '<span class="exp-fp-footer-amount">' + total.toLocaleString() + '원</span>';
+  contentHtml += '</div>';
+
+  var cx = window.innerWidth / 2;
+  var cy = window.innerHeight / 2 - 50;
+  openExpenseFloatingPopup(title, contentHtml, cx, cy);
+}
+
 // 카테고리 태그 클릭 → 해당 카테고리의 월간(year 없음) 또는 연간(year 있음) 내역을 플로팅 팝업으로 표시
 function openCategoryExpensePopup(catId, catName, year) {
   var expenses;
@@ -2248,7 +2295,15 @@ function _packCircles(items, containerW, containerH) {
 function _renderYearlyBubbles(merchants, containerW, containerH) {
   // 상위 20개 + 나머지를 "기타"로 묶기
   var bubbleItems = merchants.slice(0, 20).map(function(m) {
-    return { merchant: m.merchant, amount: m.amount, category: m.category, icon: null, brand: m.isBrand ? m.merchant : null };
+    return {
+      merchant: m.merchant,
+      amount: m.amount,
+      category: m.category,
+      icon: null,
+      brand: m.isBrand ? m.merchant : null,
+      isCategoryEtc: m.isCategoryEtc || false,
+      etcItems: m.etcItems || null
+    };
   });
 
   // 기타 묶기
@@ -2274,9 +2329,14 @@ function _renderYearlyBubbles(merchants, containerW, containerH) {
     var imgSize = Math.round(c.r * 2 - 4);
 
     var yearVal = new Date(getExpenseViewYM() + '-01').getFullYear();
-    var onclick = c.item.isEtc
-      ? 'openYearlyFullPopup(' + yearVal + ',20)'
-      : 'openMerchantDetail(\'' + _escMerchant(c.item.merchant) + '\',' + yearVal + ')';
+    var onclick;
+    if (c.item.isEtc) {
+      onclick = 'openYearlyFullPopup(' + yearVal + ',20)';
+    } else if (c.item.isCategoryEtc) {
+      onclick = 'openCategoryEtcPopup(\'' + c.item.category + '\',\'' + _escMerchant(c.item.merchant) + '\',' + yearVal + ')';
+    } else {
+      onclick = 'openMerchantDetail(\'' + _escMerchant(c.item.merchant) + '\',' + yearVal + ')';
+    }
 
     html += '<div class="exp-yearly-bubble" onclick="' + onclick + '" style="'
       + 'position:absolute;'
@@ -2293,6 +2353,16 @@ function _renderYearlyBubbles(merchants, containerW, containerH) {
 
     if (c.item.isEtc) {
       html += '<span style="font-size:' + Math.max(11, Math.round(c.r * 0.45)) + 'px;color:var(--tx-m);font-weight:500;">기타</span>';
+    } else if (c.item.isCategoryEtc) {
+      // 카테고리 기타: 카테고리 색상 원 + 카테고리명
+      var etcCatObj = EXPENSE_CATEGORIES.find(function(cat) { return cat.id === c.item.category; });
+      var etcCatColor = etcCatObj ? etcCatObj.color : '#B0B0B8';
+      var etcCatName = etcCatObj ? etcCatObj.name : '기타';
+      var etcFontSize = Math.max(10, Math.round(c.r * 0.38));
+      html += '<div style="display:flex;flex-direction:column;align-items:center;gap:2px;">';
+      html += '<span style="font-size:' + etcFontSize + 'px;color:' + etcCatColor + ';font-weight:600;">' + etcCatName.substring(0, 2) + '</span>';
+      html += '<span style="font-size:' + Math.max(9, etcFontSize - 2) + 'px;color:var(--tx-hint);">기타</span>';
+      html += '</div>';
     } else {
       var src = null;
       if (c.item.brand) src = getBrandIcon(c.item.brand);
@@ -2323,17 +2393,34 @@ function _renderYearlyRankList(merchants, limit, year) {
     var nameWeight = rank === 1 ? '600' : '400';
 
     var src = null;
-    if (m.isBrand) src = getBrandIcon(m.merchant);
-    if (!src) src = findMerchantIcon(m.merchant) || findMerchantIcon(resolveAlias(m.merchant));
-    if (!src) src = DEFAULT_ICON_URL;
+    var useCatIcon = false;
+    if (m.isCategoryEtc) {
+      useCatIcon = true;
+    } else {
+      if (m.isBrand) src = getBrandIcon(m.merchant);
+      if (!src) src = findMerchantIcon(m.merchant) || findMerchantIcon(resolveAlias(m.merchant));
+      if (!src) src = DEFAULT_ICON_URL;
+    }
 
-    html += '<div class="exp-yearly-rank-row" onclick="openMerchantDetail(\'' + _escMerchant(m.merchant) + '\',' + year + ')">';
+    var rankOnclick = m.isCategoryEtc
+      ? 'openCategoryEtcPopup(\'' + m.category + '\',\'' + _escMerchant(m.merchant) + '\',' + year + ')'
+      : 'openMerchantDetail(\'' + _escMerchant(m.merchant) + '\',' + year + ')';
+    html += '<div class="exp-yearly-rank-row" onclick="' + rankOnclick + '">';
 
     html += '<span class="exp-yearly-rank-num" style="font-size:' + rankSize + ';font-weight:' + rankWeight + ';color:' + rankColor + ';">' + rank + '</span>';
 
     html += '<div class="exp-yearly-rank-icon">';
-    var catForFallback = m.category || 'etc';
-    html += '<img src="' + src + '" width="36" height="36" style="border-radius:50%;object-fit:cover;" onerror="_logoFallback(this,\'' + catForFallback + '\')">';
+    if (useCatIcon) {
+      var eCatObj = EXPENSE_CATEGORIES.find(function(c) { return c.id === m.category; });
+      var eCatColor = eCatObj ? eCatObj.color : '#B0B0B8';
+      var eCatName = eCatObj ? eCatObj.name : '기타';
+      html += '<div style="width:36px;height:36px;border-radius:50%;background:' + eCatColor + ';display:flex;align-items:center;justify-content:center;">';
+      html += '<span style="color:#fff;font-size:12px;font-weight:600;">' + eCatName.substring(0, 2) + '</span>';
+      html += '</div>';
+    } else {
+      var catForFallback = m.category || 'etc';
+      html += '<img src="' + src + '" width="36" height="36" style="border-radius:50%;object-fit:cover;" onerror="_logoFallback(this,\'' + catForFallback + '\')">';
+    }
     html += '</div>';
 
     html += '<div class="exp-yearly-rank-name" style="font-weight:' + nameWeight + ';">' + m.merchant + '</div>';
@@ -2377,15 +2464,32 @@ function loadMoreYearlyRank() {
     var nameWeight = rank === 1 ? '600' : '400';
 
     var src = null;
-    if (m.isBrand) src = getBrandIcon(m.merchant);
-    if (!src) src = findMerchantIcon(m.merchant) || findMerchantIcon(resolveAlias(m.merchant));
-    if (!src) src = DEFAULT_ICON_URL;
+    var useCatIcon = false;
+    if (m.isCategoryEtc) {
+      useCatIcon = true;
+    } else {
+      if (m.isBrand) src = getBrandIcon(m.merchant);
+      if (!src) src = findMerchantIcon(m.merchant) || findMerchantIcon(resolveAlias(m.merchant));
+      if (!src) src = DEFAULT_ICON_URL;
+    }
 
-    html += '<div class="exp-yearly-rank-row" onclick="openMerchantDetail(\'' + _escMerchant(m.merchant) + '\',' + year + ')">';
+    var rankOnclick = m.isCategoryEtc
+      ? 'openCategoryEtcPopup(\'' + m.category + '\',\'' + _escMerchant(m.merchant) + '\',' + year + ')'
+      : 'openMerchantDetail(\'' + _escMerchant(m.merchant) + '\',' + year + ')';
+    html += '<div class="exp-yearly-rank-row" onclick="' + rankOnclick + '">';
     html += '<span class="exp-yearly-rank-num" style="font-size:' + rankSize + ';font-weight:' + rankWeight + ';color:' + rankColor + ';">' + rank + '</span>';
     html += '<div class="exp-yearly-rank-icon">';
-    var catForFallback = m.category || 'etc';
-    html += '<img src="' + src + '" width="36" height="36" style="border-radius:50%;object-fit:cover;" onerror="_logoFallback(this,\'' + catForFallback + '\')">';
+    if (useCatIcon) {
+      var eCatObj = EXPENSE_CATEGORIES.find(function(c) { return c.id === m.category; });
+      var eCatColor = eCatObj ? eCatObj.color : '#B0B0B8';
+      var eCatName = eCatObj ? eCatObj.name : '기타';
+      html += '<div style="width:36px;height:36px;border-radius:50%;background:' + eCatColor + ';display:flex;align-items:center;justify-content:center;">';
+      html += '<span style="color:#fff;font-size:12px;font-weight:600;">' + eCatName.substring(0, 2) + '</span>';
+      html += '</div>';
+    } else {
+      var catForFallback = m.category || 'etc';
+      html += '<img src="' + src + '" width="36" height="36" style="border-radius:50%;object-fit:cover;" onerror="_logoFallback(this,\'' + catForFallback + '\')">';
+    }
     html += '</div>';
     html += '<div class="exp-yearly-rank-name" style="font-weight:' + nameWeight + ';">' + m.merchant + '</div>';
     html += '<div class="exp-yearly-rank-amount">' + formatAmount(m.amount) + '원</div>';
@@ -2423,11 +2527,23 @@ function openYearlyFullPopup(year, startFrom) {
   merchants.forEach(function(m, i) {
     var catObj = EXPENSE_CATEGORIES.find(function(c) { return c.id === m.category; });
     var catColor = catObj ? catObj.color : '#B0B0B8';
-    var iconItem = { merchant: m.merchant, icon: null };
+    var iconItem = { merchant: m.merchant, icon: null, category: m.category };
 
-    contentHtml += '<div class="exp-fp-yearly-row" style="cursor:pointer;" onclick="closeExpenseFloatingPopup(); openMerchantDetail(\'' + _escMerchant(m.merchant) + '\',' + year + ')">';
+    var fpOnclick = m.isCategoryEtc
+      ? 'closeExpenseFloatingPopup(); openCategoryEtcPopup(\'' + m.category + '\',\'' + _escMerchant(m.merchant) + '\',' + year + ')'
+      : 'closeExpenseFloatingPopup(); openMerchantDetail(\'' + _escMerchant(m.merchant) + '\',' + year + ')';
+    contentHtml += '<div class="exp-fp-yearly-row" style="cursor:pointer;" onclick="' + fpOnclick + '">';
     contentHtml += '<span class="exp-fp-yearly-rank">' + (rankOffset + i + 1) + '</span>';
-    contentHtml += getMerchantIconHtml(iconItem);
+    if (m.isCategoryEtc) {
+      var fpCatObj = EXPENSE_CATEGORIES.find(function(c) { return c.id === m.category; });
+      var fpCatColor = fpCatObj ? fpCatObj.color : '#B0B0B8';
+      var fpCatName = fpCatObj ? fpCatObj.name : '기타';
+      contentHtml += '<div class="exp-tl-item-icon exp-tl-item-icon-cat" style="background:' + fpCatColor + ';">';
+      contentHtml += '<span style="color:#fff;font-size:11px;font-weight:600;">' + fpCatName.substring(0, 2) + '</span>';
+      contentHtml += '</div>';
+    } else {
+      contentHtml += getMerchantIconHtml(iconItem);
+    }
     contentHtml += '<div class="exp-fp-yearly-info">';
     contentHtml += '<div class="exp-fp-yearly-name">' + m.merchant + '</div>';
     contentHtml += '<div class="exp-fp-yearly-meta">' + m.count + '건 · ' + m.percent + '%</div>';

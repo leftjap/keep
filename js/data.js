@@ -639,6 +639,48 @@ function getYearMerchantBreakdown(year) {
   });
   merchants.sort(function(a, b) { return b.amount - a.amount; });
 
+  // 연간 기타 묶기: 비브랜드 + 1건 + 10만원 이하 → 카테고리별 기타로 묶기
+  var grouped = [];
+  var etcByCat = {}; // catId → { items: [...], totalAmount, totalCount }
+
+  merchants.forEach(function(m) {
+    if (!m.isBrand && m.count <= 1 && m.amount <= 100000) {
+      // 기타 묶기 대상
+      var cat = m.category || 'etc';
+      if (!etcByCat[cat]) {
+        etcByCat[cat] = { items: [], totalAmount: 0, totalCount: 0 };
+      }
+      etcByCat[cat].items.push(m);
+      etcByCat[cat].totalAmount += m.amount;
+      etcByCat[cat].totalCount += m.count;
+    } else {
+      // 개별 표시 대상
+      grouped.push(m);
+    }
+  });
+
+  // 카테고리별 기타 항목 생성
+  Object.keys(etcByCat).forEach(function(catId) {
+    var info = etcByCat[catId];
+    var catObj = EXPENSE_CATEGORIES.find(function(c) { return c.id === catId; });
+    var catName = catObj ? catObj.name : '기타';
+    grouped.push({
+      merchant: catName + ' 기타',
+      amount: info.totalAmount,
+      count: info.totalCount,
+      percent: total > 0 ? Math.round(info.totalAmount / total * 1000) / 10 : 0,
+      category: catId,
+      isBrand: false,
+      isCategoryEtc: true,
+      etcItems: info.items
+    });
+  });
+
+  // 금액 내림차순 재정렬
+  grouped.sort(function(a, b) { return b.amount - a.amount; });
+
+  merchants = grouped;
+
   return {
     startDate: startDate,
     endDate: endDate,
