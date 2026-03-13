@@ -2789,9 +2789,9 @@ function renderCategoryTreemap(year, endYM) {
     catMap[cat] = (catMap[cat] || 0) + e.amount;
   });
 
+  // 기타(etc) 제외, 금액 > 0만 포함
   var items = [];
   EXPENSE_CATEGORIES.forEach(function(c) {
-    // 기타(etc)는 트리맵에서 제외 — 정보 가치 없음
     if (c.id === 'etc') return;
     if (catMap[c.id] && catMap[c.id] > 0) {
       items.push({ id: c.id, name: c.name, color: c.color, amount: catMap[c.id] });
@@ -2801,7 +2801,7 @@ function renderCategoryTreemap(year, endYM) {
   if (items.length === 0) return '';
 
   // 금액 내림차순 정렬
-  var mainItems = items.slice().sort(function(a, b) { return b.amount - a.amount; });
+  items.sort(function(a, b) { return b.amount - a.amount; });
 
   // 코랄 단색 그라데이션 팔레트
   var coralPalette = [
@@ -2811,67 +2811,38 @@ function renderCategoryTreemap(year, endYM) {
     'hsl(4, 25%, 73%)', 'hsl(4, 20%, 75%)', 'hsl(4, 20%, 75%)'
   ];
 
-  // 면적 조정: pow(0.7)로 차이 완화 (1위가 지배하지 않도록)
-  var adjustedItems = mainItems.map(function(item, idx) {
-    var val = item.amount;
+  // 면적 조정: pow(0.7)
+  var adjustedItems = items.map(function(item, idx) {
     var colorIdx = Math.min(idx, coralPalette.length - 1);
     return {
       id: item.id, name: item.name,
       treemapColor: coralPalette[colorIdx],
       amount: item.amount,
-      adjusted: Math.pow(val, 0.7)
+      adjusted: Math.pow(item.amount, 0.7)
     };
   });
 
-  // 최소 비율 보장: 전체의 5% 미만이면 5%로 올림
+  // 최소 비율 동적 계산: 항목 수에 따라 각 항목이 충분한 면적을 갖도록
+  var itemCount = adjustedItems.length;
+  var minPct = Math.max(4, Math.round(60 / itemCount));
   var adjustedTotal = adjustedItems.reduce(function(s, it) { return s + it.adjusted; }, 0);
   adjustedItems.forEach(function(it) {
     var pct = it.adjusted / adjustedTotal * 100;
-    if (pct < 5) it.adjusted = adjustedTotal * 5 / 95;
+    if (pct < minPct) it.adjusted = adjustedTotal * minPct / (100 - minPct);
   });
+  // 재계산
   adjustedTotal = adjustedItems.reduce(function(s, it) { return s + it.adjusted; }, 0);
 
-  // 컨테이너 크기
-  var containerW = 100; // %
-  var containerH = window.innerWidth <= 768 ? 180 : 240;
+  // 컨테이너 크기: 항목 수에 따라 높이 조절
+  var containerW = 100;
+  var baseH = window.innerWidth <= 768 ? 180 : 240;
+  var containerH = itemCount > 6 ? baseH + (itemCount - 6) * 15 : baseH;
 
   // squarified treemap 레이아웃
   var rects = _squarify(adjustedItems.map(function(it) { return it.adjusted; }), 0, 0, containerW, containerH);
 
-  // 실제 픽셀 너비 (셀 크기 판단용)
+  // 실제 픽셀 너비
   var actualW = window.innerWidth <= 768 ? window.innerWidth - 40 : Math.min(680, window.innerWidth - 80);
-
-  // 셀이 이름 한 줄도 담을 수 없으면 제외 후 재계산
-  var tooSmall = false;
-  for (var si = 0; si < adjustedItems.length; si++) {
-    var sr = rects[si];
-    if (!sr) continue;
-    var sPxW = sr.w / 100 * actualW;
-    var sPxH = sr.h;
-    if (sPxH < 24 || sPxW < 36) {
-      adjustedItems.splice(si, 1);
-      tooSmall = true;
-      break;
-    }
-  }
-  if (tooSmall) {
-    // 재계산
-    adjustedTotal = adjustedItems.reduce(function(s, it) { return s + it.adjusted; }, 0);
-    rects = _squarify(adjustedItems.map(function(it) { return it.adjusted; }), 0, 0, containerW, containerH);
-    // 한 번 더 체크 (연쇄적으로 작아지는 셀이 있을 수 있음)
-    for (var si2 = adjustedItems.length - 1; si2 >= 0; si2--) {
-      var sr2 = rects[si2];
-      if (!sr2) continue;
-      var sPxW2 = sr2.w / 100 * actualW;
-      var sPxH2 = sr2.h;
-      if (sPxH2 < 24 || sPxW2 < 36) {
-        adjustedItems.splice(si2, 1);
-      }
-    }
-    rects = _squarify(adjustedItems.map(function(it) { return it.adjusted; }), 0, 0, containerW, containerH);
-  }
-
-  if (adjustedItems.length === 0) return '';
 
   var html = '<div class="exp-treemap-wrap" style="height:' + containerH + 'px;">';
 
@@ -2887,19 +2858,27 @@ function renderCategoryTreemap(year, endYM) {
     var nameFontSize = Math.round(Math.min(18, Math.max(10, Math.sqrt(area) * 0.12)));
     var amountFontSize = Math.round(Math.min(14, Math.max(9, Math.sqrt(area) * 0.09)));
 
+    // 이름 표시 여부: 극히 작은 셀만 숨김
+    var showName = cellPxH >= 16 && cellPxW >= 28;
+
     // 금액 텍스트
     var amountText = Math.round(item.amount / 10000) + '만';
-
-    // 레이아웃: 세로 배치 가능 여부
-    var useVertical = cellPxH >= 32;
     var showAmount = true;
-
-    // "0만"(5천원 미만)만 숨김
     if (Math.round(item.amount / 10000) === 0) showAmount = false;
-    // 가로 배치일 때 너비 극히 부족하면 금액 숨김
-    if (!useVertical && cellPxW < 45) showAmount = false;
-    // 셀이 텍스트 한 줄도 못 담으면 금액 숨김
-    if (cellPxH < 18) showAmount = false;
+
+    // 세로/가로 배치 판단
+    var useVertical = cellPxH >= 32;
+
+    if (useVertical) {
+      // 세로: 높이가 이름+금액 못 담으면 금액 숨김
+      if (cellPxH < 38) showAmount = false;
+    } else {
+      // 가로: 너비가 이름+금액 못 담으면 금액 숨김
+      if (cellPxW < 45) showAmount = false;
+    }
+
+    // 이름도 못 담으면 셀 자체를 렌더하지 않음
+    if (!showName) return;
 
     var cellStyle = 'left:' + r.x + '%;top:' + r.y + 'px;width:' + r.w + '%;height:' + r.h + 'px;'
       + 'background:' + item.treemapColor + ';';
@@ -2907,7 +2886,7 @@ function renderCategoryTreemap(year, endYM) {
     if (useVertical) {
       cellStyle += 'flex-direction:column;gap:1px;';
     } else {
-      cellStyle += 'gap:0 5px;';
+      cellStyle += 'flex-wrap:nowrap;gap:0 5px;';
     }
 
     html += '<div class="exp-treemap-cell" onclick="openCategoryExpensePopup(\'' + item.id + '\',\'' + item.name.replace(/'/g, "\\'") + '\',' + year + ')" style="' + cellStyle + '">';
