@@ -2774,13 +2774,12 @@ function renderCategoryTreemap(year) {
 
   // 기타를 맨 마지막에 최소 크기로 추가
   if (etcItem) {
-    // 기타의 adjusted 값을 가장 작은 항목의 절반으로 강제
     var minAmount = mainItems.length > 0 ? mainItems[mainItems.length - 1].amount : etcItem.amount;
     etcItem.forcedAmount = Math.min(minAmount * 0.5, etcItem.amount);
     mainItems.push(etcItem);
   }
 
-  // 비율 과장: pow(1.5) 적용 — 큰 카테고리가 면적을 지배
+  // 비율 과장: pow(1.5) 적용
   var adjustedItems = mainItems.map(function(item) {
     var val = item.forcedAmount || item.amount;
     return {
@@ -2790,6 +2789,17 @@ function renderCategoryTreemap(year) {
       isEtc: item.id === 'etc'
     };
   });
+
+  // 10% 이내 차이 항목은 동일 크기로 통합
+  for (var gi = 1; gi < adjustedItems.length; gi++) {
+    var prev = adjustedItems[gi - 1];
+    var cur = adjustedItems[gi];
+    if (prev.isEtc || cur.isEtc) continue;
+    var diff = Math.abs(prev.adjusted - cur.adjusted) / Math.max(prev.adjusted, 1);
+    if (diff < 0.10) {
+      cur.adjusted = prev.adjusted;
+    }
+  }
 
   // 최소 비율 보장 (기타 제외)
   var adjustedTotal = adjustedItems.reduce(function(s, it) { return s + it.adjusted; }, 0);
@@ -2803,7 +2813,7 @@ function renderCategoryTreemap(year) {
   adjustedTotal = adjustedItems.reduce(function(s, it) { return s + it.adjusted; }, 0);
 
   // 컨테이너 크기
-  var containerW = 100;
+  var containerW = 100; // %
   var containerH = window.innerWidth <= 768 ? 180 : 240;
 
   // squarified treemap 레이아웃
@@ -2822,39 +2832,48 @@ function renderCategoryTreemap(year) {
     var cellPxW = r.w / 100 * actualW;
     var cellPxH = r.h;
 
-    // 기타: 항목명만, 작은 폰트 (셀이 매우 작으면 축소)
-    if (item.isEtc) {
-      var etcFontSize = 11;
-      if (cellPxW < 40) etcFontSize = 9;
-      if (cellPxH < 20) etcFontSize = 8;
-      html += '<div class="exp-treemap-cell" onclick="openCategoryExpensePopup(\'' + item.id + '\',\'' + item.name.replace(/'/g, "\\'") + '\',' + year + ')" style="';
-      html += 'left:' + r.x + '%;top:' + r.y + 'px;width:' + r.w + '%;height:' + r.h + 'px;';
-      html += 'background:' + item.color + ';align-items:center;justify-content:center;">';
-      html += '<span class="exp-treemap-name" style="font-size:' + etcFontSize + 'px;">' + item.name + '</span>';
-      html += '</div>';
-      return;
-    }
+    // 색상 톤다운: opacity 0.7 적용
+    var cellColor = item.color;
 
-    // 비중에 따른 폰트 크기 — 셀이 작으면 줄임
+    // 비중에 따른 폰트 크기
     var ratio = item.amount / maxAmount;
-    var baseName = Math.round(11 + ratio * 7);
-    var baseAmount = Math.round(9 + ratio * 4);
+    var nameFontSize = Math.round(11 + ratio * 7);
+    var amountFontSize = Math.round(9 + ratio * 4);
 
     // 셀이 좁으면 폰트 축소
-    var nameFontSize = baseName;
-    var amountFontSize = baseAmount;
     if (cellPxW < 50) nameFontSize = Math.min(nameFontSize, 10);
     if (cellPxH < 30) nameFontSize = Math.min(nameFontSize, 9);
+    if (item.isEtc) {
+      nameFontSize = 11;
+      if (cellPxW < 40) nameFontSize = 9;
+      if (cellPxH < 20) nameFontSize = 8;
+    }
 
-    // 금액 표시: 셀에 여유가 있을 때만
-    var showAmount = cellPxH >= 35 && cellPxW >= 45;
+    // 금액 텍스트
+    var amountText = Math.round(item.amount / 10000) + '만';
 
-    html += '<div class="exp-treemap-cell" onclick="openCategoryExpensePopup(\'' + item.id + '\',\'' + item.name.replace(/'/g, "\\'") + '\',' + year + ')" style="';
-    html += 'left:' + r.x + '%;top:' + r.y + 'px;width:' + r.w + '%;height:' + r.h + 'px;';
-    html += 'background:' + item.color + ';align-items:center;justify-content:center;">';
+    // 레이아웃 판단: 세로 여유 있으면 세로(이름 위 + 금액 아래), 없으면 가로(이름 + 금액 나란히)
+    var useVertical = cellPxH >= 35;
+    var showAmount = !item.isEtc; // 기타는 금액 숨김
+
+    // 가로 배치인데 너비도 부족하면 금액 숨김
+    if (!useVertical && cellPxW < 70) showAmount = false;
+
+    var cellStyle = 'left:' + r.x + '%;top:' + r.y + 'px;width:' + r.w + '%;height:' + r.h + 'px;'
+      + 'background:' + cellColor + ';opacity:0.75;';
+
+    if (useVertical) {
+      // 세로 배치: flex-direction column
+      cellStyle += 'flex-direction:column;gap:1px;';
+    } else {
+      // 가로 배치: flex-direction row (CSS 기본값)
+      cellStyle += 'gap:0 5px;';
+    }
+
+    html += '<div class="exp-treemap-cell" onclick="openCategoryExpensePopup(\'' + item.id + '\',\'' + item.name.replace(/'/g, "\\'") + '\',' + year + ')" style="' + cellStyle + '">';
     html += '<span class="exp-treemap-name" style="font-size:' + nameFontSize + 'px;">' + item.name + '</span>';
     if (showAmount) {
-      html += '<span class="exp-treemap-amount" style="font-size:' + amountFontSize + 'px;">' + Math.round(item.amount / 10000) + '만</span>';
+      html += '<span class="exp-treemap-amount" style="font-size:' + amountFontSize + 'px;">' + amountText + '</span>';
     }
     html += '</div>';
   });

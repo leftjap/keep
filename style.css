@@ -5253,7 +5253,8 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 .exp-treemap-cell {
   position: absolute;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
   padding: 4px 6px;
@@ -5262,8 +5263,8 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   overflow: hidden;
   box-sizing: border-box;
   border: 1px solid rgba(255,255,255,.3);
-  border-radius: 4px;
-  gap: 1px;
+  border-radius: 0;
+  gap: 0 5px;
 }
 
 .exp-treemap-cell:hover {
