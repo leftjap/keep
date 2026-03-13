@@ -4043,7 +4043,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 
 /* ═══ 연간 누적 섹션 ═══ */
 .exp-yearly-section {
-  padding: 24px 0 16px;
+  padding: 36px 0 24px;
 }
 
 .exp-yearly-header {
@@ -4103,7 +4103,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 
 /* ═══ 연간 버블 차트 ═══ */
 .exp-yearly-bubble-wrap {
-  margin: 16px auto 24px;
+  margin: 24px auto 36px;
 }
 
 .exp-yearly-bubble:hover {
@@ -4463,7 +4463,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 
   /* 연간 버블/랭킹 모바일 조정 */
   .exp-yearly-bubble-wrap {
-    margin: 12px auto 20px;
+    margin: 18px auto 30px;
   }
 
   .exp-yearly-rank-row {
@@ -4495,7 +4495,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   }
 
   .exp-yearly-section {
-    padding: 16px 8px 12px;
+    padding: 24px 12px 18px;
   }
 
   .exp-yearly-rank-list {
@@ -4537,7 +4537,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   }
 
   .pane-expense-dashboard .exp-yearly-section {
-    padding: 20px 0 16px;
+    padding: 30px 0 24px;
   }
   .pane-expense-dashboard .exp-projection {
     padding: 20px;
@@ -5244,9 +5244,9 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 .exp-treemap-wrap {
   position: relative;
   width: 100%;
-  border-radius: 12px;
+  border-radius: 0;
   overflow: hidden;
-  margin-bottom: 24px;
+  margin-bottom: 36px;
   background: var(--bg-white);
 }
 
@@ -5262,7 +5262,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   overflow: hidden;
   box-sizing: border-box;
   border: 1px solid rgba(255,255,255,.3);
-  border-radius: 8px;
+  border-radius: 0;
   gap: 1px;
 }
 

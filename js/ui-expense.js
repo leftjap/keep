@@ -2780,13 +2780,13 @@ function renderCategoryTreemap(year) {
     mainItems.push(etcItem);
   }
 
-  // 비율 과장: sqrt 적용 + 최소 비율 보장
+  // 비율 과장: pow(1.5) 적용 — 큰 카테고리가 면적을 지배
   var adjustedItems = mainItems.map(function(item) {
     var val = item.forcedAmount || item.amount;
     return {
       id: item.id, name: item.name, color: item.color,
       amount: item.amount,
-      adjusted: Math.sqrt(val),
+      adjusted: Math.pow(val, 1.5),
       isEtc: item.id === 'etc'
     };
   });
@@ -2837,15 +2837,18 @@ function renderCategoryTreemap(year) {
     var nameFontSize = Math.round(11 + ratio * 7);
     var amountFontSize = Math.round(9 + ratio * 4);
 
-    // 금액 표시: 최대한 표시 (높이 35px 이상이면)
-    var showAmount = cellPxH > 35 && cellPxW > 50;
+    // 셀 면적 기준 표시 판단
+    var showName = cellPxH >= 22 && cellPxW >= 30;
+    var showAmount = cellPxH >= 35 && cellPxW >= 45;
 
     html += '<div class="exp-treemap-cell" onclick="openCategoryExpensePopup(\'' + item.id + '\',\'' + item.name.replace(/'/g, "\\'") + '\',' + year + ')" style="';
     html += 'left:' + r.x + '%;top:' + r.y + 'px;width:' + r.w + '%;height:' + r.h + 'px;';
     html += 'background:' + item.color + ';align-items:center;justify-content:center;">';
-    html += '<span class="exp-treemap-name" style="font-size:' + nameFontSize + 'px;">' + item.name + '</span>';
+    if (showName) {
+      html += '<span class="exp-treemap-name" style="font-size:' + nameFontSize + 'px;">' + item.name + '</span>';
+    }
     if (showAmount) {
-      html += '<span class="exp-treemap-amount" style="font-size:' + amountFontSize + 'px;">' + formatAmount(item.amount) + '원</span>';
+      html += '<span class="exp-treemap-amount" style="font-size:' + amountFontSize + 'px;">' + Math.round(item.amount / 10000) + '만</span>';
     }
     html += '</div>';
   });
