@@ -2293,8 +2293,8 @@ function _packCircles(items, containerW, containerH) {
 
 // 버블 차트 HTML 생성
 function _renderYearlyBubbles(merchants, containerW, containerH) {
-  // 상위 20개 + 나머지를 "기타"로 묶기
-  var bubbleItems = merchants.slice(0, 20).map(function(m) {
+  // 상위 30개 + 나머지를 "기타"로 묶기
+  var bubbleItems = merchants.slice(0, 30).map(function(m) {
     return {
       merchant: m.merchant,
       amount: m.amount,
@@ -2307,9 +2307,9 @@ function _renderYearlyBubbles(merchants, containerW, containerH) {
   });
 
   // 기타 묶기
-  if (merchants.length > 20) {
+  if (merchants.length > 30) {
     var etcAmount = 0;
-    for (var i = 20; i < merchants.length; i++) etcAmount += merchants[i].amount;
+    for (var i = 30; i < merchants.length; i++) etcAmount += merchants[i].amount;
     if (etcAmount > 0) {
       bubbleItems.push({ merchant: '기타', amount: etcAmount, category: 'etc', icon: null, isEtc: true });
     }
@@ -2331,7 +2331,7 @@ function _renderYearlyBubbles(merchants, containerW, containerH) {
     var yearVal = new Date(getExpenseViewYM() + '-01').getFullYear();
     var onclick;
     if (c.item.isEtc) {
-      onclick = 'openYearlyFullPopup(' + yearVal + ',20)';
+      onclick = 'openYearlyFullPopup(' + yearVal + ',30)';
     } else if (c.item.isCategoryEtc) {
       onclick = 'openCategoryEtcPopup(\'' + c.item.category + '\',\'' + _escMerchant(c.item.merchant) + '\',' + yearVal + ')';
     } else {
