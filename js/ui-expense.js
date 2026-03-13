@@ -2359,10 +2359,14 @@ function _renderYearlyBubbles(merchants, containerW, containerH) {
       var etcCatColor = etcCatObj ? etcCatObj.color : '#B0B0B8';
       var etcCatName = etcCatObj ? etcCatObj.name : '기타';
       var etcFontSize = Math.max(10, Math.round(c.r * 0.38));
-      html += '<div style="display:flex;flex-direction:column;align-items:center;gap:2px;">';
-      html += '<span style="font-size:' + etcFontSize + 'px;color:' + etcCatColor + ';font-weight:600;">' + etcCatName.substring(0, 2) + '</span>';
-      html += '<span style="font-size:' + Math.max(9, etcFontSize - 2) + 'px;color:var(--tx-hint);">기타</span>';
-      html += '</div>';
+      if (c.item.category === 'etc') {
+        html += '<span style="font-size:' + etcFontSize + 'px;color:' + etcCatColor + ';font-weight:600;">기타</span>';
+      } else {
+        html += '<div style="display:flex;flex-direction:column;align-items:center;gap:2px;">';
+        html += '<span style="font-size:' + etcFontSize + 'px;color:' + etcCatColor + ';font-weight:600;">' + etcCatName.substring(0, 2) + '</span>';
+        html += '<span style="font-size:' + Math.max(9, etcFontSize - 2) + 'px;color:var(--tx-hint);">기타</span>';
+        html += '</div>';
+      }
     } else {
       var src = null;
       if (c.item.brand) src = getBrandIcon(c.item.brand);
