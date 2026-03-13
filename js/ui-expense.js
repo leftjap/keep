@@ -2371,7 +2371,9 @@ function _renderYearlyBubbles(merchants, containerW, containerH) {
 
   // "그 외" 태그 — 버블 영역 바로 아래 우측 정렬
   if (etcItemCount > 0) {
+    html += '<div style="display:flex;justify-content:flex-end;padding:8px 20px 0;">';
     html += _renderEtcBanner(etcItemCount, yearVal);
+    html += '</div>';
   }
 
   return html;
@@ -2432,7 +2434,6 @@ function _renderYearlyRankList(merchants, limit, year) {
     html += '<div class="exp-yearly-rank-name" style="font-weight:' + nameWeight + ';">' + m.merchant + '</div>';
 
     html += '<div class="exp-yearly-rank-amount">' + formatAmount(m.amount) + '원</div>';
-    html += '<div class="exp-yearly-rank-pct">' + m.percent + '%</div>';
 
     html += '</div>';
   });
@@ -2499,7 +2500,6 @@ function loadMoreYearlyRank() {
     html += '</div>';
     html += '<div class="exp-yearly-rank-name" style="font-weight:' + nameWeight + ';">' + m.merchant + '</div>';
     html += '<div class="exp-yearly-rank-amount">' + formatAmount(m.amount) + '원</div>';
-    html += '<div class="exp-yearly-rank-pct">' + m.percent + '%</div>';
     html += '</div>';
   });
 
