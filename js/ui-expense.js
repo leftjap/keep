@@ -1234,6 +1234,10 @@ function newExpenseForm(mode = 'normal') {
   var dateEl = document.getElementById('expenseDateValue' + suffix);
   if (dateEl) {
     dateEl.textContent = formatExpenseDate(now);
+    dateEl.setAttribute('data-date', today());
+    var nowH = ('0' + now.getHours()).slice(-2);
+    var nowM = ('0' + now.getMinutes()).slice(-2);
+    dateEl.setAttribute('data-time', nowH + ':' + nowM);
     dateEl.removeAttribute('onclick');
     dateEl.classList.add('expense-date-readonly');
   }
@@ -1286,6 +1290,8 @@ function loadExpense(id, mode = 'normal') {
   var dateEl = document.getElementById('expenseDateValue' + suffix);
   if (dateEl) {
     dateEl.textContent = formatExpenseDate(d);
+    dateEl.setAttribute('data-date', e.date);
+    dateEl.setAttribute('data-time', e.time || '');
     dateEl.removeAttribute('onclick');
     dateEl.classList.add('expense-date-readonly');
   }
@@ -1519,7 +1525,12 @@ async function pasteFromClipboard(mode) {
     document.getElementById('expenseCardInput' + suffix).value = parsed.card;
     if (parsed.date) {
       var d = new Date(parsed.date + 'T' + (parsed.time || '00:00'));
-      document.getElementById('expenseDateValue' + suffix).textContent = formatExpenseDate(d);
+      var pasteDateEl = document.getElementById('expenseDateValue' + suffix);
+      if (pasteDateEl) {
+        pasteDateEl.textContent = formatExpenseDate(d);
+        pasteDateEl.setAttribute('data-date', parsed.date);
+        pasteDateEl.setAttribute('data-time', parsed.time || '');
+      }
     }
     selectCategory(parsed.category, _smsPasteMode);
     updateExpenseSaveBtn(_smsPasteMode);
@@ -1543,7 +1554,12 @@ async function prefetchClipboardForExpense(mode) {
     document.getElementById('expenseCardInput' + suffix).value = parsed.card;
     if (parsed.date) {
       var d = new Date(parsed.date + 'T' + (parsed.time || '00:00'));
-      document.getElementById('expenseDateValue' + suffix).textContent = formatExpenseDate(d);
+      var prefetchDateEl = document.getElementById('expenseDateValue' + suffix);
+      if (prefetchDateEl) {
+        prefetchDateEl.textContent = formatExpenseDate(d);
+        prefetchDateEl.setAttribute('data-date', parsed.date);
+        prefetchDateEl.setAttribute('data-time', parsed.time || '');
+      }
     }
     selectCategory(parsed.category, mode);
     updateExpenseSaveBtn(mode);
@@ -1564,8 +1580,16 @@ function saveExpenseForm(mode = 'normal') {
   const card = document.getElementById('expenseCardInput' + suffix).value.trim();
   const memo = (document.getElementById('expenseMemoInput' + suffix) || {}).value || '';
   const category = getSelectedCategory(mode);
-  const dateText = document.getElementById('expenseDateValue' + suffix).textContent;
-  const { date, time } = parseExpenseDateText(dateText);
+  var dateEl = document.getElementById('expenseDateValue' + suffix);
+  var date, time;
+  if (dateEl && dateEl.getAttribute('data-date')) {
+    date = dateEl.getAttribute('data-date');
+    time = dateEl.getAttribute('data-time') || '';
+  } else {
+    var parsed = parseExpenseDateText(dateEl ? dateEl.textContent : '');
+    date = parsed.date;
+    time = parsed.time;
+  }
 
   if (curExpenseId) {
     updateExpense(curExpenseId, { amount, category, merchant, card, memo, date, time });
