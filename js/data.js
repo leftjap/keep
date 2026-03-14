@@ -745,17 +745,17 @@ function hasRoutineDataInMonth(ym) {
 // 가계부 카테고리 상수
 // ═══════════════════════════════════════
 let EXPENSE_CATEGORIES = [
-  { id: 'dining',    name: '외식',       color: '#E55643', bg: '#E55643' },
-  { id: 'delivery',  name: '배달',       color: '#FF6B35', bg: '#FF6B35' },
-  { id: 'online',    name: '온라인쇼핑', color: '#4ECDC4', bg: '#4ECDC4' },
-  { id: 'conv',      name: '편의점',     color: '#95C623', bg: '#95C623' },
-  { id: 'cat',       name: '고양이',     color: '#F4A261', bg: '#F4A261' },
-  { id: 'health',    name: '건강',       color: '#45B7D1', bg: '#45B7D1' },
-  { id: 'culture',   name: '문화',       color: '#7B68EE', bg: '#7B68EE' },
-  { id: 'fashion',   name: '패션',       color: '#E891B2', bg: '#E891B2' },
-  { id: 'subscribe', name: '구독',       color: '#9B59B6', bg: '#9B59B6' },
-  { id: 'transport', name: '교통',       color: '#96CEB4', bg: '#96CEB4' },
-  { id: 'etc',       name: '기타',       color: '#B0B0B8', bg: '#B0B0B8' }
+  { id: 'dining',    name: '외식',   color: '#E55643', bg: '#E55643' },
+  { id: 'delivery',  name: '배달',   color: '#E8845A', bg: '#E8845A' },
+  { id: 'online',    name: '온라인쇼핑', color: '#5BA0A0', bg: '#5BA0A0' },
+  { id: 'conv',      name: '편의점', color: '#E09E6A', bg: '#E09E6A' },
+  { id: 'cat',       name: '고양이', color: '#E8A87C', bg: '#E8A87C' },
+  { id: 'health',    name: '건강',   color: '#7BAEAE', bg: '#7BAEAE' },
+  { id: 'culture',   name: '문화',   color: '#7B83C4', bg: '#7B83C4' },
+  { id: 'fashion',   name: '패션',   color: '#B5678E', bg: '#B5678E' },
+  { id: 'subscribe', name: '구독',   color: '#8B7FBF', bg: '#8B7FBF' },
+  { id: 'transport', name: '교통',   color: '#6A9FBF', bg: '#6A9FBF' },
+  { id: 'etc',       name: '기타',   color: '#A0A0A8', bg: '#A0A0A8' }
 ];
 
 // ═══════════════════════════════════════
@@ -953,27 +953,33 @@ function applyServerConfig(config) {
       // 기존 EXPENSE_CATEGORIES의 color/bg를 id로 매칭하여 재사용
       var existing = null;
       var defaultCats = [
-        { id: 'food', color: '#E55643', bg: '#E55643' },
-        { id: 'dining', color: '#E8845A', bg: '#E8845A' },
-        { id: 'shopping', color: '#D4789A', bg: '#D4789A' },
-        { id: 'transport', color: '#5A8EC4', bg: '#5A8EC4' },
-        { id: 'subscribe', color: '#F0A848', bg: '#F0A848' },
-        { id: 'medical', color: '#6AB0A0', bg: '#6AB0A0' },
-        { id: 'leisure', color: '#9A6CB8', bg: '#9A6CB8' },
-        { id: 'beauty', color: '#C4885A', bg: '#C4885A' },
-        { id: 'pet', color: '#E87461', bg: '#E87461' },
-        { id: 'invest', color: '#5B6ABF', bg: '#5B6ABF' },
-        { id: 'utility', color: '#8B8B8B', bg: '#8B8B8B' },
-        { id: 'etc', color: '#B0B0B8', bg: '#B0B0B8' },
-        // 아내 전용 카테고리 기본색
-        { id: 'cafe', color: '#C4885A', bg: '#C4885A' },
-        { id: 'convenience', color: '#F0A848', bg: '#F0A848' },
-        { id: 'cat', color: '#E87461', bg: '#E87461' },
-        { id: 'health', color: '#6AB0A0', bg: '#6AB0A0' },
-        { id: 'culture', color: '#9A6CB8', bg: '#9A6CB8' },
-        { id: 'fashion', color: '#D4789A', bg: '#D4789A' },
-        { id: 'gift', color: '#E8845A', bg: '#E8845A' },
-        { id: 'overseas', color: '#5A8EC4', bg: '#5A8EC4' }
+        // leftjap 카테고리
+        { id: 'dining',      color: '#E55643', bg: '#E55643' },
+        { id: 'delivery',    color: '#E8845A', bg: '#E8845A' },
+        { id: 'online',      color: '#5BA0A0', bg: '#5BA0A0' },
+        { id: 'conv',        color: '#E09E6A', bg: '#E09E6A' },
+        { id: 'subscribe',   color: '#8B7FBF', bg: '#8B7FBF' },
+        { id: 'transport',   color: '#6A9FBF', bg: '#6A9FBF' },
+        // soyoun312 전용 카테고리
+        { id: 'food',        color: '#C96B4F', bg: '#C96B4F' },
+        { id: 'cafe',        color: '#D4789A', bg: '#D4789A' },
+        { id: 'convenience', color: '#E09E6A', bg: '#E09E6A' },
+        { id: 'gift',        color: '#CC8899', bg: '#CC8899' },
+        { id: 'overseas',    color: '#5B85B0', bg: '#5B85B0' },
+        { id: 'invest',      color: '#6B7FA0', bg: '#6B7FA0' },
+        // 공통 카테고리
+        { id: 'cat',         color: '#E8A87C', bg: '#E8A87C' },
+        { id: 'health',      color: '#7BAEAE', bg: '#7BAEAE' },
+        { id: 'culture',     color: '#7B83C4', bg: '#7B83C4' },
+        { id: 'fashion',     color: '#B5678E', bg: '#B5678E' },
+        { id: 'etc',         color: '#A0A0A8', bg: '#A0A0A8' },
+        // 레거시 (기존 데이터 호환)
+        { id: 'shopping',    color: '#5BA0A0', bg: '#5BA0A0' },
+        { id: 'medical',     color: '#7BAEAE', bg: '#7BAEAE' },
+        { id: 'leisure',     color: '#7B83C4', bg: '#7B83C4' },
+        { id: 'beauty',      color: '#B5678E', bg: '#B5678E' },
+        { id: 'pet',         color: '#E8A87C', bg: '#E8A87C' },
+        { id: 'utility',     color: '#A0A0A8', bg: '#A0A0A8' }
       ];
       for (var j = 0; j < defaultCats.length; j++) {
         if (defaultCats[j].id === c.id) { existing = defaultCats[j]; break; }
