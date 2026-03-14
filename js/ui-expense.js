@@ -365,6 +365,7 @@ function renderMonthlyBarChart(trend) {
 function _onBarChartClick(ym) {
   _expenseViewYM = ym;
   _selectedExpenseDate = null;
+  _yearlyRankLoaded = 10;
   if (window.innerWidth > 768) {
     // PC/태블릿: 통합 대시보드 다시 렌더 (B화면 진입 차단)
     var dashPane = document.getElementById('expFullDashboardPane');
@@ -1051,6 +1052,7 @@ function selectMonth(ym) {
   }
 
   _expenseViewYM = ym;
+  _yearlyRankLoaded = 10;
   closeMonthPicker();
 
   if (window.innerWidth > 768) {
@@ -2229,13 +2231,13 @@ function renderYearlySection(year, endYM) {
 
   // 랭킹 리스트 (10개)
   var rankLimit = Math.min(Math.max(10, _yearlyRankLoaded), merchants.length);
-  html += '<div id="yearlyRankListWrap" data-year="' + year + '" data-endym="' + (endYM || '') + '" data-loaded="' + rankLimit + '">';
+  html += '<div class="yearly-rank-list-wrap" data-year="' + year + '" data-endym="' + (endYM || '') + '" data-loaded="' + rankLimit + '">';
   html += _renderYearlyRankList(merchants, rankLimit, year);
   html += '</div>';
 
   // "더 보기" 버튼 (10개 초과 시)
   if (merchants.length > rankLimit) {
-    html += '<div class="exp-mr-more-wrap" id="yearlyRankMoreWrap">';
+    html += '<div class="exp-mr-more-wrap yearly-rank-more-wrap">';
     html += '<button class="exp-cat-more-btn" onclick="loadMoreYearlyRank()">더 보기</button>';
     html += '</div>';
   }
@@ -2485,8 +2487,17 @@ function _renderYearlyRankList(merchants, limit, year) {
 
 // 연간 랭킹 로드모어
 function loadMoreYearlyRank() {
-  var wrap = document.getElementById('yearlyRankListWrap');
-  var moreWrap = document.getElementById('yearlyRankMoreWrap');
+  // 현재 보이는 대시보드 컨테이너에서 찾기 (PC: expFullDashboardPane, 모바일: expenseDashboard)
+  var container = null;
+  if (window.innerWidth > 768) {
+    container = document.getElementById('expFullDashboardPane');
+  } else {
+    container = document.getElementById('expenseDashboard');
+  }
+  if (!container) return;
+
+  var wrap = container.querySelector('.yearly-rank-list-wrap');
+  var moreWrap = container.querySelector('.yearly-rank-more-wrap');
   if (!wrap) return;
 
   var year = parseInt(wrap.getAttribute('data-year'));
