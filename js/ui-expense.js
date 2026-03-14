@@ -1225,8 +1225,8 @@ function newExpenseForm(mode = 'normal') {
   var dateEl = document.getElementById('expenseDateValue' + suffix);
   if (dateEl) {
     dateEl.textContent = formatExpenseDate(now);
-    dateEl.setAttribute('onclick', "openExpenseDatePicker()");
-    dateEl.classList.remove('expense-date-readonly');
+    dateEl.removeAttribute('onclick');
+    dateEl.classList.add('expense-date-readonly');
   }
   // ── 문자 붙여넣기 표시 복원 ──
   var pasteBtn = document.getElementById('expensePasteBtn' + (suffix || ''));
@@ -1478,8 +1478,8 @@ function updateExpenseSaveBtn(mode = 'normal') {
 
 
 function openExpenseDatePicker() {
-  if (curExpenseId) return;
-  alert('날짜 선택 기능은 추후 구현됩니다.');
+  // 날짜 선택 UI 미구현 — 향후 구현 시 이 함수에 로직 추가
+  return;
 }
 
 var _smsPasteMode = 'normal';
