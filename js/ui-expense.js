@@ -4,6 +4,14 @@
 
 // ═══ 기본 아이콘 (미사용 — 카테고리 폴백으로 통일) ═══
 
+// ═══ 카테고리 아이콘 폴백용 짧은 이름 ═══
+function getCatShortName(catId) {
+  var shortNames = { 'online': '쇼핑' };
+  if (shortNames[catId]) return shortNames[catId];
+  var catObj = EXPENSE_CATEGORIES.find(function(c) { return c.id === catId; });
+  return catObj ? catObj.name.substring(0, 2) : '기타';
+}
+
 function getMerchantIconHtml(item) {
   var merchant = (item.merchant || '').trim();
   var brand = item.brand || null;
@@ -37,7 +45,7 @@ function getMerchantIconHtml(item) {
   var catColor = catObj ? catObj.color : '#B0B0B8';
   var catName = catObj ? catObj.name : '기타';
   return '<div class="exp-tl-item-icon exp-tl-item-icon-cat" style="background:' + catColor + ';">'
-    + '<span style="color:#fff;font-size:11px;font-weight:600;">' + catName.substring(0, 2) + '</span>'
+    + '<span style="color:#fff;font-size:11px;font-weight:600;">' + getCatShortName(catId) + '</span>'
     + '</div>';
 }
 
@@ -49,7 +57,7 @@ function _logoFallback(el, category) {
   if (parent) {
     parent.className = 'exp-tl-item-icon exp-tl-item-icon-cat';
     parent.style.background = catColor;
-    parent.innerHTML = '<span style="color:#fff;font-size:11px;font-weight:600;">' + catName.substring(0, 2) + '</span>';
+    parent.innerHTML = '<span style="color:#fff;font-size:11px;font-weight:600;">' + getCatShortName(category) + '</span>';
   }
 }
 
@@ -2400,7 +2408,7 @@ function _renderYearlyBubbles(merchants, containerW, containerH) {
       var bCatName = bCatObj ? bCatObj.name : '기타';
       var bubbleFontSize = Math.max(10, Math.round(imgSize * 0.28));
       html += '<div style="width:' + imgSize + 'px;height:' + imgSize + 'px;border-radius:50%;background:' + bCatColor + ';display:flex;align-items:center;justify-content:center;">';
-      html += '<span style="color:#fff;font-size:' + bubbleFontSize + 'px;font-weight:600;">' + bCatName.substring(0, 2) + '</span>';
+      html += '<span style="color:#fff;font-size:' + bubbleFontSize + 'px;font-weight:600;">' + getCatShortName(category) + '</span>';
       html += '</div>';
     }
 
@@ -2447,7 +2455,7 @@ function _renderYearlyRankList(merchants, limit, year) {
       var eCatColor = eCatObj ? eCatObj.color : '#B0B0B8';
       var eCatName = eCatObj ? eCatObj.name : '기타';
       html += '<div style="width:36px;height:36px;border-radius:50%;background:' + eCatColor + ';display:flex;align-items:center;justify-content:center;">';
-      html += '<span style="color:#fff;font-size:12px;font-weight:600;">' + eCatName.substring(0, 2) + '</span>';
+      html += '<span style="color:#fff;font-size:12px;font-weight:600;">' + getCatShortName(m.category) + '</span>';
       html += '</div>';
     } else {
       var catForFallback = m.category || 'etc';
@@ -2458,7 +2466,7 @@ function _renderYearlyRankList(merchants, limit, year) {
         var rCatColor = rCatObj ? rCatObj.color : '#B0B0B8';
         var rCatName = rCatObj ? rCatObj.name : '기타';
         html += '<div style="width:36px;height:36px;border-radius:50%;background:' + rCatColor + ';display:flex;align-items:center;justify-content:center;">';
-        html += '<span style="color:#fff;font-size:12px;font-weight:600;">' + rCatName.substring(0, 2) + '</span>';
+        html += '<span style="color:#fff;font-size:12px;font-weight:600;">' + getCatShortName(catForFallback) + '</span>';
         html += '</div>';
       }
     }
@@ -2525,7 +2533,7 @@ function loadMoreYearlyRank() {
       var eCatColor = eCatObj ? eCatObj.color : '#B0B0B8';
       var eCatName = eCatObj ? eCatObj.name : '기타';
       html += '<div style="width:36px;height:36px;border-radius:50%;background:' + eCatColor + ';display:flex;align-items:center;justify-content:center;">';
-      html += '<span style="color:#fff;font-size:12px;font-weight:600;">' + eCatName.substring(0, 2) + '</span>';
+      html += '<span style="color:#fff;font-size:12px;font-weight:600;">' + getCatShortName(m.category) + '</span>';
       html += '</div>';
     } else {
       var catForFallback = m.category || 'etc';
@@ -2536,7 +2544,7 @@ function loadMoreYearlyRank() {
         var rCatColor = rCatObj ? rCatObj.color : '#B0B0B8';
         var rCatName = rCatObj ? rCatObj.name : '기타';
         html += '<div style="width:36px;height:36px;border-radius:50%;background:' + rCatColor + ';display:flex;align-items:center;justify-content:center;">';
-        html += '<span style="color:#fff;font-size:12px;font-weight:600;">' + rCatName.substring(0, 2) + '</span>';
+        html += '<span style="color:#fff;font-size:12px;font-weight:600;">' + getCatShortName(catForFallback) + '</span>';
         html += '</div>';
       }
     }
