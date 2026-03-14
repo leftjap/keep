@@ -2360,42 +2360,71 @@ function _packCircles(items, containerW, containerH) {
 }
 
 // 버블 차트 HTML 생성
+// 버블 차트 HTML 생성
 function _renderYearlyBubbles(merchants, containerW, containerH) {
-  // 1. 카테고리 기타 항목 분리
+  // 1. brand 있는 항목과 없는 항목 분리
   var brandItems = [];
-  var etcItems = [];
+  var nonBrandByCat = {}; // catId → {amount, count, items[]}
+
   merchants.forEach(function(m) {
-    if (m.isCategoryEtc) {
-      etcItems.push(m);
-    } else {
+    if (m.isEtcGroup) {
+      // 기타 묶음 → 'etc' 카테고리에 합산
+      var cat = 'etc';
+      if (!nonBrandByCat[cat]) nonBrandByCat[cat] = { amount: 0, count: 0, items: [] };
+      nonBrandByCat[cat].amount += m.amount;
+      nonBrandByCat[cat].count += m.count;
+      if (m.etcItems) {
+        m.etcItems.forEach(function(ei) { nonBrandByCat[cat].items.push(ei); });
+      }
+    } else if (m.isBrand) {
       brandItems.push(m);
+    } else {
+      // 비브랜드 → 카테고리별 묶기
+      var cat = m.category || 'etc';
+      if (!nonBrandByCat[cat]) nonBrandByCat[cat] = { amount: 0, count: 0, items: [] };
+      nonBrandByCat[cat].amount += m.amount;
+      nonBrandByCat[cat].count += 1;
+      nonBrandByCat[cat].items.push(m);
     }
   });
 
-  // 2. 브랜드 상위 20개만 버블 대상
+  // 2. 버블 아이템 준비: 브랜드 개별 + 카테고리 묶음
+  var bubbleItems = [];
+
+  // 브랜드 상위 20개
   var bubbleLimit = 20;
-  var bubbleSrc = brandItems.slice(0, bubbleLimit);
-  var overflowItems = brandItems.slice(bubbleLimit);
-
-  // 3. "그 외" 합산: 카테고리 기타 전체 + 21위 이하 전체
-  var etcItemCount = etcItems.length + overflowItems.length;
-
-  // 4. 버블 아이템 준비
-  var bubbleItems = bubbleSrc.map(function(m) {
-    return {
+  brandItems.slice(0, bubbleLimit).forEach(function(m) {
+    bubbleItems.push({
+      type: 'brand',
       merchant: m.merchant,
       amount: m.amount,
       category: m.category,
-      icon: null,
-      brand: m.isBrand ? m.merchant : null
-    };
+      brand: m.merchant
+    });
   });
+
+  // 카테고리 묶음
+  Object.keys(nonBrandByCat).forEach(function(catId) {
+    var catData = nonBrandByCat[catId];
+    if (catData.amount <= 0) return;
+    var catObj = EXPENSE_CATEGORIES.find(function(c) { return c.id === catId; });
+    bubbleItems.push({
+      type: 'category',
+      catId: catId,
+      merchant: catObj ? catObj.name : '기타',
+      amount: catData.amount,
+      category: catId,
+      brand: null,
+      catColor: catObj ? catObj.color : '#A0A0A8'
+    });
+  });
+
+  // 금액 내림차순 정렬
+  bubbleItems.sort(function(a, b) { return b.amount - a.amount; });
 
   var yearVal = new Date(getExpenseViewYM() + '-01').getFullYear();
 
-  if (bubbleItems.length === 0) {
-    return '';
-  }
+  if (bubbleItems.length === 0) return '';
 
   var circles = _packCircles(bubbleItems, containerW, containerH);
 
@@ -2406,8 +2435,14 @@ function _renderYearlyBubbles(merchants, containerW, containerH) {
     var left = Math.round(c.x - c.r);
     var top = Math.round(c.y - c.r);
     var imgSize = Math.round(c.r * 2 - 4);
+    var item = c.item;
 
-    var onclick = 'openMerchantDetail(\'' + _escMerchant(c.item.merchant) + '\',' + yearVal + ')';
+    var onclick;
+    if (item.type === 'category') {
+      onclick = 'openCategoryExpensePopup(\'' + item.catId + '\',\'' + item.merchant.replace(/'/g, "\\'") + '\',' + yearVal + ')';
+    } else {
+      onclick = 'openMerchantDetail(\'' + _escMerchant(item.merchant) + '\',' + yearVal + ')';
+    }
 
     html += '<div class="exp-yearly-bubble" onclick="' + onclick + '" style="'
       + 'position:absolute;'
@@ -2422,27 +2457,35 @@ function _renderYearlyBubbles(merchants, containerW, containerH) {
       + 'cursor:pointer;transition:transform .15s,box-shadow .15s;'
       + '">';
 
-    var src = null;
-    if (c.item.brand) src = getBrandIcon(c.item.brand);
-    if (!src) src = findMerchantIcon(c.item.merchant) || findMerchantIcon(resolveAlias(c.item.merchant));
-    var category = c.item.category || 'etc';
-    if (src) {
-      html += '<img src="' + src + '" width="' + imgSize + '" height="' + imgSize + '" style="border-radius:50%;object-fit:cover;" onerror="_logoFallback(this,\'' + category + '\')">';
-    } else {
-      var bCatObj = EXPENSE_CATEGORIES.find(function(cc) { return cc.id === category; });
-      var bCatColor = bCatObj ? bCatObj.color : '#B0B0B8';
-      var bCatName = bCatObj ? bCatObj.name : '기타';
+    if (item.type === 'category') {
+      // 카테고리 묶음 버블: 카테고리 색상 + 이름
+      var catColor = item.catColor || '#A0A0A8';
       var bubbleFontSize = Math.max(10, Math.round(imgSize * 0.28));
-      html += '<div style="width:' + imgSize + 'px;height:' + imgSize + 'px;border-radius:50%;background:' + bCatColor + ';display:flex;align-items:center;justify-content:center;">';
-      html += '<span style="color:#fff;font-size:' + bubbleFontSize + 'px;font-weight:600;">' + getCatShortName(category) + '</span>';
+      html += '<div style="width:' + imgSize + 'px;height:' + imgSize + 'px;border-radius:50%;background:' + catColor + ';display:flex;align-items:center;justify-content:center;">';
+      html += '<span style="color:#fff;font-size:' + bubbleFontSize + 'px;font-weight:600;">' + item.merchant + '</span>';
       html += '</div>';
+    } else {
+      // 브랜드 개별 버블: 아이콘 표시
+      var src = getBrandIcon(item.brand);
+      if (!src) src = findMerchantIcon(item.merchant) || findMerchantIcon(resolveAlias(item.merchant));
+      var category = item.category || 'etc';
+
+      if (src) {
+        html += '<img src="' + src + '" width="' + imgSize + '" height="' + imgSize + '" style="border-radius:50%;object-fit:cover;" onerror="_logoFallback(this,\'' + category + '\')">';
+      } else {
+        var bCatObj = EXPENSE_CATEGORIES.find(function(cc) { return cc.id === category; });
+        var bCatColor = bCatObj ? bCatObj.color : '#B0B0B8';
+        var bubbleFontSize = Math.max(10, Math.round(imgSize * 0.28));
+        html += '<div style="width:' + imgSize + 'px;height:' + imgSize + 'px;border-radius:50%;background:' + bCatColor + ';display:flex;align-items:center;justify-content:center;">';
+        html += '<span style="color:#fff;font-size:' + bubbleFontSize + 'px;font-weight:600;">' + getCatShortName(category) + '</span>';
+        html += '</div>';
+      }
     }
 
     html += '</div>';
   });
 
   html += '</div>';
-
   return html;
 }
 
