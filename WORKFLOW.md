@@ -950,8 +950,46 @@ gas-nametag/          — Google Apps Script (메인 레포와 별도 폴더)
 
 ---
 
-### gas-nametag/Code.js (GAS 서버)
+### gas-nametag/Code.gs (~1600줄)
 **역할:** Google Apps Script 서버. 클라이언트 동기화, SMS 파싱, 매출처 자동 분류, Drive 파일 관리.
+
+**경로:** 메인 레포(`nametag-game`)와 별도 폴더. `~/바이브 코딩/gas-nametag/`
+
+**배포:** `clasp push` → GAS 편집기에서 웹앱 재배포 (action 추가/라우팅 변경 시)
+
+**함수·상수 배치 (줄 번호 순):**
+
+| 줄 범위 | 이름 | 역할 |
+|---|---|---|
+| 7~90 | `USER_CONFIG` | 사용자별 설정 (rootFolder, sheetId, cardNameMap, routines, tabs, expenseCategories 등) |
+| 93~94 | `GOOGLE_CSE_API_KEY`, `GOOGLE_CSE_CX` | Google Custom Search API 키 |
+| 97 | `GEMINI_API_KEY` | Gemini API 키 |
+| 100~170 | `BRAND_CATEGORY_MAP` | 브랜드명 → 카테고리 ID 매핑 (data.js와 동일, 143개 브랜드) |
+| 173~195 | `cleanMerchantName(merchant)` | 매출처명 접두어 제거 + 변형 통합 (data.js와 동일 로직) |
+| 197~200 | `getCategoryByBrand(brand)` | BRAND_CATEGORY_MAP에서 카테고리 조회 |
+| 203~370 | `MERCHANT_TO_BRAND` | 매출처명 → 브랜드명 자동 매핑 (data.js와 동일, 227개 매출처) |
+| 373~395 | `getUserConfig(idToken, fallbackToken)` | JWT 파싱 후 USER_CONFIG에서 사용자 config 반환 |
+| 398~430 | `doGet(e)` | GET 요청. 매출처 로고 검색 (Google Custom Search API) |
+| 433~475 | `doPost(e)` | POST 요청 진입점. getUserConfig → action별 분기 |
+| 477~480 | `_jsonResponse(obj)` | JSON ContentService 응답 생성 |
+| 483~490 | `getOrCreateFolder`, `getSubFolder` | 폴더 조회/생성 유틸 |
+| 493~545 | `saveDocument(...)` | 구글 드라이브 문서 저장. LockService 사용 |
+| 548~595 | `saveRoutineToSheet(...)` | 루틴 체크 스프레드시트 저장. LockService 사용 |
+| 598~610 | `saveQuoteToSheet(...)` | 어구록 스프레드시트 행 추가 |
+| 613~625 | `uploadImageToDrive(...)` | base64 → Blob → Drive 파일 생성 |
+| 628~640 | `getDatabaseFile(config)` | app_database.json 파일 조회/생성 |
+| 642~655 | `saveDatabase(dbData, config)` | DB 저장 |
+| 657~695 | `loadDatabase(config)` | DB 로드 + masterBrandIcons + config 응답 |
+| 698~790 | `saveExpenseFromSMS(smsText, config)` | SMS → 파싱 → cleanMerchantName → MERCHANT_TO_BRAND → Gemini → brandOverrides → DB 저장. LockService 사용 |
+| 793~920 | `parseSMSServer(text, config)` | SMS 문자열 파싱 → {amount, merchant, card, date, time, category} |
+| 923~1040 | `classifyMerchantWithGemini(merchant, card, config)` | Gemini API로 카테고리+브랜드 분류 |
+| 1042~1130 | `autoMatchCategoryServer(merchant, config)` | 규칙 기반 카테고리 매칭. config.expenseCategories 동적 필터 |
+| 1132~1135 | `_getConfigForEmail(email)` | 수동 실행용 config 조회 헬퍼 |
+| 1138~1310 | `importCardSmsSheet(email)` | SMS 시트에서 가계부 일괄 가져오기 |
+| 1312~1335 | `removeFakeSms(email)` | source='import' 항목만 유지 |
+| 1338~1355 | `clearAllExpenses(email)` | 가계부 데이터 전체 삭제 |
+| 1358~1470 | `reclassifyAllExpenses(email)` | Gemini로 기존 가계부 일괄 재분류 |
+| 1473~1520 | `fixFutureExpenses(email)` | 미래 날짜 항목 보정 |
 
 **멀티유저 설정:**
 - `USER_CONFIG` — 사용자별 설정 객체. 각 이메일에 대해:
@@ -963,58 +1001,20 @@ gas-nametag/          — Google Apps Script (메인 레포와 별도 폴더)
   - `tabs`, `textTypes`, `tabNames` — 탭 설정
   - `expenseCategories` — 카테고리 배열 [{id, name}, ...]
 
-**인증:**
-- `getUserConfig(idToken, fallbackToken)` — JWT 파싱 후 USER_CONFIG에서 사용자 config 반환. 레거시 토큰 'nametag2026' 지원.
+**클라이언트(sync.js)와의 연결:**
 
-**웹 라우터:**
-- `doPost(e)` — 모든 POST 요청 진입점. getUserConfig로 사용자 인증 → config 기반 함수 호출
-- `doGet(e)` — 매출처 로고 검색 (Google Custom Search API)
+| sync.js 메서드 | GAS action | GAS 함수 |
+|---|---|---|
+| `SYNC._post({action:'save_db'})` | save_db | `saveDatabase()` |
+| `SYNC._post({action:'load_db'})` | load_db | `loadDatabase()` |
+| `SYNC._post({action:'save_doc'})` | save_doc | `saveDocument()` |
+| `SYNC._post({action:'save_routine'})` | save_routine | `saveRoutineToSheet()` |
+| `SYNC._post({action:'save_quote'})` | save_quote | `saveQuoteToSheet()` |
+| `SYNC._post({action:'upload_image'})` | upload_image | `uploadImageToDrive()` |
+| `SYNC._post({action:'save_expense_sms'})` | save_expense_sms | `saveExpenseFromSMS()` |
+| `SYNC.mergeServerExpenses()` | load_db | `loadDatabase()` → expenses 병합 |
 
-**폴더/DB 유틸 (config 의존):**
-- `getOrCreateFolder(parent, name)` — 공용, config 불필요
-- `getSubFolder(name, config)` — config.rootFolder 기반 서브폴더 조회
-- `getDatabaseFile(config)` — app_database.json 파일 조회/생성
-
-**문서 저장:**
-- `saveDocument(docId, driveId, folderName, title, content, config)` — 구글 드라이브 문서 저장
-
-**루틴/어구/이미지:**
-- `saveRoutineToSheet(dateStr, checks, config)` — config.routines 배열 기반 동적 컬럼 생성
-- `saveQuoteToSheet(text, by, config)` — config.quoteSheetId가 없으면 스킵
-- `uploadImageToDrive(bytes, mimeType, filename, config)` — 첨부이미지 폴더
-
-**DB 동기화:**
-- `saveDatabase(dbData, config)` — DB 저장
-- `loadDatabase(config)` — DB 로드 + 사용자 config 응답에 포함
-
-**SMS/가계부 자동 분류:**
-- `saveExpenseFromSMS(smsText, config)` — SMS 파싱 → Gemini 분류 → DB 저장
-- `parseSMSServer(text, config)` — SMS 파싱. config.cardNameMap 사용
-- `classifyMerchantWithGemini(merchant, config)` — Gemini API로 카테고리 분류. config.expenseCategories 동적 생성 프롬프트
-- `autoMatchCategoryServer(merchant, config)` — 규칙 기반 카테고리 매칭. config.expenseCategories에 없는 카테고리 건너뜀
-
-**수동 실행 유틸 함수 (GAS 편집기에서 직접 호출):**
-- `_getConfigForEmail(email)` — 헬퍼. 매개변수 없으면 기본값 'leftjap@gmail.com' 사용
-- `importCardSmsSheet(email)` — SMS 시트에서 가계부 일괄 가져오기. config.cardSmsSheetId 사용
-- `removeFakeSms(email)` — source='import' 항목만 유지 (테스트용)
-- `clearAllExpenses(email)` — 가계부 전체 삭제
-- `reclassifyAllExpenses(email)` — Gemini로 기존 가계부 일괄 재분류
-- `fixFutureExpenses(email)` — 미래 날짜 항목 보정
-
-**매출처 정제/분류 (공용, config 불필요):**
-- `BRAND_CATEGORY_MAP` — 브랜드명 → 카테고리 ID 매핑 (data.js와 동일, 143개 브랜드)
-- `cleanMerchantName(merchant)` — 매출처명 접두어 제거 + 변형 통합 (data.js와 동일 로직)
-- `getCategoryByBrand(brand)` — BRAND_CATEGORY_MAP에서 카테고리 조회
-- `MERCHANT_TO_BRAND` — 매출처명 → 브랜드명 매핑 (data.js와 동일, 양쪽 동시 갱신 필수)
-
-**전역 API 키 (공용, config 불필요):**
-- `GOOGLE_CSE_API_KEY`, `GOOGLE_CSE_CX` — Google Custom Search
-- `GEMINI_API_KEY` — Gemini API
-
-**배포:**
-- `clasp push` 명령으로 배포. 웹앱 재배포는 GAS 편집기(https://script.google.com)에서 수동 실행 필요.
-
-**이 파일을 업로드해야 할 때:** 멀티유저 추가, 새 시트/폴더 추가, SMS 파싱 로직 변경, 새 카테고리 추가
+**이 파일을 업로드해야 할 때:** 멀티유저 추가, 새 시트/폴더 추가, SMS 파싱 로직 변경, 새 카테고리 추가, 카드 매핑 추가
 
 ---
 
