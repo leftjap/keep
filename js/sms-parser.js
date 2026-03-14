@@ -113,9 +113,19 @@ function parseSMS(text) {
 
   const cardNames = ['신한','삼성','국민','현대','롯데','하나','우리','체크','신용','승인'];
   const tokens = mt.split(' ');
-  const filtered = [];
+  // "주식회사" 뒤 1글자 토큰을 합쳐서 보존
+  const merged = [];
   for (let j = 0; j < tokens.length; j++) {
-    if (tokens[j].length >= 2 && cardNames.indexOf(tokens[j]) === -1) filtered.push(tokens[j]);
+    if (tokens[j] === '주식회사' && j + 1 < tokens.length && tokens[j + 1].length === 1) {
+      merged.push('주식회사 ' + tokens[j + 1]);
+      j++; // 다음 토큰 건너뛰기
+    } else {
+      merged.push(tokens[j]);
+    }
+  }
+  const filtered = [];
+  for (let j = 0; j < merged.length; j++) {
+    if (merged[j].length >= 2 && cardNames.indexOf(merged[j]) === -1) filtered.push(merged[j]);
   }
   result.merchant = filtered.join(' ').substring(0, 30);
 
