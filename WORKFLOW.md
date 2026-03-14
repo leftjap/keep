@@ -1375,6 +1375,7 @@ editor 영역 안에 다음 하위 패널이 있다. 한 번에 하나만 표시
 - [ ] `USER_CONFIG`의 개별 사용자 설정(expenseCategories name, routines name, tabNames 등)을 명시적 요청 없이 변경하지 않았는가? (10번 "멀티유저 보호 규칙")
 - [ ] `data.js`의 하드코딩 기본값을 변경할 때, 서버 config 미적용 상태에서 다른 사용자에게 잘못된 값이 노출되지 않는가?
 - [ ] `applyServerConfig()` 수정 시, 모든 사용자의 config가 정상 적용되는가?
+- [ ] `getMerchantIconHtml`에 전달하는 iconItem 객체에 category, brand 필드가 포함되어 있는가?
 
 ---
 
