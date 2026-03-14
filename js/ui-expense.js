@@ -2412,20 +2412,15 @@ function _renderYearlyBubbles(merchants, containerW, containerH) {
         m.etcItems.forEach(function(ei) { nonBrandByCat[cat].items.push(ei); });
       }
     } else if (m.isBrand) {
-      // 아이콘이 있는 브랜드만 개별 버블로, 아이콘이 없으면 카테고리 묶음으로
+      // 아이콘이 있는 브랜드만 개별 버블로 (아이콘 없으면 버블에 표시 안 함)
       var src = getBrandIcon(m.merchant);
       if (!src) src = findMerchantIcon(m.merchant) || findMerchantIcon(resolveAlias(m.merchant));
       if (src) {
         brandItems.push(m);
-      } else {
-        var cat = m.category || 'etc';
-        if (!nonBrandByCat[cat]) nonBrandByCat[cat] = { amount: 0, count: 0, items: [] };
-        nonBrandByCat[cat].amount += m.amount;
-        nonBrandByCat[cat].count += 1;
-        nonBrandByCat[cat].items.push(m);
       }
+      // 아이콘 없는 브랜드는 카테고리 버블에도 합산하지 않음
     } else {
-      // 비브랜드 → 카테고리별 묶기
+      // 비브랜드만 카테고리 버블에 합산
       var cat = m.category || 'etc';
       if (!nonBrandByCat[cat]) nonBrandByCat[cat] = { amount: 0, count: 0, items: [] };
       nonBrandByCat[cat].amount += m.amount;
