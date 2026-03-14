@@ -425,6 +425,7 @@ function renderExpenseItem(item, clickAction) {
   html += '<div class="exp-tl-item-left">';
   html += '<span class="exp-tl-item-amount">' + item.amount.toLocaleString() + '원</span>';
   html += '<span class="exp-tl-item-sub">' + displayMerchant;
+  if (item.memo) html += ' · ' + item.memo;
   if (item.card) html += ' | ' + item.card;
   html += '</span>';
   html += '</div>';
@@ -1179,13 +1180,7 @@ function reRenderDetailMobile() { reRenderDetail(); }
 let curExpenseId = null;
 var _originalMerchant = null;
 
-function clearIconUrlError(mode) {
-  var suffix = mode === 'modal' ? 'Modal' : '';
-  var urlInput = document.getElementById('expenseIconUrl' + suffix);
-  var errorEl = document.getElementById('expenseIconError' + suffix);
-  if (urlInput) urlInput.classList.remove('input-error');
-  if (errorEl) errorEl.classList.remove('show');
-}
+function clearIconUrlError(mode) { /* 아이콘 URL 필드 제거됨 */ }
 
 function newExpenseForm(mode = 'normal') {
   curExpenseId = null;
@@ -1199,7 +1194,12 @@ function newExpenseForm(mode = 'normal') {
   document.getElementById('expenseAmountInput' + suffix).value = '';
   document.getElementById('expenseMerchantInput' + suffix).value = '';
   document.getElementById('expenseCardInput' + suffix).value = '';
-  document.getElementById('expenseIconUrl' + suffix).value = '';
+  // 메모 초기화
+  var memoEl = document.getElementById('expenseMemoInput' + suffix);
+  if (memoEl) memoEl.value = '';
+  // 매출처 입력 가능 (새 항목)
+  var merchantEl = document.getElementById('expenseMerchantInput' + suffix);
+  if (merchantEl) merchantEl.removeAttribute('readonly');
   // 브랜드 영역 숨김 (새 항목이므로 브랜드 없음)
   var brandField = document.getElementById('expenseBrandField' + suffix);
   if (brandField) brandField.style.display = 'none';
@@ -1226,22 +1226,18 @@ function loadExpense(id, mode = 'normal') {
   document.getElementById('expenseAmountInput' + suffix).value = e.amount.toLocaleString();
   document.getElementById('expenseMerchantInput' + suffix).value = e.merchant;
   document.getElementById('expenseCardInput' + suffix).value = e.card;
+  // 메모 로드
+  var memoEl = document.getElementById('expenseMemoInput' + suffix);
+  if (memoEl) memoEl.value = e.memo || '';
+  // 매출처 읽기 전용 (기존 항목)
+  var merchantEl = document.getElementById('expenseMerchantInput' + suffix);
+  if (merchantEl) merchantEl.setAttribute('readonly', true);
   const d = new Date(e.date + 'T' + (e.time || '00:00'));
   document.getElementById('expenseDateValue' + suffix).textContent = formatExpenseDate(d);
   // 그리드 접힌 상태 보장
   var catGrid = document.getElementById('expenseCategoryGrid' + suffix);
   if (catGrid) { catGrid.classList.remove('grid-open'); catGrid.style.display = 'none'; }
   selectCategory(e.category, mode);
-
-  // 아이콘 매핑 자동 채우기 (브랜드/비브랜드 분기)
-  var existingIcon = null;
-  if (e.brand) {
-    existingIcon = getBrandIcon(e.brand);
-  }
-  if (!existingIcon) {
-    existingIcon = findMerchantIcon(e.merchant);
-  }
-  document.getElementById('expenseIconUrl' + suffix).value = existingIcon || '';
 
   // 브랜드 표시
   var brandField = document.getElementById('expenseBrandField' + suffix);
@@ -1506,15 +1502,8 @@ function saveExpenseForm(mode = 'normal') {
 
   const merchant = document.getElementById('expenseMerchantInput' + suffix).value.trim();
 
-  // 기존 항목 수정 시 매출처명 변경 감지
-  if (curExpenseId && _originalMerchant && merchant !== _originalMerchant) {
-    if (!confirm('매출처명이 "' + _originalMerchant + '"에서 "' + merchant + '"(으)로 변경되었습니다.\n기존 브랜드/아이콘 매핑이 끊어질 수 있습니다.\n계속할까요?')) {
-      return;
-    }
-  }
-
   const card = document.getElementById('expenseCardInput' + suffix).value.trim();
-  const memo = '';
+  const memo = (document.getElementById('expenseMemoInput' + suffix) || {}).value || '';
   const category = getSelectedCategory(mode);
   const dateText = document.getElementById('expenseDateValue' + suffix).textContent;
   const { date, time } = parseExpenseDateText(dateText);
@@ -1523,53 +1512,6 @@ function saveExpenseForm(mode = 'normal') {
     updateExpense(curExpenseId, { amount, category, merchant, card, memo, date, time });
   } else {
     newExpense({ amount, category, merchant, card, memo, date, time, source: 'manual' });
-  }
-
-  // 매출처 아이콘 매핑 저장 (브랜드/비브랜드 분기)
-  var iconUrl = document.getElementById('expenseIconUrl' + suffix).value.trim();
-  if (iconUrl && !iconUrl.match(/^https?:\/\//)) {
-    var urlInput = document.getElementById('expenseIconUrl' + suffix);
-    var errorEl = document.getElementById('expenseIconError' + suffix);
-    if (urlInput) urlInput.classList.add('input-error');
-    if (errorEl) errorEl.classList.add('show');
-    return;
-  }
-
-  // 현재 항목의 브랜드 확인 (기존 항목이면 DB에서, 새 항목이면 null)
-  var currentBrand = null;
-  if (curExpenseId) {
-    var savedExp = getExpenses().find(function(x) { return x.id === curExpenseId; });
-    if (savedExp) currentBrand = savedExp.brand || null;
-  }
-
-  if (currentBrand && iconUrl) {
-    // 브랜드 매출처 → brandIcons에 저장
-    var sameBrandCount = getExpenses().filter(function(ex) { return ex.brand === currentBrand; }).length;
-    if (sameBrandCount > 1) {
-      if (!confirm(currentBrand + ' 브랜드 전체 ' + sameBrandCount + '건에 새 아이콘이 적용됩니다. 계속할까요?')) return;
-    }
-    setBrandIcon(currentBrand, iconUrl);
-    SYNC.scheduleDatabaseSave();
-  } else if (currentBrand && !iconUrl) {
-    // 브랜드 아이콘 삭제
-    if (getBrandIcon(currentBrand)) {
-      setBrandIcon(currentBrand, null);
-      SYNC.scheduleDatabaseSave();
-    }
-  } else if (!currentBrand && merchant && iconUrl) {
-    // 비브랜드 매출처 → merchantIcons에 저장
-    saveMerchantIcon(merchant, iconUrl);
-    SYNC.scheduleDatabaseSave();
-  } else if (!currentBrand && merchant && !iconUrl) {
-    // 비브랜드 아이콘 삭제
-    var icons = getMerchantIcons();
-    var cleaned = icons.filter(function(item) {
-      return item.keyword !== merchant;
-    });
-    if (cleaned.length !== icons.length) {
-      saveMerchantIcons(cleaned);
-      SYNC.scheduleDatabaseSave();
-    }
   }
 
   // UI 업데이트 및 정리

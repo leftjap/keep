@@ -2288,7 +2288,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 .expense-merchant-field {
   padding: 12px 0;
   border-bottom: 1.5px solid var(--border-l);
-  margin-bottom: 24px;
+  margin-bottom: 0;
 }
 .expense-merchant-input {
   width: 100%; border: none; background: none; outline: none;
@@ -2296,6 +2296,10 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   font-weight: 300;
 }
 .expense-merchant-input::placeholder { color: #c7c7cc; }
+.expense-merchant-input[readonly] {
+  color: var(--tx-m);
+  cursor: default;
+}
 
 /* 날짜 */
 .expense-date-field {
@@ -2407,6 +2411,26 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 }
 .expense-optional-input:focus { border-bottom-color: var(--tab-color); }
 .expense-optional-input::placeholder { color: #c7c7cc; }
+.expense-memo-input {
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid var(--border-l);
+  background: none;
+  outline: none;
+  padding: 10px 0;
+  font-size: 14px;
+  color: var(--tx);
+  font-family: 'Pretendard', sans-serif;
+  transition: border-color .2s;
+  resize: none;
+  line-height: 1.5;
+}
+.expense-memo-input:focus {
+  border-bottom-color: var(--tab-color);
+}
+.expense-memo-input::placeholder {
+  color: #c7c7cc;
+}
 
 /* 매출처 아이콘 URL 에러 */
 .expense-optional-input.input-error { border-bottom-color: var(--red); }
@@ -3018,8 +3042,8 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 
 /* 가계부 모달/에디터 상단 휴지통 버튼 */
 .expense-trash-btn {
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border: none;
   background: none;
   cursor: pointer;
@@ -3028,24 +3052,30 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   justify-content: center;
   color: var(--tx-hint);
   transition: color .15s, background .15s;
-  border-radius: 8px;
+  border-radius: 10px;
   flex-shrink: 0;
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
 }
 .expense-trash-btn:hover {
   background: rgba(0,0,0,.05);
   color: var(--red);
 }
 .expense-trash-btn svg {
-  width: 18px;
-  height: 18px;
+  width: 24px;
+  height: 24px;
   stroke: currentColor;
-  stroke-width: 1.8;
+  stroke-width: 1.6;
   fill: none;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
 .modal-hdr .expense-trash-btn {
+  position: static;
+  transform: none;
   margin-right: -8px;
 }
 
@@ -3103,10 +3133,11 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
     width: 52px;
     height: 52px;
     border-radius: 12px;
+    right: 20px;
   }
   .expense-trash-btn svg {
-    width: 22px;
-    height: 22px;
+    width: 28px;
+    height: 28px;
   }
 }
 
@@ -3153,10 +3184,11 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
     width: 44px;
     height: 44px;
     border-radius: 10px;
+    right: 10px;
   }
   .expense-trash-btn svg {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
   }
 }
 
