@@ -1393,6 +1393,44 @@ editor 영역 안에 다음 하위 패널이 있다. 한 번에 하나만 표시
 
 ---
 
+## 21. 가계부 데이터 운영 규칙
+
+### importCardSmsSheet 실행 주의사항
+
+**날짜 처리:** `parseSMSServer()`는 SMS 본문의 `MM/DD`에 현재 연도를 붙인다. `importCardSmsSheet()`는 이를 `sent_date` 열의 실제 날짜로 교정한다. 단, `sent_date`가 Date 객체가 아닌 문자열로 인식되면 교정이 실패하고 잘못된 연도가 저장된다.
+
+**재import 절차:**
+1. 클라이언트 콘솔에서 import 항목 삭제: `saveExpenses(getExpenses().filter(e => e.source !== 'import')); SYNC.scheduleDatabaseSave();`
+2. 10초 대기 (서버 동기화)
+3. GAS에서 `importCardSmsSheet(email)` 실행
+4. 실행 후 연도별 분포 확인: `getExpenses().filter(e => e.source === 'import')` → 연도별 카운트
+5. 미래 날짜 항목이 있으면 `fixFutureExpenses(email)` 실행
+
+**전체 삭제 후 재import 시:**
+- sms/manual 항목도 삭제됨 — sms 항목은 스프레드시트에서 재import되지만 source가 'import'로 변경됨
+- manual 항목(사용자 수동 입력)은 복구 불가
+- Gemini 재분류 결과(category, brand)가 초기화됨 — `reclassifyAllExpenses(email)` 재실행 필요
+- BRAND-MAPPING.md의 수동 정제(매출처명 정제, 카테고리 수동 변경)도 초기화됨 — 콘솔 스크립트로 재적용 필요
+
+### reclassifyAllExpenses 실행 규칙
+
+- 사용자별 config의 expenseCategories를 동적으로 사용하므로 각 사용자의 카테고리 체계로 분류됨
+- brandOverrides에 있는 매출처는 건너뜀 (사용자 수동 지정 보호)
+- 5분 제한 시 중간 저장 후 재실행하면 이어서 처리
+- date, amount, merchant 필드는 변경하지 않음 (category, brand만 업데이트)
+
+### 2026년 import 날짜 밀림 사건 기록
+
+**원인:** 2026년에 `importCardSmsSheet()`를 실행하면서 과거 SMS 데이터(2024~2025)의 일부 행에서 `sent_date`가 문자열로 처리되어 `parseSMSServer()`의 기본 날짜(실행 시점 연도 2026)가 그대로 저장됨.
+
+**영향:**
+- leftjap: 65건 2026→2025 수동 수정 완료
+- soyoun312: 127건 수동 수정 → 과잉 수정으로 전체 삭제 후 재import → Gemini 재분류 + BRAND-MAPPING.md 수동 정제 재적용 필요
+
+**방지책:** import 후 반드시 미래 날짜 확인. 의심 시 `fixFutureExpenses(email)` 실행.
+
+---
+
 ## 변경 로그
 
 | 날짜 | 변경 내용 |
@@ -1417,6 +1455,7 @@ editor 영역 안에 다음 하위 패널이 있다. 한 번에 하나만 표시
 | 2026-03-13 | 브랜드 시스템 3-1: 가계부 폼에서 별명 필드 제거, 브랜드 읽기 전용 표시 추가, renderAliasSuggestions/selectAliasChip 빈 스텁으로 교체, openBrandEditPopup/removeBrandFromForm 추가, saveExpenseForm에서 별명 저장 제거. index.html 브랜드 필드 추가, style.css 브랜드 스타일 추가, ui-expense.js newExpenseForm/loadExpense/saveExpenseForm 수정, 8번 WORKFLOW.md 폼 관리 섹션 갱신 |
 | 2026-03-13 | 브랜드 시스템 3-2, 3-3: openBrandEditPopup 실제 구현(브랜드명 입력+항목단위/전체 선택), _applyBrandEdit 추가, saveExpenseForm 아이콘 저장을 brandIcons/merchantIcons 분기, loadExpense 아이콘 로드 분기. ui-expense.js saveExpenseForm/loadExpense/openBrandEditPopup 수정, _applyBrandEdit 추가, 8번 WORKFLOW.md 폼 관리 섹션 갱신 |
 | 2026-03-14 | 브랜드 시스템 4단계: 별명 시스템 비활성화 — renderAliasSuggestions/selectAliasChip 삭제, openAliasManager/toggleAliasGroup/openAliasEdit/deleteAlias 빈 스텁으로 교체, saveExpenseForm confirm 문구 "별명→브랜드" 변경. merchantAliases 데이터는 보존(아이콘 폴백 경로에서 사용). 8번 별명 관리 섹션/폼 관리 섹션 갱신 |
+| 2026-03-14 | 가계부 폼 재구성: 필드 순서 변경(금액→매출처→카테고리→메모→카드→브랜드→날짜→아이콘), 메모 textarea 추가, 기존 항목 매출처 readonly, 타임라인에 메모 표시, 삭제 버튼 아이콘/정렬 개선. 21번 가계부 데이터 운영 규칙 추가 |
 | 2026-03-11 | 가계부 입력 폼 카테고리 UI 변경: 그리드 항상 펼침 → 칩(선택된 태그) + 탭하면 펼치기로 변경. toggleCategoryGrid 추가, selectCategory/clearCategorySelection/loadExpense 수정, 칩 HTML(index.html) 및 CSS 추가 |
 | 2026-03-11 | GAS 웹앱 재배포 규칙 강화: clasp push 후 재배포를 "라우팅 변경 시"에서 "항상 필수"로 변경, 템플릿에 사용자 수동 재배포 안내 필수 포함, 10번 주의사항에 재배포 항목 추가 |
 | 2026-03-12 | 10번 멀티유저 보호 규칙 추가: USER_CONFIG 개별 사용자 설정 변경 금지, applyServerConfig 수정 시 전체 사용자 검증, 사용자별 설정 현황 표 추가. 19번 체크리스트에 멀티유저 관련 3개 항목 추가 |

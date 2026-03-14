@@ -524,6 +524,13 @@
           <span class="expense-date-value" id="expenseDateValue" onclick="openExpenseDatePicker()"></span>
         </div>
 
+        <!-- 매출처 아이콘 -->
+        <div class="expense-optional-field">
+          <label class="expense-section-label">매출처 아이콘</label>
+          <input type="url" id="expenseIconUrl" class="expense-optional-input" placeholder="아이콘 이미지 URL" oninput="clearIconUrlError('normal')">
+          <div class="expense-icon-error" id="expenseIconError">http:// 또는 https://로 시작하는 URL을 입력하세요</div>
+        </div>
+
       </div>
     </div>
     <div class="expense-form-footer">
@@ -611,6 +618,13 @@
       <div class="expense-date-field">
         <span class="expense-date-label">지출일시</span>
         <span class="expense-date-value" id="expenseDateValueModal" onclick="openExpenseDatePicker()"></span>
+      </div>
+
+      <!-- 매출처 아이콘 -->
+      <div class="expense-optional-field">
+        <label class="expense-section-label">매출처 아이콘</label>
+        <input type="url" id="expenseIconUrlModal" class="expense-optional-input" placeholder="아이콘 이미지 URL" oninput="clearIconUrlError('modal')">
+        <div class="expense-icon-error" id="expenseIconErrorModal">http:// 또는 https://로 시작하는 URL을 입력하세요</div>
       </div>
 
     </div>
