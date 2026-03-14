@@ -2,6 +2,15 @@
 // ui-expense.js — 가계부 UI 렌더링
 // ═══════════════════════════════════════
 
+// 아이콘 URL 로드 검증
+function validateIconUrl(url, callback) {
+  if (!url) { callback(true); return; }
+  var img = new Image();
+  img.onload = function() { callback(true); };
+  img.onerror = function() { callback(false); };
+  img.src = url;
+}
+
 // ═══ 기본 아이콘 (미사용 — 카테고리 폴백으로 통일) ═══
 
 // ═══ 카테고리 아이콘 폴백용 짧은 이름 ═══
@@ -1614,6 +1623,24 @@ function saveExpenseForm(mode = 'normal') {
     if (savedExp) currentBrand = savedExp.brand || null;
   }
 
+  // 아이콘 URL이 있으면 로드 검증
+  if (iconUrl) {
+    validateIconUrl(iconUrl, function(ok) {
+      if (!ok) {
+        alert('이 URL은 이미지를 로드할 수 없습니다. 다른 URL을 입력해주세요.');
+        return;
+      }
+      // 검증 완료 후 저장 진행
+      _saveIconAfterValidation(currentBrand, merchant, iconUrl, mode);
+    });
+    return;
+  } else {
+    // URL이 없으면 바로 삭제 로직 진행
+    _saveIconAfterValidation(currentBrand, merchant, null, mode);
+  }
+}
+
+function _saveIconAfterValidation(currentBrand, merchant, iconUrl, mode) {
   if (currentBrand && iconUrl) {
     var sameBrandCount = getExpenses().filter(function(ex) { return ex.brand === currentBrand; }).length;
     if (sameBrandCount > 1) {
@@ -1638,12 +1665,16 @@ function saveExpenseForm(mode = 'normal') {
   updateExpenseCompact();
   SYNC.scheduleDatabaseSave();
 
+  // 아이콘 변경 시 _yearlyRankLoaded 보존
+  var prevRankLoaded = _yearlyRankLoaded;
+
   if (mode === 'modal') {
     // 모달: 닫고 대시보드 갱신
     closeExpenseModal();
     if (window.innerWidth > 768) {
       renderExpenseDashboard('pc');
     }
+    _yearlyRankLoaded = prevRankLoaded;
     return;
   } else if (window.innerWidth <= 768) {
     // 모바일: 대시보드 화면으로 전환
@@ -1655,6 +1686,8 @@ function saveExpenseForm(mode = 'normal') {
     // PC 에디터: 폼 초기화
     newExpenseForm();
   }
+
+  _yearlyRankLoaded = prevRankLoaded;
 }
 
 // ═══════════════════════════════════════
@@ -2377,7 +2410,18 @@ function _renderYearlyBubbles(merchants, containerW, containerH) {
         m.etcItems.forEach(function(ei) { nonBrandByCat[cat].items.push(ei); });
       }
     } else if (m.isBrand) {
-      brandItems.push(m);
+      // 아이콘이 있는 브랜드만 개별 버블로, 아이콘이 없으면 카테고리 묶음으로
+      var src = getBrandIcon(m.merchant);
+      if (!src) src = findMerchantIcon(m.merchant) || findMerchantIcon(resolveAlias(m.merchant));
+      if (src) {
+        brandItems.push(m);
+      } else {
+        var cat = m.category || 'etc';
+        if (!nonBrandByCat[cat]) nonBrandByCat[cat] = { amount: 0, count: 0, items: [] };
+        nonBrandByCat[cat].amount += m.amount;
+        nonBrandByCat[cat].count += 1;
+        nonBrandByCat[cat].items.push(m);
+      }
     } else {
       // 비브랜드 → 카테고리별 묶기
       var cat = m.category || 'etc';

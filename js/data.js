@@ -22,6 +22,117 @@ let currentLoadedDoc   = { type: null, id: null };
 let currentSearchQuery = '';
 let currentListView    = 'list';
 
+// ═══ 브랜드 카테고리 매핑 ═══
+var BRAND_CATEGORY_MAP = {
+  // overseas (해외)
+  'AIRALO': 'overseas', 'BART': 'overseas', 'DOUBLETREE': 'overseas',
+  'Dusit Thani': 'overseas', 'KIX DUTY FREE': 'overseas', 'KKday': 'overseas',
+  'LA RINASCENTE': 'overseas', 'Pullman': 'overseas', 'Sokha Hotels': 'overseas',
+  'THE WESTIN': 'overseas', '대한항공': 'overseas', '롯데면세점': 'overseas',
+  '마이리얼트립': 'overseas', '신세계면세점': 'overseas',
+  '인터컨티넨탈호텔': 'overseas', '인터파크': 'overseas',
+
+  // fashion (패션/뷰티)
+  'COS': 'fashion', 'H&M': 'fashion', 'HDC아이파크몰': 'fashion',
+  'KITH': 'fashion', 'LF': 'fashion', 'STUSSY': 'fashion',
+  'SUPREME': 'fashion', '나이키': 'fashion', '네이버페이': 'fashion',
+  '더현대닷컴': 'fashion', '롯데백화점': 'fashion', '무신사': 'fashion',
+  '비너스': 'fashion', '삼성물산': 'fashion', '신세계인터내셔날': 'fashion',
+  '아모레퍼시픽': 'fashion', '올리브영': 'fashion', '유니클로': 'fashion',
+  '이니스프리': 'fashion', '이솝': 'fashion', '이케아': 'fashion',
+  '인스턴트펑크': 'fashion', '커스텀멜로우': 'fashion', '코오롱': 'fashion',
+  '크린토피아': 'fashion', '트라이본즈': 'fashion', '현대홈쇼핑': 'fashion',
+  '베네피트': 'fashion', '무인양품': 'fashion',
+
+  // food (식품/마트)
+  'CJ': 'food', 'SSG.COM': 'food', '금옥당': 'food', '뚜레쥬르': 'food',
+  '띵굴': 'food', '롯데온': 'food', '베즐리': 'food', '사러가': 'food',
+  '신세계': 'food', '오아시스': 'food', '온브릭스': 'food', '이마트': 'food',
+  '쿠팡': 'food', '컬리': 'food', '태극당': 'food', '파리바게뜨': 'food',
+  '파리크라상': 'food', '풀무원': 'food', '하나로마트': 'food',
+  '한화커넥트': 'food', '현대그린푸드': 'food', '현대백화점 식품관': 'food',
+  '고디바': 'food',
+
+  // dining (외식)
+  'KFC': 'dining', '계륵장군': 'dining', '구스토타코': 'dining',
+  '도미노피자': 'dining', '등촌동샤브샤브': 'dining', '또보겠지': 'dining',
+  '롯데리아': 'dining', '만석닭강정': 'dining', '명동교자': 'dining',
+  '미분당': 'dining', '배달의민족': 'dining', '뱃고동': 'dining',
+  '버거리': 'dining', '버거킹': 'dining', '봉피양': 'dining',
+  '새마을식당': 'dining', '송계옥': 'dining', '신차이': 'dining',
+  '아오이토리': 'dining', '아워당N인더박스': 'dining', '아워홈': 'dining',
+  '연타발': 'dining', '육전국밥': 'dining', '인앤아웃': 'dining',
+  '진진': 'dining', '천하의 문타로': 'dining', '탐탐오향족발': 'dining',
+  '한솥도시락': 'dining', '황생가': 'dining', '피크니크': 'dining',
+
+  // cafe (카페)
+  'T카페나폴레옹': 'cafe', '공차': 'cafe', '논탄토': 'cafe',
+  '매머드커피': 'cafe', '메가MGC커피': 'cafe', '모모스': 'cafe',
+  '블루보틀': 'cafe', '앤트러사이트': 'cafe', '엔제리너스': 'cafe',
+  '이디야커피': 'cafe', '잠바주스': 'cafe', '카멜커피': 'cafe',
+  '크렘드마롱': 'cafe', '투썸플레이스': 'cafe', '팀홀튼': 'cafe',
+  '폴바셋': 'cafe', '할리스': 'cafe', '아우어베이커리': 'cafe',
+  '던킨도너츠': 'cafe',
+
+  // convenience (편의점)
+  'CU': 'convenience', 'GS25': 'convenience', '미니스톱': 'convenience',
+  '세븐일레븐': 'convenience', '이마트24': 'convenience',
+
+  // culture (문화)
+  'CGV': 'culture', 'YBM': 'culture', 'Apple': 'culture',
+  '교보문고': 'culture', '디즈니플러스': 'culture', '땡스북스': 'culture',
+  '메가박스': 'culture', '모닝글로리': 'culture', '밀리의서재': 'culture',
+  '예스24': 'culture', '롯데시네마': 'culture', '화담숲': 'culture',
+
+  // health (건강)
+  '가톨릭대학교서울성모병원': 'health', '신촌세브란스병원': 'health',
+  '연세의료원': 'health', '헬스보이짐': 'health',
+
+  // gift (선물)
+  '미니골드': 'gift', '호텔신라': 'gift', '롯데': 'gift',
+
+  // cat (고양이)
+  'CUREFIP': 'cat',
+
+  // etc (특정 불가)
+  'SK네트웍스': 'etc', 'SK텔레콤': 'etc', '삼성화재': 'etc', '티머니': 'etc'
+};
+
+function getCategoryByBrand(brand) {
+  if (!brand) return null;
+  return BRAND_CATEGORY_MAP[brand] || null;
+}
+
+// 매출처명 정제
+function cleanMerchantName(merchant) {
+  if (!merchant) return merchant;
+  var m = merchant.trim();
+
+  // 1. 신한온누리 접두어 제거
+  m = m.replace(/^신한온누리\s*/, '');
+
+  // 2. 민생회복/1차 민생 접두어 제거
+  m = m.replace(/^(1차\s*)?민생(회복)?\s*/, '');
+
+  // 3. 통화코드 접두어 제거 (달러, 엔화, 유로, 위안, 바트, 페소 등 + 숫자)
+  m = m.replace(/^(달러|엔화|유로|위안|바트|페소)\s+/, '');
+  m = m.replace(/^[A-Z]{3}\s+[\d\s]+\s+/, '');
+  m = m.replace(/^\d+\s+/, '');
+
+  // 4. 매출처명 변형 통합
+  if (m.match(/^사러가/)) m = '사러가';
+  if (m.match(/^또[보부]겠지/)) m = '또보겠지';
+  if (m.match(/^COS\s*HU/i)) m = 'COS';
+  if (m.match(/온브릭스/)) m = '온브릭스';
+  if (m.match(/^SP\s+STUSSY/i)) m = 'STUSSY';
+  if (m.match(/^KITH\s+HAWAI/i)) m = 'KITH';
+  if (m.match(/^LARINASCEN/i)) m = 'LA RINASCENTE';
+  if (m.match(/^www\.curefi|^CUREFIP\.CO/i)) m = 'CUREFIP';
+  if (m.match(/^KIX\s*(DFS|DUTY)/i)) m = 'KIX DUTY FREE';
+
+  return m;
+}
+
 // ═══ Documents ═══
 function allDocs()        { return L(K.docs) || []; }
 function getDocs(type)    { return allDocs().filter(d => d.type === type); }
@@ -381,8 +492,18 @@ function newExpense(data) {
     date: data.date || today(),
     time: data.time || '',
     created: new Date().toISOString(),
-    source: data.source || 'manual'
+    source: data.source || 'manual',
+    brand: data.brand || null
   };
+
+  // 매출처명 정제
+  expense.merchant = cleanMerchantName(expense.merchant);
+
+  // brand가 있으면 BRAND_CATEGORY_MAP에서 카테고리 자동 부여
+  if (expense.brand && BRAND_CATEGORY_MAP[expense.brand]) {
+    expense.category = BRAND_CATEGORY_MAP[expense.brand];
+  }
+
   const expenses = getExpenses();
   expenses.unshift(expense);
   saveExpenses(expenses);
@@ -394,6 +515,15 @@ function updateExpense(id, data) {
   const idx = expenses.findIndex(e => e.id === id);
   if (idx !== -1) {
     Object.assign(expenses[idx], data);
+
+    // 매출처명 정제
+    expenses[idx].merchant = cleanMerchantName(expenses[idx].merchant);
+
+    // brand가 있으면 BRAND_CATEGORY_MAP에서 카테고리 자동 부여
+    if (expenses[idx].brand && BRAND_CATEGORY_MAP[expenses[idx].brand]) {
+      expenses[idx].category = BRAND_CATEGORY_MAP[expenses[idx].brand];
+    }
+
     saveExpenses(expenses);
   }
 }
