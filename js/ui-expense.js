@@ -2084,8 +2084,6 @@ function openCategoryExpensePopup(catId, catName, year) {
       .filter(function(e) {
         if (!e.date || !e.date.startsWith(yearStr) || e.category !== catId) return false;
         if (endDate && e.date > endDate) return false;
-        // 브랜드 항목은 개별 버블 또는 카테고리 묶음으로 별도 처리되므로 제외
-        if (e.brand) return false;
         return true;
       })
       .sort(function(a, b) { return (b.date + ' ' + (b.time || '')).localeCompare(a.date + ' ' + (a.time || '')); });
