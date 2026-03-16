@@ -983,7 +983,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   }
   .side .expense-compact-amount {
     color: rgba(255,255,255,.4);
-    font-size: 14px;
+    font-size: 15px;
   }
   .side .side-nav {
     border-bottom: none !important;
@@ -1116,7 +1116,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   }
   .side .expense-compact-amount {
     color: rgba(255,255,255,.4);
-    font-size: 14px;
+    font-size: 15px;
   }
   .side .side-nav {
     border-bottom: none !important;
@@ -1894,7 +1894,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   }
   .side .expense-compact-amount {
     color: rgba(255,255,255,.4) !important;
-    font-size: 14px !important;
+    font-size: 15px !important;
   }
 }
 /* ═══ 스와이프 오버레이 (body 고정) ═══ */
@@ -2067,7 +2067,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 .expense-compact-label { font-size: 14px; font-weight: 400; color: var(--tx-d); }
 .expense-compact-right { display: flex; align-items: center; gap: 8px; padding-right: 28px; }
 .expense-compact-amount {
-  font-size: 12px; font-family: 'JetBrains Mono', monospace;
+  font-size: 13px; font-family: 'Pretendard', -apple-system, sans-serif;
   color: var(--tx-hint); font-weight: 400;
 }
 .expense-compact.on { background: rgba(0,0,0,.04); }
