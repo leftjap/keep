@@ -75,7 +75,7 @@ function updateExpenseCompact() {
   if (!el) return;
   const thisYM = today().slice(0, 7);
   const total = getMonthTotal(thisYM);
-  el.textContent = total > 0 ? total.toLocaleString() + '원' : '';
+  el.textContent = total > 0 ? total.toLocaleString() + ' 원' : '';
 }
 
 function showExpenseDashboard() {

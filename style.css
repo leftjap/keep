@@ -983,7 +983,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   }
   .side .expense-compact-amount {
     color: rgba(255,255,255,.4);
-    font-size: 15px;
+    font-size: 16px;
   }
   .side .side-nav {
     border-bottom: none !important;
@@ -1116,7 +1116,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   }
   .side .expense-compact-amount {
     color: rgba(255,255,255,.4);
-    font-size: 15px;
+    font-size: 16px;
   }
   .side .side-nav {
     border-bottom: none !important;
@@ -1894,7 +1894,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   }
   .side .expense-compact-amount {
     color: rgba(255,255,255,.4) !important;
-    font-size: 15px !important;
+    font-size: 16px !important;
   }
 }
 /* ═══ 스와이프 오버레이 (body 고정) ═══ */
