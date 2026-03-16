@@ -26,10 +26,58 @@ function parseSMS(text) {
     date: '', time: '', category: 'etc'
   };
 
-  // 금액 추출 (첫 번째 매치)
-  const amountMatch = text.match(/([\d,]+)\s*원/);
-  if (!amountMatch) return null;
-  result.amount = parseInt(amountMatch[1].replace(/,/g, ''));
+  // ═══ 해외 결제 감지 + 외화 금액 추출 ═══
+  const isOverseas = /해외승인/.test(text);
+
+  if (isOverseas) {
+    // 고정 환율 테이블
+    const FX_RATES = {
+      'USD': 1350, 'EUR': 1450, 'JPY': 9, 'GBP': 1700,
+      'CNY': 190, 'THB': 40, 'VND': 0.055, 'PHP': 25,
+      'HUF': 4, 'KHR': 0.33, 'SGD': 1000, 'KRW': 1
+    };
+    const CURRENCY_KR = {
+      '달러': 'USD', '엔': 'JPY', '유로': 'EUR', '위안': 'CNY',
+      '바트': 'THB', '동': 'VND', '링깃': 'MYR', '루피': 'INR', '페소': 'PHP'
+    };
+
+    let foreignAmount = 0;
+    let currency = '';
+
+    // 패턴1: "250.79 달러", "8,100 엔", "175.00 유로" (후치 한글 통화)
+    const krMatch = text.match(/([\d,]+(?:\.\d+)?)\s*(달러|엔|유로|위안|바트|동|링깃|루피|페소)/);
+    if (krMatch) {
+      foreignAmount = parseFloat(krMatch[1].replace(/,/g, ''));
+      currency = CURRENCY_KR[krMatch[2]] || 'USD';
+    }
+
+    // 패턴2: "HUF 124,000.00", "VND 13,386,659", "KRW 533,000" (전치 영문 통화코드)
+    if (!foreignAmount) {
+      const codeMatch = text.match(/([A-Z]{3})\s+([\d,]+(?:\.\d+)?)/);
+      if (codeMatch && codeMatch[1] !== 'Web') {
+        currency = codeMatch[1];
+        foreignAmount = parseFloat(codeMatch[2].replace(/,/g, ''));
+      }
+    }
+
+    if (foreignAmount > 0 && currency) {
+      const rate = FX_RATES[currency] || 1;
+      result.amount = Math.round(foreignAmount * rate);
+      result.foreignAmount = foreignAmount;
+      result.currency = currency;
+    } else {
+      // 해외승인이지만 외화 파싱 실패 — 기존 원화 매칭 폴백
+      const amountMatch = text.match(/([\d,]+)\s*원/);
+      if (!amountMatch) return null;
+      result.amount = parseInt(amountMatch[1].replace(/,/g, ''));
+    }
+  } else {
+    // 국내 결제: 기존 로직
+    const amountMatch = text.match(/([\d,]+)\s*원/);
+    if (!amountMatch) return null;
+    result.amount = parseInt(amountMatch[1].replace(/,/g, ''));
+  }
+
   if (result.amount <= 0) return null;
 
   // 카드사 + 번호: "삼성1337" (연속), "신한카드(8244)" 또는 "[신한체크승인] 김*연(8579)" (괄호)
