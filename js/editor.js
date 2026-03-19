@@ -555,6 +555,7 @@ let _at = null;
 function setupAutoSave() {
   // 에디터 dirty 플래그 — 마지막 저장 이후 사용자 입력이 있었는지
   window._editorDirty = false;
+  window._unsyncedLocal = false;
   var _lastSyncTime = 0;
 
   const showSaving  = () => { if (document.getElementById('edSaveStatus')) document.getElementById('edSaveStatus').textContent = '저장 중...'; };
@@ -592,9 +593,17 @@ function setupAutoSave() {
       var now = Date.now();
       if (now - _lastSyncTime > 30000) {
         _lastSyncTime = now;
-        SYNC.mergeServerExpenses().catch(function(e) { console.warn('mergeExpenses:', e.message); });
-        if (!window._editorDirty) {
-          SYNC.mergeServerDocs().catch(function(e) { console.warn('mergeServerDocs:', e.message); });
+        // 미동기화 로컬 변경이 있으면 먼저 서버에 올린 뒤 병합
+        if (window._unsyncedLocal) {
+          SYNC.syncAll().then(function() {
+            window._unsyncedLocal = false;
+            return SYNC.mergeServerAll();
+          }).catch(function(e) { console.warn('resync:', e.message); });
+        } else if (!window._editorDirty) {
+          SYNC.mergeServerAll().catch(function(e) { console.warn('mergeServerAll:', e.message); });
+        } else {
+          // dirty 상태: expenses만 병합 (문서는 건드리지 않음)
+          SYNC.mergeServerExpenses().catch(function(e) { console.warn('mergeExpenses:', e.message); });
         }
       }
     }
