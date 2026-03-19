@@ -553,6 +553,10 @@ async function imgCtxAction(action) {
 // ═══ 자동 저장 ═══
 let _at = null;
 function setupAutoSave() {
+  // 에디터 dirty 플래그 — 마지막 저장 이후 사용자 입력이 있었는지
+  window._editorDirty = false;
+  var _lastSyncTime = 0;
+
   const showSaving  = () => { if (document.getElementById('edSaveStatus')) document.getElementById('edSaveStatus').textContent = '저장 중...'; };
   const showSaved   = () => { if (document.getElementById('edSaveStatus')) document.getElementById('edSaveStatus').textContent = '저장됨'; };
   const saveLocalOnly = () => {
@@ -563,11 +567,12 @@ function setupAutoSave() {
   };
   const doSaveAndSync = () => {
     saveLocalOnly();
+    window._editorDirty = false;
     SYNC.scheduleDatabaseSave();
     if (textTypes.includes(activeTab)) SYNC.scheduleDocSave(activeTab);
     else if (activeTab === 'memo') SYNC.scheduleDocSave('memo');
   };
-  const onInput = () => { showSaving(); clearTimeout(_at); _at = setTimeout(doSaveAndSync, 800); updateWC(); };
+  const onInput = () => { window._editorDirty = true; showSaving(); clearTimeout(_at); _at = setTimeout(doSaveAndSync, 800); updateWC(); };
   const ids = ['edBody','edTitle','memo-body','memo-title','book-title','book-author','book-publisher','book-pages','book-body','quote-by','quote-body'];
   ids.forEach(id => {
     const el = document.getElementById(id);
@@ -578,9 +583,20 @@ function setupAutoSave() {
   });
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') {
-      clearTimeout(_at); saveLocalOnly(); SYNC.syncAll();
+      clearTimeout(_at);
+      saveLocalOnly();
+      window._editorDirty = false;
+      // 서버에 현재 문서보다 최신 버전이 있는지 확인 후 동기화
+      SYNC.syncAllSafe().catch(function(e) { console.warn('syncAllSafe:', e.message); });
     } else if (document.visibilityState === 'visible') {
-      SYNC.mergeServerExpenses();
+      var now = Date.now();
+      if (now - _lastSyncTime > 30000) {
+        _lastSyncTime = now;
+        SYNC.mergeServerExpenses().catch(function(e) { console.warn('mergeExpenses:', e.message); });
+        if (!window._editorDirty) {
+          SYNC.mergeServerDocs().catch(function(e) { console.warn('mergeServerDocs:', e.message); });
+        }
+      }
     }
   });
 }

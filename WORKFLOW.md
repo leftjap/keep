@@ -660,6 +660,7 @@ gas/                   — Google Apps Script (메인 레포 내 하위 폴더)
 - `curExpenseId` — 현재 편집 중인 가계부 항목 ID
 - `imgCtxTarget` — 이미지 컨텍스트 메뉴 대상 IMG 요소
 - `savedSelection` — 플로팅 툴바용 텍스트 선택 범위
+- `_editorDirty` — 마지막 저장 이후 사용자 입력 여부 (서버 병합 판단용)
 
 **툴바/서식:**
 - `execCmd(cmd, val)`, `insertChecklist()`, `setupEnterKey()`
@@ -775,6 +776,8 @@ gas/                   — Google Apps Script (메인 레포 내 하위 폴더)
 - `scheduleBookSave(book)`, `saveBooksToSheet(book)` — 책 → 드라이브
 - `scheduleQuoteSave(text, by, id)`, `saveQuotesToSheet(text, by)` — 어구 → 스프레드시트
 - `syncAll()` — 전체 동기화
+- `syncAllSafe()` — hidden 시 서버 문서 updated 비교 후, 서버가 더 최신이면 푸시 건너뜀
+- `mergeServerDocs()` — visible 복귀 시 서버 docs/books/memos/quotes를 updated 기준으로 로컬에 병합. 현재 열린 문서가 갱신 대상이면 에디터 리로드
 
 **이 파일을 업로드해야 할 때:** 동기화 로직 변경, 새 데이터 타입 동기화 추가
 
@@ -1048,7 +1051,11 @@ gas/                   — Google Apps Script (메인 레포 내 하위 폴더)
 리스트 항목 클릭 → `loadDoc(type, id)` / `loadBook(id)` / `loadQuote(id)` / `loadMemo(id)` → 에디터 필드에 값 반영 → `renderListPanel()` → 모바일이면 `setMobileView('editor')`
 
 ### 자동 저장 흐름
-에디터 입력 → 800ms 디바운스 → 로컬 저장 → DB 동기화(3초 디바운스) + 문서 동기화(5초 디바운스) → GAS 동기화
+에디터 입력 → _editorDirty=true → 800ms 디바운스 → 로컬 저장 → _editorDirty=false → DB 동기화(3초) + 문서 동기화(5초) → GAS 동기화
+
+### 멀티 디바이스 동기화 흐름 (visibilitychange)
+hidden: saveLocalOnly → _editorDirty=false → syncAllSafe() → 서버 문서 updated 비교 → 서버가 더 최신이면 푸시 건너뜀, 아니면 syncAll() 실행
+visible (30초 쿨다운): mergeServerExpenses() + (_editorDirty가 false이면) mergeServerDocs() → 서버가 더 최신인 항목을 로컬에 병합 → 현재 열린 문서가 갱신 대상이면 에디터 리로드
 
 ### 가계부 흐름 (현재 패턴)
 사이드바 클릭 → `switchTab('expense')` → PC/태블릿: `expenseFullDashboard` 표시 + `renderExpenseDashboard('pc')` / 모바일: `pane-expense-dashboard` 표시 + `renderExpenseDashboard('mobile')` → "내역 더 보기" 클릭 → 전체 내역 표시
@@ -1237,6 +1244,7 @@ Haiku 4.5는 전체 프로젝트 맥락을 알지 못할 수 있다. 각 Step에
 | selectedPhotoId | ui.js | 사진 뷰 선택 항목 ID |
 | imgCtxTarget | editor.js | 이미지 컨텍스트 메뉴 대상 |
 | savedSelection | editor.js | 플로팅 툴바 텍스트 선택 범위 |
+| _editorDirty | editor.js | 마지막 저장 이후 사용자 입력 여부 (서버 병합 판단용) |
 
 ---
 

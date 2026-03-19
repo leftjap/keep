@@ -189,18 +189,6 @@ function init() {
     if (GAS_URL) SYNC.setSyncStatus('완료됨', 'ok');
     else         SYNC.setSyncStatus('로컬 전용', 'error');
 
-    // SMS 자동 반영: 포그라운드 복귀 시 서버 expenses 병합
-    let _lastMergeTime = 0;
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible' && SYNC.isDbLoaded) {
-        const now = Date.now();
-        if (now - _lastMergeTime > 30000) {
-          _lastMergeTime = now;
-          SYNC.mergeServerExpenses().catch(e => console.warn('auto merge failed:', e.message));
-        }
-      }
-    });
-
     switchListView('list');
   } catch (e) {
     console.error('init error:', e);

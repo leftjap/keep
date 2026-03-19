@@ -272,6 +272,122 @@ const SYNC = {
     await this._post({ action: 'save_quote', text: text || '', by: by || '' });
   },
 
+  // ═══ 서버 문서 병합 (멀티 디바이스 동기화) ═══
+  async mergeServerDocs() {
+    if (!this.isDbLoaded) return;
+    try {
+      const res = await this._post({ action: 'load_db' });
+      if (!res || !res.dbData) return;
+      let changed = false;
+
+      // docs 병합
+      const serverDocs = res.dbData[K.docs];
+      if (serverDocs && Array.isArray(serverDocs)) {
+        const localDocs = allDocs();
+        const localMap = {};
+        for (var i = 0; i < localDocs.length; i++) localMap[localDocs[i].id] = localDocs[i];
+        var docsChanged = false;
+        for (var j = 0; j < serverDocs.length; j++) {
+          var sd = serverDocs[j];
+          var ld = localMap[sd.id];
+          if (ld) {
+            if (sd.updated && ld.updated && sd.updated > ld.updated) {
+              Object.assign(ld, sd);
+              docsChanged = true;
+            }
+          } else {
+            localDocs.unshift(sd);
+            docsChanged = true;
+          }
+        }
+        if (docsChanged) { saveDocs(localDocs); changed = true; }
+      }
+
+      // books 병합
+      var serverBooks = res.dbData[K.books];
+      if (serverBooks && Array.isArray(serverBooks)) {
+        var localBooks = getBooks();
+        var bookMap = {};
+        for (var i = 0; i < localBooks.length; i++) bookMap[localBooks[i].id] = localBooks[i];
+        var booksChanged = false;
+        for (var j = 0; j < serverBooks.length; j++) {
+          var sb = serverBooks[j];
+          var lb = bookMap[sb.id];
+          if (lb) {
+            if (sb.date && lb.date && sb.date > lb.date) {
+              Object.assign(lb, sb);
+              booksChanged = true;
+            }
+          } else {
+            localBooks.unshift(sb);
+            booksChanged = true;
+          }
+        }
+        if (booksChanged) { saveBooks(localBooks); changed = true; }
+      }
+
+      // memos 병합
+      var serverMemos = res.dbData[K.memos];
+      if (serverMemos && Array.isArray(serverMemos)) {
+        var localMemos = getMemos();
+        var memoMap = {};
+        for (var i = 0; i < localMemos.length; i++) memoMap[localMemos[i].id] = localMemos[i];
+        var memosChanged = false;
+        for (var j = 0; j < serverMemos.length; j++) {
+          var sm = serverMemos[j];
+          var lm = memoMap[sm.id];
+          if (lm) {
+            if (sm.updated && lm.updated && sm.updated > lm.updated) {
+              Object.assign(lm, sm);
+              memosChanged = true;
+            }
+          } else {
+            localMemos.unshift(sm);
+            memosChanged = true;
+          }
+        }
+        if (memosChanged) { saveMemos(localMemos); changed = true; }
+      }
+
+      // quotes 병합
+      var serverQuotes = res.dbData[K.quotes];
+      if (serverQuotes && Array.isArray(serverQuotes)) {
+        var localQuotes = getQuotes();
+        var quoteMap = {};
+        for (var i = 0; i < localQuotes.length; i++) quoteMap[localQuotes[i].id] = localQuotes[i];
+        var quotesChanged = false;
+        for (var j = 0; j < serverQuotes.length; j++) {
+          var sq = serverQuotes[j];
+          var lq = quoteMap[sq.id];
+          if (lq) {
+            if (sq.created && lq.created && sq.created > lq.created) {
+              Object.assign(lq, sq);
+              quotesChanged = true;
+            }
+          } else {
+            localQuotes.unshift(sq);
+            quotesChanged = true;
+          }
+        }
+        if (quotesChanged) { saveQuotes(localQuotes); changed = true; }
+      }
+
+      // 변경이 있으면 현재 열린 문서 리프레시
+      if (changed) {
+        renderListPanel();
+        var cl = currentLoadedDoc;
+        if (cl && cl.type && cl.id) {
+          if (textTypes.includes(cl.type)) loadDoc(cl.type, cl.id, true);
+          else if (cl.type === 'book')  loadBook(cl.id, true);
+          else if (cl.type === 'memo')  loadMemo(cl.id, true);
+          else if (cl.type === 'quote') loadQuote(cl.id, true);
+        }
+      }
+    } catch (e) {
+      console.warn('mergeServerDocs 실패:', e.message);
+    }
+  },
+
   // ═══ 서버 expenses 병합 (SMS 자동 반영) ═══
   async mergeServerExpenses() {
     if (!this.isDbLoaded) return;
@@ -326,5 +442,56 @@ const SYNC = {
       else this.setSyncStatus('통신 지연', 'error');
       console.warn('syncAll 실패:', e.message);
     }
+  },
+
+  // ═══ 안전한 동기화 (서버가 더 최신이면 푸시 건너뜀) ═══
+  async syncAllSafe() {
+    if (!this.isDbLoaded) return;
+    try {
+      var res = await this._post({ action: 'load_db' });
+      if (res && res.dbData) {
+        var dominated = false;
+        // 현재 열린 문서의 서버 updated가 로컬보다 최신인지 확인
+        var cl = currentLoadedDoc;
+        if (cl && cl.type && cl.id) {
+          var serverItems = null;
+          var localItem = null;
+          if (textTypes.includes(cl.type)) {
+            serverItems = res.dbData[K.docs];
+            localItem = allDocs().find(function(d) { return d.id === cl.id; });
+          } else if (cl.type === 'book') {
+            serverItems = res.dbData[K.books];
+            localItem = getBooks().find(function(b) { return b.id === cl.id; });
+          } else if (cl.type === 'memo') {
+            serverItems = res.dbData[K.memos];
+            localItem = getMemos().find(function(m) { return m.id === cl.id; });
+          }
+          if (serverItems && Array.isArray(serverItems) && localItem) {
+            var serverItem = null;
+            for (var i = 0; i < serverItems.length; i++) {
+              if (serverItems[i].id === cl.id) { serverItem = serverItems[i]; break; }
+            }
+            if (serverItem) {
+              var serverTime = serverItem.updated || serverItem.date || serverItem.created || '';
+              var localTime = localItem.updated || localItem.date || localItem.created || '';
+              if (serverTime > localTime) {
+                dominated = true;
+              }
+            }
+          }
+        }
+        if (dominated) {
+          // 서버가 더 최신 → 로컬 저장만, 서버 푸시 안 함
+          console.log('syncAllSafe: 서버가 더 최신이므로 푸시 건너뜀');
+          return;
+        }
+      }
+    } catch (e) {
+      // 서버 확인 실패 시 안전하게 로컬만 저장하고 푸시 안 함
+      console.warn('syncAllSafe: 서버 확인 실패, 푸시 건너뜀', e.message);
+      return;
+    }
+    // 서버가 같거나 오래됨 → 기존대로 동기화
+    await this.syncAll();
   }
 };
