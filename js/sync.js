@@ -579,5 +579,16 @@ const SYNC = {
     } catch (e) {
       console.warn('markRead 실패:', e.message);
     }
+  },
+
+  // ═══ 소셜: 자기 글에 달린 댓글 로드 ═══
+  async loadMyComments() {
+    try {
+      var res = await this._post({ action: 'load_my_comments' });
+      return res || { comments: [] };
+    } catch (e) {
+      console.warn('loadMyComments 실패:', e.message);
+      return { comments: [] };
+    }
   }
 };

@@ -355,6 +355,10 @@ function loadDoc(type, id, force = false) {
   updateWC();
   updateMetaBar(type, doc.title);
   renderListPanel();
+  // 비파트너 모드: 자기 글에 달린 댓글 로드
+  if (!_partnerMode && typeof _loadMyCommentsAndRender === 'function') {
+    _loadMyCommentsAndRender(id);
+  }
 }
 
 function saveCurDoc(type) {
@@ -461,6 +465,10 @@ function loadBook(id, force = false) {
   document.getElementById('edDate').textContent   = formatTopDate(b.date ? new Date(b.date).toISOString() : new Date().toISOString());
   updateMetaBar('book', b.title);
   renderListPanel();
+  // 비파트너 모드: 자기 글에 달린 댓글 로드
+  if (!_partnerMode && typeof _loadMyCommentsAndRender === 'function') {
+    _loadMyCommentsAndRender(id);
+  }
 }
 
 function delBook(id, e) {
@@ -596,6 +604,10 @@ function loadMemo(id, force = false) {
   updateWC();
   updateMetaBar('memo', m.title);
   renderListPanel();
+  // 비파트너 모드: 자기 글에 달린 댓글 로드
+  if (!_partnerMode && typeof _loadMyCommentsAndRender === 'function') {
+    _loadMyCommentsAndRender(id);
+  }
 }
 
 function newMemoForm() {

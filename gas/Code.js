@@ -499,6 +499,9 @@ function doPost(e) {
       case 'mark_read':
         result = markRead(data.notifIds || [], config);
         break;
+      case 'load_my_comments':
+        result = loadMyComments(config);
+        break;
       case 'save_expense_sms':
         result = saveExpenseFromSMS(data.smsText, config);
         break;
@@ -900,6 +903,22 @@ function markRead(notifIds, config) {
     return { status: 'error', message: e.toString() };
   } finally {
     lock.releaseLock();
+  }
+}
+
+// ═══ 소셜: 자기 글에 달린 댓글 조회 ═══
+function loadMyComments(config) {
+  try {
+    var socialData = loadSocialData();
+    var myEmail = _getEmailFromConfig(config);
+    var comments = (socialData && socialData.comments) ? socialData.comments : [];
+    var myComments = comments.filter(function(c) {
+      return c.docOwner === myEmail;
+    });
+    return { status: 'ok', comments: myComments };
+  } catch (e) {
+    console.error('loadMyComments 에러:', e);
+    return { status: 'error', comments: [], message: e.toString() };
   }
 }
 

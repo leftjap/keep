@@ -1726,6 +1726,7 @@ function _loadPartnerDoc(doc) {
 // ═══ 댓글 시스템 ═══
 var _commentDocId = null;       // 현재 표시 중인 댓글 문서 ID
 var _commentDocOwner = null;    // 현재 표시 중인 댓글 문서 소유자
+var _myCommentCache = [];       // 자기 글에 달린 댓글 캐시 (비파트너 모드용)
 
 function renderComments(docId, ownerEmail) {
   if (!docId || !ownerEmail) return;
@@ -1739,7 +1740,14 @@ function renderComments(docId, ownerEmail) {
   var commentList = document.getElementById('commentList');
   commentList.innerHTML = '';
 
-  var comments = _partnerData && _partnerData.comments ? _partnerData.comments : [];
+  // 댓글 소스 결정: 파트너 모드면 _partnerData.comments, 아니면 _myCommentCache
+  var comments;
+  if (_partnerMode && _partnerData && _partnerData.comments) {
+    comments = _partnerData.comments;
+  } else {
+    comments = _myCommentCache;
+  }
+
   var docComments = comments.filter(function(c) {
     return c.docId === docId && c.docOwner === ownerEmail;
   });
@@ -1786,6 +1794,36 @@ function renderComments(docId, ownerEmail) {
   });
 }
 
+function _loadMyCommentsAndRender(docId) {
+  if (!docId) return;
+  // 자기 이메일 가져오기
+  var myEmail = '';
+  try {
+    var jwt = localStorage.getItem('gb_id_token');
+    if (jwt) {
+      var payload = JSON.parse(atob(jwt.split('.')[1]));
+      myEmail = payload.email || '';
+    }
+  } catch(e) {}
+  if (!myEmail) return;
+
+  // 캐시에 이미 있는 댓글로 즉시 렌더 (빠른 표시)
+  renderComments(docId, myEmail);
+
+  // 서버에서 최신 댓글 가져오기 (백그라운드)
+  SYNC.loadMyComments().then(function(res) {
+    if (res && res.comments) {
+      _myCommentCache = res.comments;
+      // 현재 열린 문서가 아직 같은 문서이면 리렌더
+      if (_commentDocId === docId) {
+        renderComments(docId, myEmail);
+      }
+    }
+  }).catch(function(e) {
+    console.warn('[댓글] 로드 실패:', e);
+  });
+}
+
 function hideComments() {
   var commentSection = document.getElementById('commentSection');
   if (commentSection) commentSection.style.display = 'none';
@@ -1804,12 +1842,12 @@ function sendComment() {
   input.value = '';
 
   // 로컬 캐시에 즉시 추가
-  var myEmail = localStorage.getItem('gb_id_token') ? 'leftjap@gmail.com' : '';
+  var myEmail = '';
   try {
     var jwt = localStorage.getItem('gb_id_token');
     if (jwt) {
       var payload = JSON.parse(atob(jwt.split('.')[1]));
-      myEmail = payload.email || myEmail;
+      myEmail = payload.email || '';
     }
   } catch(e) {}
 
@@ -1822,8 +1860,10 @@ function sendComment() {
     created: new Date().toISOString()
   };
 
-  if (_partnerData && _partnerData.comments) {
+  if (_partnerMode && _partnerData && _partnerData.comments) {
     _partnerData.comments.push(localComment);
+  } else {
+    _myCommentCache.push(localComment);
   }
 
   // 즉시 렌더
