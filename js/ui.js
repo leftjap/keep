@@ -1568,6 +1568,7 @@ function _setBellAsBack(isBack) {
 
   // 기존 핸들러 제거
   var newBtn = btn.cloneNode(false);
+  newBtn.removeAttribute('onclick');
   btn.parentNode.replaceChild(newBtn, btn);
 
   if (isBack) {
