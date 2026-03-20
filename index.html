@@ -13,7 +13,7 @@
 <title>인생은 이름표 붙이기 게임</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700;900&family=Pretendard:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
-<link rel="stylesheet" href="style.css?v=70">
+<link rel="stylesheet" href="style.css?v=71">
 </head>
 <body>
 
@@ -391,14 +391,12 @@
       </div>
       <!-- 댓글 섹션 -->
       <div class="comment-section" id="commentSection" style="display:none;">
-        <div class="comment-header">
-          <span class="comment-header-title">댓글</span>
-          <button class="comment-close-btn" onclick="hideComments()" title="댓글 닫기">×</button>
-        </div>
         <div class="comment-list" id="commentList"></div>
         <div class="comment-input-wrap">
-          <textarea class="comment-input" id="commentInput" placeholder="댓글을 입력하세요..." rows="2"></textarea>
-          <button class="comment-send-btn" onclick="sendComment()" title="댓글 전송">전송</button>
+          <input type="text" class="comment-input" id="commentInput" placeholder="댓글을 남겨보세요" autocomplete="off">
+          <button class="comment-send-btn" onclick="sendComment()" title="댓글 전송">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
         </div>
       </div>
     </div>

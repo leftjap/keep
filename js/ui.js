@@ -1689,17 +1689,22 @@ function renderComments(docId, ownerEmail) {
   var commentList = document.getElementById('commentList');
   commentList.innerHTML = '';
 
-  // 댓글 데이터 표시 (GAS에서 로드한 댓글들)
   var comments = _partnerData && _partnerData.comments ? _partnerData.comments : [];
-  comments.forEach(function(c) {
-    if (c.docId !== docId || c.docOwner !== ownerEmail) return;
+  var docComments = comments.filter(function(c) {
+    return c.docId === docId && c.docOwner === ownerEmail;
+  });
 
+  // 댓글이 없으면 빈 목록 (CSS :empty 의사 클래스가 안내 문구 표시)
+  if (!docComments.length) return;
+
+  docComments.forEach(function(c) {
     var commentEl = document.createElement('div');
     commentEl.className = 'comment-item';
 
     var avatar = document.createElement('div');
     avatar.className = 'comment-avatar';
-    avatar.textContent = (c.author || '?')[0].toUpperCase();
+    var displayName = _getDisplayName(c.author);
+    avatar.textContent = displayName.charAt(0);
 
     var body = document.createElement('div');
     body.className = 'comment-body';
@@ -1709,12 +1714,11 @@ function renderComments(docId, ownerEmail) {
 
     var author = document.createElement('span');
     author.className = 'comment-author';
-    author.textContent = _getDisplayName(c.author) || c.author;
+    author.textContent = displayName;
 
     var time = document.createElement('span');
     time.className = 'comment-time';
-    time.textContent = new Date(c.created).toLocaleString('ko-KR',
-      { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    time.textContent = c.created ? getRelativeTime(c.created) : '';
 
     meta.appendChild(author);
     meta.appendChild(time);
