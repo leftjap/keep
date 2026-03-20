@@ -62,8 +62,8 @@ async function showApp() {
 
   injectMockData();
   injectExpenseMockData();
-  // 알림 프리로드 (로딩 화면에서 미리 가져옴)
-  try { await checkAndUpdateNotifBadge(); } catch(e) {}
+  // 알림 프리로드 (백그라운드)
+  checkAndUpdateNotifBadge().catch(function(e){})
   // 태블릿뷰: ed-topbar-right를 body로 이동하여 스와이프 영향 차단
   if (window.innerWidth >= 769 && window.innerWidth <= 1400) {
     const topbarRight = document.querySelector('.editor .ed-topbar-right');
