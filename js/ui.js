@@ -1538,6 +1538,21 @@ function exitPartnerMode() {
   // saveCurDoc 함수 시작에 안전장치가 있으므로 저장되지 않음
   switchTab(activeTab, true);
 
+  // 레이아웃 복원 (keepLayout=true로 건너뛴 부분 수동 처리)
+  var w = window.innerWidth;
+  if (w >= 769 && w <= 1400) {
+    var app = document.getElementById('mainApp');
+    app.classList.remove('tablet-side-open');
+    app.classList.remove('tablet-list-closed');
+  } else if (w > 1400) {
+    var app = document.getElementById('mainApp');
+    app.classList.remove('sidebar-closed');
+    app.classList.remove('list-closed');
+  } else {
+    setMobileView('list');
+  }
+  renderListPanel();
+
   console.log('[파트너] 퇴장 완료');
 }
 
