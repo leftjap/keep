@@ -1564,7 +1564,8 @@ function exitPartnerMode() {
   updateBookStats();
 
   // 현재 탭으로 전환 (switchTab이 loadDoc을 호출하여 에디터에 내 글을 다시 로드)
-  switchTab(activeTab);
+  // keepLayout=true: 사이드바 레이아웃 유지
+  switchTab(activeTab, true);
 }
 
 // ═══ 파트너 모드 헬퍼 ═══
