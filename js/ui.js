@@ -1211,23 +1211,21 @@ var _notifPopoverOpen = false;
 async function checkAndUpdateNotifBadge() {
   try {
     var res = await SYNC.checkNotifications();
-    var notifications = (res && res.notifications) ? res.notifications : [];
-    var unreadCount = (res && typeof res.unreadCount === 'number') ? res.unreadCount : 0;
-    // 서버 응답이 있으면 캐시 업데이트
-    if (notifications.length > 0) {
-      _notifCache = notifications;
+    if (res && res.notifications) {
+      _notifCache = res.notifications;
     }
-    // 뱃지는 미읽음 수로 표시
+    var unread = res && typeof res.unreadCount === 'number' ? res.unreadCount : _notifCache.filter(function(n) { return !n.read; }).length;
     var badge = document.getElementById('notifBadge');
-    if (!badge) return;
-    if (unreadCount > 0) {
-      badge.textContent = unreadCount > 99 ? '99+' : String(unreadCount);
-      badge.style.display = '';
-    } else {
-      badge.style.display = 'none';
+    if (badge) {
+      if (unread > 0) {
+        badge.textContent = unread > 99 ? '99+' : String(unread);
+        badge.style.display = '';
+      } else {
+        badge.style.display = 'none';
+      }
     }
   } catch (e) {
-    console.warn('checkAndUpdateNotifBadge 실패:', e.message);
+    console.warn('[알림] 뱃지 업데이트 실패:', e.message);
   }
 }
 
@@ -1240,41 +1238,27 @@ function toggleNotifPopover() {
 }
 
 function openNotifPopover() {
-  var overlay = document.getElementById('notifPopoverOverlay');
-  var card = document.getElementById('notifPopoverCard');
-  if (!overlay || !card) return;
+  var popover = document.getElementById('notifPopover');
+  if (!popover) return;
 
-  // 캐시된 알림으로 즉시 렌더
-  renderNotifList(_notifCache);
+  // 캐시에서 즉시 렌더링
+  renderNotifList();
+  popover.style.display = 'block';
 
-  // 위치 결정
-  var bellBtn = document.getElementById('notifBellBtn');
-  var w = window.innerWidth;
-  if (w > 768 && bellBtn) {
-    // PC/태블릿: 벨 버튼 아래에 앵커
-    var rect = bellBtn.getBoundingClientRect();
-    var cardW = 340;
-    var left = rect.left;
-    if (left + cardW > w - 16) left = w - cardW - 16;
-    if (left < 16) left = 16;
-    var top = rect.bottom + 8;
-    if (top + 420 > window.innerHeight - 16) top = window.innerHeight - 420 - 16;
-    if (top < 16) top = 16;
-    card.style.left = left + 'px';
-    card.style.top = top + 'px';
-    card.style.right = 'auto';
-    card.style.bottom = 'auto';
+  // 위치 조정
+  var btn = document.getElementById('notifBellBtn');
+  if (btn) {
+    var rect = btn.getBoundingClientRect();
+    popover.style.top = (rect.bottom + 4) + 'px';
+    popover.style.right = (window.innerWidth - rect.right) + 'px';
   }
-  // 모바일은 CSS가 하단 시트로 처리
 
-  overlay.classList.add('open');
-  card.classList.add('open');
-  _notifPopoverOpen = true;
+  document.getElementById('notifOverlay').style.display = 'block';
 
-  // 백그라운드에서 서버 갱신 (팝업이 열려있으면 자동 리렌더)
+  // 백그라운드에서 서버 갱신
   checkAndUpdateNotifBadge().then(function() {
-    if (_notifPopoverOpen && _notifCache.length > 0) {
-      renderNotifList(_notifCache);
+    if (popover.style.display === 'block') {
+      renderNotifList();
     }
   });
 }
@@ -1287,38 +1271,32 @@ function closeNotifPopover() {
   _notifPopoverOpen = false;
 }
 
-function renderNotifList(notifications) {
-  var body = document.getElementById('notifPopoverBody');
-  if (!body) return;
+function renderNotifList() {
+  var listEl = document.getElementById('notifList');
+  if (!listEl) return;
 
-  if (!notifications || notifications.length === 0) {
-    body.innerHTML = '<div class="notif-empty">알림이 없습니다</div>';
+  if (!_notifCache || _notifCache.length === 0) {
+    listEl.innerHTML = '<div style="text-align:center;padding:32px 16px;color:var(--tx-hint);font-size:14px;">알림이 없습니다</div>';
     return;
   }
 
-  var penIcon = '<svg viewBox="0 0 24 24"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="M15 5l4 4"/></svg>';
-  var commentIcon = '<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
-
-  body.innerHTML = notifications.map(function(n) {
-    var icon = n.type === 'new_post' ? penIcon : commentIcon;
-    var fromName = _getDisplayName(n.from);
-    var title = '';
-    if (n.type === 'new_post') {
-      title = fromName + '님의 새 게시물';
-    } else if (n.type === 'comment') {
-      title = fromName + '님의 댓글';
-    }
-    var preview = n.preview || n.docTitle || '';
-    var time = getRelativeTime(n.created);
+  var html = '';
+  _notifCache.forEach(function(n) {
     var readClass = n.read ? ' notif-item-read' : '';
-    return '<div class="notif-item' + readClass + '" onclick="onNotifClick(\'' + n.id + '\',\'' + (n.docId || '') + '\',\'' + (n.from || '') + '\')">'
-      + '<div class="notif-item-icon">' + icon + '</div>'
-      + '<div class="notif-item-body">'
-      + '<div class="notif-item-title">' + escapeHtml(title) + ' <span class="notif-item-time">' + time + '</span></div>'
-      + '<div class="notif-item-preview">' + escapeHtml(preview) + '</div>'
-      + '</div>'
-      + '</div>';
-  }).join('');
+    var icon = n.type === 'comment' ? '💬' : '📝';
+    var title = n.type === 'comment' ? '댓글' : '새 글';
+    var time = n.created ? _relativeTime(n.created) : '';
+
+    html += '<div class="notif-item' + readClass + '" onclick="onNotifClick(\'' + n.id + '\')">';
+    html += '<div class="notif-icon">' + icon + '</div>';
+    html += '<div class="notif-content">';
+    html += '<div class="notif-title">' + title + ': ' + (n.docTitle || '제목 없음') + '</div>';
+    html += '<div class="notif-preview">' + (n.preview || '') + '</div>';
+    html += '<div class="notif-time">' + time + '</div>';
+    html += '</div></div>';
+  });
+
+  listEl.innerHTML = html;
 }
 
 function _getDisplayName(email) {
@@ -1328,38 +1306,35 @@ function _getDisplayName(email) {
   return email.split('@')[0];
 }
 
-function onNotifClick(notifId, docId, fromEmail) {
-  // 팝오버 닫기
-  closeNotifPopover();
+async function onNotifClick(notifId) {
+  var notif = _notifCache.find(function(n) { return n.id === notifId; });
+  if (!notif) return;
 
-  // 읽음 처리 (서버)
-  SYNC.markRead([notifId]);
+  // 읽음 처리 (캐시에서 제거하지 않음)
+  notif.read = true;
 
-  // 캐시에서 해당 알림을 읽음 상태로 변경 (제거하지 않음)
-  for (var i = 0; i < _notifCache.length; i++) {
-    if (_notifCache[i].id === notifId) {
-      _notifCache[i].read = true;
-      break;
-    }
-  }
+  // 서버에 읽음 표시
+  try { await SYNC.markRead([notifId]); } catch (e) { console.warn('[알림] markRead 실패:', e); }
 
-  // 뱃지 업데이트 (미읽음 수 재계산)
-  var unreadCount = 0;
-  for (var j = 0; j < _notifCache.length; j++) {
-    if (!_notifCache[j].read) unreadCount++;
-  }
+  // 뱃지 업데이트
+  var unread = _notifCache.filter(function(n) { return !n.read; }).length;
   var badge = document.getElementById('notifBadge');
   if (badge) {
-    if (unreadCount > 0) {
-      badge.textContent = String(unreadCount);
+    if (unread > 0) {
+      badge.textContent = unread > 99 ? '99+' : String(unread);
       badge.style.display = '';
     } else {
       badge.style.display = 'none';
     }
   }
 
-  // 상대방 페이지로 진입
-  enterPartnerMode(fromEmail, docId);
+  // 팝오버 닫기
+  closeNotifPopover();
+
+  // 파트너 모드 진입
+  if (notif.from) {
+    enterPartnerMode(notif.from, notif.docId);
+  }
 }
 
 // ═══ 파트너 모드 (상대방 블로그 방문) ═══
@@ -1369,12 +1344,13 @@ var _myBackup = null;     // { docs, books, quotes, memos, checks, expenses, act
 
 async function enterPartnerMode(partnerEmail, targetDocId) {
   if (_partnerMode) return;
+  console.log('[파트너] 진입 시작', partnerEmail, targetDocId);
 
-  // 로딩 화면 표시 (기존 고양이 바운스 로딩 화면)
+  // 로딩 화면 표시
   var loadingScreen = document.getElementById('loadingScreen');
   if (loadingScreen) { loadingScreen.classList.remove('hidden'); loadingScreen.style.display = ''; }
 
-  // 현재 내 데이터 백업 (LocalStorage는 건드리지 않음, 메모리 변수만)
+  // 내 데이터 백업 (const 변수는 복사본 생성)
   _myBackup = {
     activeTab: activeTab,
     curIdsCopy: JSON.parse(JSON.stringify(curIds)),
@@ -1382,181 +1358,135 @@ async function enterPartnerMode(partnerEmail, targetDocId) {
     curQuoteId: curQuoteId,
     curMemoId: curMemoId,
     textTypes: textTypes.slice(),
-    TAB_META: JSON.parse(JSON.stringify(TAB_META)),
-    ROUTINE_META: typeof ROUTINE_META !== 'undefined' ? JSON.parse(JSON.stringify(ROUTINE_META)) : null,
-    EXPENSE_CATEGORIES: typeof EXPENSE_CATEGORIES !== 'undefined' ? JSON.parse(JSON.stringify(EXPENSE_CATEGORIES)) : null
+    TAB_META: JSON.parse(JSON.stringify(TAB_META))
   };
 
-  // 상대방 DB 로드
   try {
-    var res = await SYNC.loadPartnerDb();
-    if (!res || res.status !== 'ok') {
-      alert('상대방 데이터를 불러올 수 없습니다.');
-      var loadingScreen = document.getElementById('loadingScreen');
-      if (loadingScreen) { loadingScreen.classList.add('hidden'); loadingScreen.style.display = 'none'; }
+    var r = await SYNC.loadPartnerDb();
+    if (!r || r.status !== 'ok') {
+      console.error('[파트너] loadPartnerDb 실패');
       _myBackup = null;
-      renderListPanel();
+      if (loadingScreen) { loadingScreen.classList.add('hidden'); loadingScreen.style.display = 'none'; }
       return;
     }
+
     _partnerData = {
-      dbData: res.dbData,
-      config: res.config,
-      comments: res.comments || [],
-      partnerEmail: res.partnerEmail
+      dbData: r.dbData,
+      config: r.config,
+      comments: r.comments || [],
+      partnerEmail: r.partnerEmail
     };
   } catch (e) {
-    console.error('enterPartnerMode 실패:', e);
-    alert('상대방 데이터를 불러올 수 없습니다.');
-    var loadingScreen = document.getElementById('loadingScreen');
-    if (loadingScreen) { loadingScreen.classList.add('hidden'); loadingScreen.style.display = 'none'; }
+    console.error('[파트너] 에러:', e);
     _myBackup = null;
-    renderListPanel();
+    if (loadingScreen) { loadingScreen.classList.add('hidden'); loadingScreen.style.display = 'none'; }
     return;
   }
 
-  // 로딩 화면 숨기기
-  var loadingScreen = document.getElementById('loadingScreen');
+  // 로딩 화면 숨김
   if (loadingScreen) { loadingScreen.classList.add('hidden'); loadingScreen.style.display = 'none'; }
 
   _partnerMode = true;
 
-  // 상대방 config 적용 (const/let 변수는 내용만 교체, 재할당 안 함)
+  // 파트너 config 적용 (const 변수 내용만 교체)
   var pc = _partnerData.config;
   if (pc) {
     textTypes.length = 0;
     (pc.textTypes || ['navi']).forEach(function(t) { textTypes.push(t); });
+
     Object.keys(TAB_META).forEach(function(k) { delete TAB_META[k]; });
     Object.assign(TAB_META, pc.tabNames || {});
-    if (pc.routines && typeof ROUTINE_META !== 'undefined') {
-      ROUTINE_META.length = 0;
-      pc.routines.forEach(function(r) { ROUTINE_META.push(r); });
-    }
-    if (pc.expenseCategories && typeof EXPENSE_CATEGORIES !== 'undefined') {
-      EXPENSE_CATEGORIES.length = 0;
-      pc.expenseCategories.forEach(function(c) { EXPENSE_CATEGORIES.push(c); });
-    }
   }
 
-  // UI 전환: 벨 → 돌아가기 버튼
+  // UI 전환
   _setBellAsBack(true);
-
-  // 읽기 전용 모드 활성화
   _setReadOnly(true);
-
-  // 앱에 파트너 모드 클래스 추가
   document.getElementById('mainApp').classList.add('partner-mode');
 
-  // 첫 번째 텍스트 탭으로 전환하고 상대방 데이터로 리스트 렌더
-  var firstTab = textTypes[0] || 'navi';
-  activeTab = firstTab;
-  // curIds는 const → 내용만 비움
+  // 상태 초기화 (const인 curIds는 내용만 비움)
+  activeTab = textTypes[0] || 'navi';
   Object.keys(curIds).forEach(function(k) { delete curIds[k]; });
   curBookId = null;
   curQuoteId = null;
   curMemoId = null;
-  currentLoadedDoc = null;
+  currentLoadedDoc = { type: null, id: null };
 
-  // 사이드바 재렌더
+  // 에디터 비우기 (파트너 문서 로드 전)
+  document.getElementById('edTitle').value = '';
+  document.getElementById('edBody').innerHTML = '';
+
+  // 렌더링
   renderWritingGrid();
   _renderPartnerSidebar();
-
-  // 리스트 복원 후 렌더
   document.getElementById('pane-list').style.display = 'flex';
   closeNotifPopover();
   renderListPanel();
 
-  // 모바일: 리스트 뷰로
+  // 모바일 대응
   if (window.innerWidth <= 768) {
-    var app = document.getElementById('mainApp');
-    app.classList.remove('view-side', 'view-editor');
-    app.classList.add('view-list');
+    var a = document.getElementById('mainApp');
+    a.classList.remove('view-side', 'view-editor');
+    a.classList.add('view-list');
   }
 
-  // 타겟 문서 로드 (현재 탭 → 전체 문서 → 첫 번째 문서 순으로 폴백)
+  // targetDoc 로드 (매칭 실패 시 첫 번째 문서)
+  var docs = _getPartnerDocs(activeTab);
   if (targetDocId) {
-    var currentTabDocs = _getPartnerDocs(activeTab);
-    var targetDoc = currentTabDocs.find(function(d) { return d.id === targetDocId; });
-    if (!targetDoc) {
-      // 현재 탭에 없으면 전체 문서에서 검색
-      var allDocs = (_partnerData.dbData.gb_docs || []);
-      var found = allDocs.find(function(d) { return d.id === targetDocId; });
-      if (found) {
-        // 해당 탭으로 전환
-        var docTab = found.type || 'navi';
-        if (textTypes.indexOf(docTab) !== -1) {
-          activeTab = docTab;
-          renderWritingGrid();
-          renderListPanel();
-        }
-        targetDoc = found;
-      }
+    var found = docs.find(function(d) { return d.id === targetDocId; });
+    if (found) {
+      _loadPartnerDoc(found);
+    } else if (docs.length > 0) {
+      _loadPartnerDoc(docs[0]);
     }
-    if (targetDoc) {
-      _loadPartnerDoc(targetDoc);
-    } else {
-      // 타겟을 못 찾으면 첫 번째 문서 자동 로드
-      var fallbackDocs = _getPartnerDocs(activeTab);
-      if (fallbackDocs.length > 0) _loadPartnerDoc(fallbackDocs[0]);
-    }
-  } else {
-    // targetDocId가 없으면 첫 번째 문서 자동 로드
-    var firstDocs = _getPartnerDocs(activeTab);
-    if (firstDocs.length > 0) _loadPartnerDoc(firstDocs[0]);
+  } else if (docs.length > 0) {
+    _loadPartnerDoc(docs[0]);
   }
+
+  console.log('[파트너] 진입 완료');
 }
 
 function exitPartnerMode() {
   if (!_partnerMode) return;
-  _partnerMode = false;
+  console.log('[파트너] 퇴장 시작');
 
-  // 파트너 데이터 즉시 해제 (renderListPanel 등이 참조 못 하게)
+  _partnerMode = false;
   _partnerData = null;
 
-  // 댓글 섹션 숨기기
-  hideComments();
+  // 댓글 숨김
+  if (typeof hideComments === 'function') hideComments();
 
-  // 에디터에 남아있는 파트너 글 내용 비우기
-  // (switchTab → saveCurDoc이 파트너 글을 내 문서에 저장하는 것 방지)
-  currentLoadedDoc = null;
-  var edBody = document.getElementById('edBody');
-  var edTitle = document.getElementById('edTitle');
-  if (edBody) edBody.innerHTML = '';
-  if (edTitle) edTitle.value = '';
+  // ★ 핵심: 에디터 비우고 currentLoadedDoc 초기화
+  // → switchTab 내부의 saveCurDoc이 실행되어도 저장 대상이 없음
+  document.getElementById('edTitle').value = '';
+  document.getElementById('edBody').innerHTML = '';
+  currentLoadedDoc = { type: null, id: null };
 
-  // 메모리 변수 복원 (const는 내용만 교체, let도 안전하게 내용 교체 방식 사용)
+  // 백업 복원 (const 변수는 내용만 교체)
   if (_myBackup) {
     activeTab = _myBackup.activeTab;
-    // curIds는 const → 내용만 교체
+
     Object.keys(curIds).forEach(function(k) { delete curIds[k]; });
     if (_myBackup.curIdsCopy) Object.assign(curIds, _myBackup.curIdsCopy);
+
     curBookId = _myBackup.curBookId;
     curQuoteId = _myBackup.curQuoteId;
     curMemoId = _myBackup.curMemoId;
+
     textTypes.length = 0;
     _myBackup.textTypes.forEach(function(t) { textTypes.push(t); });
+
     Object.keys(TAB_META).forEach(function(k) { delete TAB_META[k]; });
     Object.assign(TAB_META, _myBackup.TAB_META);
-    if (_myBackup.ROUTINE_META && typeof ROUTINE_META !== 'undefined') {
-      ROUTINE_META.length = 0;
-      _myBackup.ROUTINE_META.forEach(function(r) { ROUTINE_META.push(r); });
-    }
-    if (_myBackup.EXPENSE_CATEGORIES && typeof EXPENSE_CATEGORIES !== 'undefined') {
-      EXPENSE_CATEGORIES.length = 0;
-      _myBackup.EXPENSE_CATEGORIES.forEach(function(c) { EXPENSE_CATEGORIES.push(c); });
-    }
+
     _myBackup = null;
   }
 
-  // UI 복원: 돌아가기 → 벨
+  // UI 복원
   _setBellAsBack(false);
-
-  // 읽기 전용 해제
   _setReadOnly(false);
-
-  // 파트너 모드 클래스 제거
   document.getElementById('mainApp').classList.remove('partner-mode');
 
-  // 사이드바 복원
+  // 화면 갱신
   renderWritingGrid();
   renderChk();
   renderRoutineRing();
@@ -1565,9 +1495,12 @@ function exitPartnerMode() {
   updateWritingStats();
   updateBookStats();
 
-  // 현재 탭으로 전환 (switchTab이 loadDoc을 호출하여 에디터에 내 글을 다시 로드)
-  // keepLayout=true: 사이드바 레이아웃 유지
+  // ★ switchTab 전에 curIds가 복원되었으므로 saveCurDoc은
+  // currentLoadedDoc이 null이 아닌 유효한 객체라 저장 시도하지만,
+  // saveCurDoc 함수 시작에 안전장치가 있으므로 저장되지 않음
   switchTab(activeTab, true);
+
+  console.log('[파트너] 퇴장 완료');
 }
 
 // ═══ 파트너 모드 헬퍼 ═══
@@ -1575,21 +1508,28 @@ function exitPartnerMode() {
 function _setBellAsBack(isBack) {
   var btn = document.getElementById('notifBellBtn');
   if (!btn) return;
-  // 인라인 onclick 속성이 있으면 제거 (HTML에 onclick="..."이 있는 경우 대비)
-  btn.removeAttribute('onclick');
+
+  // 기존 핸들러 제거
+  var newBtn = btn.cloneNode(false);
+  btn.parentNode.replaceChild(newBtn, btn);
+
   if (isBack) {
-    btn.classList.add('back-mode');
-    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>';
-    btn.onclick = function() { exitPartnerMode(); };
-    btn.title = '내 공간으로 돌아가기';
+    newBtn.innerHTML = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>';
+    newBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      exitPartnerMode();
+    });
     var badge = document.getElementById('notifBadge');
     if (badge) badge.style.display = 'none';
+    console.log('[벨→뒤로] 바인딩 완료');
   } else {
-    btn.classList.remove('back-mode');
-    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="notif-badge" id="notifBadge" style="display:none"></span>';
-    btn.onclick = function() { toggleNotifPopover(); };
-    btn.title = '알림';
+    newBtn.innerHTML = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="notif-badge" id="notifBadge" style="display:none"></span>';
+    newBtn.addEventListener('click', function() {
+      toggleNotifPopover();
+    });
+    // 뱃지 복원
     checkAndUpdateNotifBadge();
+    console.log('[뒤로→벨] 복원 완료');
   }
 }
 

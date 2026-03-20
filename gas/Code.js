@@ -761,24 +761,32 @@ function saveSocialData(data) {
 // ═══ 소셜: 알림 확인 ═══
 function checkNotifications(config) {
   try {
+    var email = Session.getActiveUser().getEmail();
     var social = loadSocialData();
-    var myEmail = _getEmailFromConfig(config);
     var myNotifs = [];
     var unreadCount = 0;
+
     for (var i = 0; i < social.notifications.length; i++) {
       var n = social.notifications[i];
-      if (n.to === myEmail) {
+      if (n.to === email) {
         myNotifs.push(n);
-        if (!n.read) unreadCount++;
+        if (!n.read || n.read === false || n.read === 'false' || n.read === '') {
+          unreadCount++;
+        }
       }
     }
-    // 최신 순 정렬 (최대 20개)
-    myNotifs.sort(function(a, b) { return (b.created || '').localeCompare(a.created || ''); });
-    if (myNotifs.length > 20) myNotifs = myNotifs.slice(0, 20);
-    return { status: 'ok', notifications: myNotifs, unreadCount: unreadCount };
+
+    // 최신순 정렬
+    myNotifs.sort(function(a, b) {
+      return new Date(b.created || 0) - new Date(a.created || 0);
+    });
+
+    // 최근 20개만 반환
+    var notifications = myNotifs.slice(0, 20);
+
+    return { status: 'ok', notifications: notifications, unreadCount: unreadCount };
   } catch (e) {
-    console.error('checkNotifications 에러:', e);
-    return { status: 'error', message: e.toString() };
+    return { status: 'error', message: e.message, notifications: [], unreadCount: 0 };
   }
 }
 

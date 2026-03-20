@@ -358,6 +358,10 @@ function loadDoc(type, id, force = false) {
 }
 
 function saveCurDoc(type) {
+  // ★ 파트너 모드이거나 로드된 문서가 없으면 저장하지 않음
+  if (typeof _partnerMode !== 'undefined' && _partnerMode) return;
+  if (!currentLoadedDoc || !currentLoadedDoc.id) return;
+
   if (!curIds[type]) return;
   const title   = document.getElementById('edTitle').value.trim();
   const content = document.getElementById('edBody').innerHTML;
