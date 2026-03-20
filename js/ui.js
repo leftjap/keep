@@ -149,6 +149,28 @@ window.addEventListener('resize', () => {
 });
 
 function switchTab(t, keepLayout) {
+  // 파트너 모드: 저장 없이 탭만 전환하고 상대방 데이터 렌더
+  if (_partnerMode) {
+    if (t === 'expense') return; // 파트너 가계부는 별도 처리 필요 — 현재는 차단
+    activeTab = t;
+    updateEdTabLabel();
+    // 사이드바 메뉴 활성 표시
+    var sms = document.querySelectorAll('.side-menu');
+    sms.forEach(function(m) { m.classList.remove('on'); });
+    var am = document.querySelector('.side-menu[data-tab="' + t + '"]');
+    if (am) am.classList.add('on');
+    // 에디터 패널 리셋
+    document.getElementById('editorText').style.display = textTypes.includes(t) ? 'flex' : 'none';
+    document.getElementById('editorBook').style.display = t === 'book' ? 'flex' : 'none';
+    document.getElementById('editorQuote').style.display = t === 'quote' ? 'flex' : 'none';
+    document.getElementById('editorMemo').style.display = t === 'memo' ? 'flex' : 'none';
+    // 리스트 렌더
+    document.getElementById('pane-list').style.display = 'flex';
+    renderListPanel();
+    if (window.innerWidth <= 768) setMobileView('list');
+    return;
+  }
+
   if (textTypes.includes(activeTab)) saveCurDoc(activeTab);
   // 태블릿: topbar-fixed 버튼은 body에 유지
   activeTab = t;
@@ -748,6 +770,31 @@ function renderListPanel() {
   const el = document.getElementById('pane-list');
   const emptyState = '<div style="text-align:center;padding:80px 20px;color:var(--tx-hint);font-size:15px">기록이 없습니다</div>';
 
+  // 파트너 모드: 상대방 데이터로 렌더
+  if (_partnerMode && _partnerData) {
+    var partnerItems = _getPartnerDocs(activeTab);
+    if (!partnerItems.length) {
+      el.innerHTML = '<div style="text-align:center;padding:80px 20px;color:var(--tx-hint);font-size:15px">기록이 없습니다</div>';
+      return;
+    }
+    var html = '';
+    partnerItems.forEach(function(item) {
+      // 타입 보정 (book/quote/memo는 type 필드가 없을 수 있음)
+      if (!item.type && activeTab === 'book') item.type = 'book';
+      if (!item.type && activeTab === 'quote') item.type = 'quote';
+      if (!item.type && activeTab === 'memo') item.type = 'memo';
+      if (!item.type) item.type = activeTab;
+
+      var itemHtml = generateItemHtml(item, activeTab, true);
+      // onclick을 파트너 전용으로 교체
+      itemHtml = itemHtml.replace(/onclick="[^"]*"/,
+        'onclick="_loadPartnerDoc(' + JSON.stringify(item).replace(/"/g, '&quot;') + '); if(window.innerWidth<=768) setMobileView(\'editor\');"');
+      html += itemHtml;
+    });
+    el.innerHTML = html;
+    return;
+  }
+
   let items = [];
   const isRoutineMode = document.getElementById('pane-routine') &&
     document.getElementById('pane-routine').style.display !== 'none';
@@ -1274,9 +1321,328 @@ function onNotifClick(notifId, docId, fromEmail) {
       badge.style.display = 'none';
     }
   }
-  // 리스트 리렌더
-  renderNotifList(_notifCache);
+  // 알림 패널 닫기
+  var notifPane = document.getElementById('pane-notifications');
+  if (notifPane) notifPane.style.display = 'none';
+  _notifPanelOpen = false;
 
-  // Phase 3에서 구현: 상대방 페이지로 전환
-  console.log('알림 클릭 — Phase 3에서 구현. docId:', docId, 'from:', fromEmail);
+  // 상대방 페이지로 진입
+  enterPartnerMode(fromEmail, docId);
+}
+
+// ═══ 파트너 모드 (상대방 블로그 방문) ═══
+var _partnerMode = false;
+var _partnerData = null;  // { dbData, config, comments, partnerEmail }
+var _myBackup = null;     // { docs, books, quotes, memos, checks, expenses, activeTab, curIds, ... }
+
+async function enterPartnerMode(partnerEmail, targetDocId) {
+  if (_partnerMode) return;
+
+  // 로딩 표시
+  var listEl = document.getElementById('pane-list');
+  if (listEl) listEl.innerHTML = '<div style="text-align:center;padding:80px 20px;color:var(--tx-hint);font-size:15px">불러오는 중...</div>';
+
+  // 현재 내 데이터 백업 (LocalStorage는 건드리지 않음, 메모리 변수만)
+  _myBackup = {
+    activeTab: activeTab,
+    curIds: JSON.parse(JSON.stringify(curIds)),
+    curBookId: curBookId,
+    curQuoteId: curQuoteId,
+    curMemoId: curMemoId,
+    textTypes: textTypes.slice(),
+    TAB_META: JSON.parse(JSON.stringify(TAB_META)),
+    ROUTINE_META: typeof ROUTINE_META !== 'undefined' ? JSON.parse(JSON.stringify(ROUTINE_META)) : null,
+    EXPENSE_CATEGORIES: typeof EXPENSE_CATEGORIES !== 'undefined' ? JSON.parse(JSON.stringify(EXPENSE_CATEGORIES)) : null
+  };
+
+  // 상대방 DB 로드
+  try {
+    var res = await SYNC.loadPartnerDb();
+    if (!res || res.status !== 'ok') {
+      alert('상대방 데이터를 불러올 수 없습니다.');
+      _myBackup = null;
+      renderListPanel();
+      return;
+    }
+    _partnerData = {
+      dbData: res.dbData,
+      config: res.config,
+      comments: res.comments || [],
+      partnerEmail: res.partnerEmail
+    };
+  } catch (e) {
+    console.error('enterPartnerMode 실패:', e);
+    alert('상대방 데이터를 불러올 수 없습니다.');
+    _myBackup = null;
+    renderListPanel();
+    return;
+  }
+
+  _partnerMode = true;
+
+  // 상대방 config 적용 (메모리 변수만 교체, LocalStorage 안 건드림)
+  var pc = _partnerData.config;
+  if (pc) {
+    textTypes = pc.textTypes || ['navi'];
+    TAB_META = pc.tabNames || {};
+    if (pc.routines && typeof ROUTINE_META !== 'undefined') {
+      // 루틴 메타 임시 교체 (렌더링용)
+      ROUTINE_META.length = 0;
+      pc.routines.forEach(function(r) { ROUTINE_META.push(r); });
+    }
+    if (pc.expenseCategories && typeof EXPENSE_CATEGORIES !== 'undefined') {
+      EXPENSE_CATEGORIES.length = 0;
+      pc.expenseCategories.forEach(function(c) { EXPENSE_CATEGORIES.push(c); });
+    }
+  }
+
+  // UI 전환: 벨 → 돌아가기 버튼
+  _setBellAsBack(true);
+
+  // 읽기 전용 모드 활성화
+  _setReadOnly(true);
+
+  // 앱에 파트너 모드 클래스 추가
+  document.getElementById('mainApp').classList.add('partner-mode');
+
+  // 첫 번째 텍스트 탭으로 전환하고 상대방 데이터로 리스트 렌더
+  var firstTab = textTypes[0] || 'navi';
+  activeTab = firstTab;
+  curIds = {};
+  curBookId = null;
+  curQuoteId = null;
+  curMemoId = null;
+  currentLoadedDoc = null;
+
+  // 사이드바 재렌더
+  renderWritingGrid();
+  _renderPartnerSidebar();
+
+  // 리스트 복원 후 렌더
+  document.getElementById('pane-list').style.display = 'flex';
+  document.getElementById('pane-notifications').style.display = 'none';
+  _notifPanelOpen = false;
+  renderListPanel();
+
+  // 모바일: 리스트 뷰로
+  if (window.innerWidth <= 768) {
+    var app = document.getElementById('mainApp');
+    app.classList.remove('view-side', 'view-editor');
+    app.classList.add('view-list');
+  }
+
+  // 타겟 문서가 있으면 로드
+  if (targetDocId) {
+    var allPartnerDocs = _getPartnerDocs(activeTab);
+    var targetDoc = allPartnerDocs.find(function(d) { return d.id === targetDocId; });
+    if (targetDoc) {
+      _loadPartnerDoc(targetDoc);
+    }
+  }
+}
+
+function exitPartnerMode() {
+  if (!_partnerMode) return;
+  _partnerMode = false;
+
+  // 메모리 변수 복원
+  if (_myBackup) {
+    activeTab = _myBackup.activeTab;
+    curIds = _myBackup.curIds;
+    curBookId = _myBackup.curBookId;
+    curQuoteId = _myBackup.curQuoteId;
+    curMemoId = _myBackup.curMemoId;
+    textTypes = _myBackup.textTypes;
+    TAB_META = _myBackup.TAB_META;
+    if (_myBackup.ROUTINE_META && typeof ROUTINE_META !== 'undefined') {
+      ROUTINE_META.length = 0;
+      _myBackup.ROUTINE_META.forEach(function(r) { ROUTINE_META.push(r); });
+    }
+    if (_myBackup.EXPENSE_CATEGORIES && typeof EXPENSE_CATEGORIES !== 'undefined') {
+      EXPENSE_CATEGORIES.length = 0;
+      _myBackup.EXPENSE_CATEGORIES.forEach(function(c) { EXPENSE_CATEGORIES.push(c); });
+    }
+    _myBackup = null;
+  }
+
+  _partnerData = null;
+
+  // UI 복원: 돌아가기 → 벨
+  _setBellAsBack(false);
+
+  // 읽기 전용 해제
+  _setReadOnly(false);
+
+  // 파트너 모드 클래스 제거
+  document.getElementById('mainApp').classList.remove('partner-mode');
+
+  // 사이드바 복원
+  renderWritingGrid();
+  renderChk();
+  renderRoutineRing();
+  showRandomQuote();
+  updateExpenseCompact();
+  updateWritingStats();
+  updateBookStats();
+
+  // 현재 탭으로 전환
+  switchTab(activeTab);
+}
+
+// ═══ 파트너 모드 헬퍼 ═══
+
+function _setBellAsBack(isBack) {
+  var btn = document.getElementById('notifBellBtn');
+  if (!btn) return;
+  if (isBack) {
+    btn.classList.add('back-mode');
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>';
+    btn.setAttribute('onclick', 'exitPartnerMode()');
+    btn.title = '내 공간으로 돌아가기';
+    // 뱃지 숨김
+    var badge = document.getElementById('notifBadge');
+    if (badge) badge.style.display = 'none';
+  } else {
+    btn.classList.remove('back-mode');
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="notif-badge" id="notifBadge" style="display:none"></span>';
+    btn.setAttribute('onclick', 'toggleNotifPanel()');
+    btn.title = '알림';
+    // 뱃지 복원
+    checkAndUpdateNotifBadge();
+  }
+}
+
+function _setReadOnly(readOnly) {
+  // contenteditable 전환
+  var edBodies = ['edBody', 'book-body', 'quote-body', 'memo-body'];
+  edBodies.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.contentEditable = readOnly ? 'false' : 'true';
+  });
+
+  // 입력 필드 readonly
+  var inputs = ['edTitle', 'book-title', 'book-author', 'book-publisher', 'book-pages', 'quote-by', 'memo-title'];
+  inputs.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.readOnly = readOnly;
+  });
+
+  // FAB, 새글 버튼, 더보기 버튼 숨김/표시
+  var fab = document.querySelector('.fab-btn');
+  var newBtn = document.querySelector('.ed-new-btn');
+  var moreBtn = document.querySelector('.ed-more-btn');
+  var aaBtn = document.querySelector('.ed-aa-btn');
+  if (readOnly) {
+    if (fab) fab.style.display = 'none';
+    if (newBtn) newBtn.style.display = 'none';
+    if (moreBtn) moreBtn.style.display = 'none';
+    if (aaBtn) aaBtn.style.display = 'none';
+  } else {
+    if (fab) fab.style.display = '';
+    if (newBtn) newBtn.style.display = '';
+    if (moreBtn) moreBtn.style.display = '';
+    if (aaBtn) aaBtn.style.display = '';
+  }
+}
+
+function _renderPartnerSidebar() {
+  // 상대방 이름으로 어구 영역 업데이트
+  var quoteText = document.getElementById('quoteText');
+  var quoteBy = document.getElementById('quoteBy');
+  var partnerName = _getDisplayName(_partnerData.partnerEmail);
+  if (quoteText) quoteText.textContent = partnerName + '님의 공간';
+  if (quoteBy) quoteBy.textContent = '';
+
+  // 루틴/가계부/통계는 상대방 데이터로 렌더 (LocalStorage가 아닌 파트너 DB에서)
+  // 간소화: 루틴 링/체크는 빈 상태로, 가계부 금액은 상대방 것으로
+  var routineSub = document.getElementById('routineCompactSub');
+  if (routineSub) {
+    var partnerChecks = _partnerData.dbData['gb_checks'] || {};
+    var todayStr = today();
+    var todayChecks = partnerChecks[todayStr] || {};
+    var routineTotal = _partnerData.config.routines ? _partnerData.config.routines.length : 0;
+    var doneCount = 0;
+    for (var k in todayChecks) { if (todayChecks[k]) doneCount++; }
+    routineSub.textContent = doneCount + '/' + routineTotal + ' 완료';
+  }
+
+  // 가계부 금액
+  var expAmount = document.getElementById('expenseCompactAmount');
+  if (expAmount) {
+    var partnerExpenses = _partnerData.dbData['gb_expenses'] || [];
+    var now = new Date();
+    var ym = now.getFullYear() + '-' + ('0' + (now.getMonth() + 1)).slice(-2);
+    var monthTotal = 0;
+    for (var i = 0; i < partnerExpenses.length; i++) {
+      if ((partnerExpenses[i].date || '').startsWith(ym)) {
+        monthTotal += (partnerExpenses[i].amount || 0);
+      }
+    }
+    expAmount.textContent = formatAmount(monthTotal) + ' 원';
+  }
+
+  // 기록 통계
+  var wToday = document.getElementById('wToday');
+  var bToday = document.getElementById('bToday');
+  if (wToday) wToday.textContent = '0';
+  if (bToday) bToday.textContent = '0';
+}
+
+// 상대방 데이터에서 문서 목록 가져오기 (LocalStorage 대신 _partnerData.dbData 사용)
+function _getPartnerDocs(type) {
+  if (!_partnerData || !_partnerData.dbData) return [];
+  var docs = _partnerData.dbData['gb_docs'] || [];
+  if (textTypes.includes(type)) {
+    return docs.filter(function(d) { return d.type === type; })
+      .sort(function(a, b) { return (b.updated || b.created || '').localeCompare(a.updated || a.created || ''); });
+  }
+  if (type === 'book') {
+    return (_partnerData.dbData['gb_books'] || [])
+      .sort(function(a, b) { return (b.updated || b.date || '').localeCompare(a.updated || a.date || ''); });
+  }
+  if (type === 'quote') {
+    return (_partnerData.dbData['gb_quotes'] || [])
+      .sort(function(a, b) { return (b.created || '').localeCompare(a.created || ''); });
+  }
+  if (type === 'memo') {
+    return (_partnerData.dbData['gb_memos'] || [])
+      .sort(function(a, b) { return (b.updated || b.created || '').localeCompare(a.updated || a.created || ''); });
+  }
+  return [];
+}
+
+function _loadPartnerDoc(doc) {
+  if (!doc) return;
+  var type = doc.type;
+
+  // 에디터 패널 전환
+  document.getElementById('editorText').style.display = textTypes.includes(type) ? 'flex' : 'none';
+  document.getElementById('editorBook').style.display = type === 'book' ? 'flex' : 'none';
+  document.getElementById('editorQuote').style.display = type === 'quote' ? 'flex' : 'none';
+  document.getElementById('editorMemo').style.display = type === 'memo' ? 'flex' : 'none';
+
+  if (textTypes.includes(type)) {
+    document.getElementById('edTitle').value = doc.title || '';
+    document.getElementById('edBody').innerHTML = fixDriveImageUrls(doc.content || '');
+  } else if (type === 'book') {
+    document.getElementById('book-title').value = doc.title || '';
+    document.getElementById('book-author').value = doc.author || '';
+    document.getElementById('book-publisher').value = doc.publisher || '';
+    document.getElementById('book-pages').value = doc.pages || '';
+    document.getElementById('book-body').innerHTML = doc.memo || '';
+  } else if (type === 'quote') {
+    document.getElementById('quote-by').value = doc.by || '';
+    document.getElementById('quote-body').innerHTML = doc.text || '';
+  } else if (type === 'memo') {
+    document.getElementById('memo-title').value = doc.title || '';
+    document.getElementById('memo-body').innerHTML = fixDriveImageUrls(doc.content || '');
+  }
+
+  // 탭 라벨 업데이트
+  updateEdTabLabel();
+
+  // 모바일: 에디터 뷰로 전환
+  if (window.innerWidth <= 768) {
+    setMobileView('editor');
+  }
 }

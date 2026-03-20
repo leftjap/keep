@@ -529,7 +529,19 @@ gas/                   — Google Apps Script (메인 레포 내 하위 폴더)
 - `toggleNotifPanel()` — 벨 클릭 → 알림 리스트 pane 열기/닫기
 - `renderNotifList(notifications)` — 알림 리스트 HTML 렌더
 - `_getDisplayName(email)` — 이메일 → 표시명 변환
-- `onNotifClick(notifId, docId, fromEmail)` — 알림 항목 클릭 → 읽음 처리 + Phase 3 연결
+- `onNotifClick(notifId, docId, fromEmail)` — 알림 항목 클릭 → 읽음 처리 + enterPartnerMode 호출
+
+**파트너 모드 (상대방 블로그 방문):**
+- `_partnerMode` — 파트너 모드 활성 여부 boolean
+- `_partnerData` — 상대방 데이터 {dbData, config, comments, partnerEmail}
+- `_myBackup` — 내 데이터 백업 {activeTab, curIds, textTypes, TAB_META, ...}
+- `enterPartnerMode(partnerEmail, targetDocId)` — 상대방 페이지 진입. SYNC.loadPartnerDb() → 데이터 교체 → UI 전환
+- `exitPartnerMode()` — 내 공간 복귀. 백업 복원 → UI 복원
+- `_setBellAsBack(isBack)` — 벨 아이콘 ↔ 돌아가기 아이콘 전환
+- `_setReadOnly(readOnly)` — contenteditable/readonly/버튼 숨김 전환
+- `_renderPartnerSidebar()` — 상대방 이름/루틴/가계부 사이드바 렌더
+- `_getPartnerDocs(type)` — _partnerData.dbData에서 문서 목록 조회
+- `_loadPartnerDoc(doc)` — 상대방 문서를 에디터에 읽기 전용으로 로드
 
 **이 파일을 업로드해야 할 때:** 탭 전환 로직 변경, 리스트 렌더링 수정, 새 탭 추가, 팝업 메뉴 수정, 네비게이션 변경
 
@@ -1285,6 +1297,9 @@ Haiku 4.5는 전체 프로젝트 맥락을 알지 못할 수 있다. 각 Step에
 | _unsyncedLocal | editor.js | hidden 시 서버 동기화 실패 여부 (visible 복귀 시 병합 판단용) |
 | _notifCache | ui.js | 알림 캐시 배열 |
 | _notifPanelOpen | ui.js | 알림 패널 열림 상태 |
+| _partnerMode | ui.js | 파트너 모드 활성 여부 |
+| _partnerData | ui.js | 상대방 데이터 (dbData, config, comments, partnerEmail) |
+| _myBackup | ui.js | 내 데이터 메모리 백업 |
 
 ---
 

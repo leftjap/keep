@@ -815,6 +815,33 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   font-size: 14px;
 }
 
+/* ═══ 파트너 모드 (읽기 전용) ═══ */
+.partner-mode .ed-body {
+  cursor: default;
+}
+.partner-mode .ed-body:empty::before {
+  content: '';
+}
+.partner-mode .ed-title,
+.partner-mode .sf-input {
+  color: var(--tx);
+  opacity: 1;
+}
+.partner-mode .ed-foot {
+  display: none !important;
+}
+.partner-mode .toolbar {
+  display: none !important;
+}
+.partner-mode .swipe-actions {
+  display: none !important;
+}
+/* 돌아가기 버튼: 벨 자리에서 약간 크게 */
+.notif-bell-btn.back-mode svg {
+  width: 24px;
+  height: 24px;
+}
+
 /* ═══════════════════════════════════════
    루틴 컴팩트 스타일
    ═══════════════════════════════════════ */
