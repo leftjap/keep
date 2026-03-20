@@ -1437,18 +1437,14 @@ async function enterPartnerMode(partnerEmail, targetDocId) {
     Object.assign(TAB_META, pc.tabNames || {});
   }
 
-  // UI 전환 — 사이드 헤더를 돌아가기 영역으로 전환
-  var sideHdr = document.querySelector('.side .side-hdr');
-  if (sideHdr) {
-    sideHdr.classList.add('partner-back');
-    sideHdr.setAttribute('data-original-html', sideHdr.innerHTML);
-    var partnerName = _getDisplayName(_partnerData.partnerEmail);
-    sideHdr.innerHTML =
-      '<div class="partner-back-inner" onclick="exitPartnerMode()">' +
-        '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>' +
-        '<span class="partner-back-text">' + escapeHtml(partnerName) + '님의 공간</span>' +
-      '</div>';
+  // UI 전환 — 상단 배너 표시
+  var topbar = document.getElementById('partnerTopbar');
+  var topbarText = topbar ? topbar.querySelector('.partner-topbar-text') : null;
+  if (topbar && topbarText) {
+    topbarText.textContent = _getDisplayName(_partnerData.partnerEmail) + '님의 공간 보는 중';
+    topbar.style.display = '';
   }
+  document.body.classList.add('partner-mode-active');
 
   _setReadOnly(true);
   document.getElementById('mainApp').classList.add('partner-mode');
@@ -1531,16 +1527,10 @@ function exitPartnerMode() {
     _myBackup = null;
   }
 
-  // UI 복원 — 사이드 헤더 원래 상태로 복원
-  var sideHdr = document.querySelector('.side .side-hdr');
-  if (sideHdr) {
-    var original = sideHdr.getAttribute('data-original-html');
-    if (original) {
-      sideHdr.innerHTML = original;
-      sideHdr.removeAttribute('data-original-html');
-    }
-    sideHdr.classList.remove('partner-back');
-  }
+  // UI 복원 — 상단 배너 숨기기
+  var topbar = document.getElementById('partnerTopbar');
+  if (topbar) topbar.style.display = 'none';
+  document.body.classList.remove('partner-mode-active');
 
   _setReadOnly(false);
   document.getElementById('mainApp').classList.remove('partner-mode');

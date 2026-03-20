@@ -69,6 +69,60 @@ body{font-family:'Pretendard',-apple-system,'SF Pro Display',sans-serif;backgrou
 #syncDot{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--tab-color)}
 .sync-btn{display:none}
 
+/* ═══ 파트너 모드 상단 배너 ═══ */
+.partner-topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  background: rgba(229, 86, 67, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #fff;
+  text-align: center;
+  padding: 6px 16px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  padding-top: calc(6px + env(safe-area-inset-top));
+}
+.partner-topbar-text {
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0.9;
+  line-height: 1.3;
+}
+.partner-topbar-back {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.partner-topbar:active {
+  background: rgba(229, 86, 67, 1);
+}
+
+/* 파트너 모드일 때 앱 전체를 배너 높이만큼 아래로 */
+body.partner-mode-active #mainApp {
+  padding-top: 48px;
+}
+body.partner-mode-active .partner-topbar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+}
+/* iOS safe area 대응 */
+@supports (padding-top: env(safe-area-inset-top)) {
+  body.partner-mode-active #mainApp {
+    padding-top: calc(48px + env(safe-area-inset-top));
+  }
+  body.partner-mode-active .partner-topbar {
+    height: calc(48px + env(safe-area-inset-top));
+  }
+}
+
 /* ═══ 파트너 모드 — 사이드 헤더 돌아가기 ═══ */
 .side-hdr.partner-back {
   cursor: pointer;
