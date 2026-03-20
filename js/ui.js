@@ -1207,12 +1207,14 @@ function updateBackBtnIcon() {
 // ═══ 알림 (소셜) ═══
 var _notifCache = [];
 var _notifPopoverOpen = false;
+var _lastNotifFetch = 0;
 
 async function checkAndUpdateNotifBadge() {
   try {
     var res = await SYNC.checkNotifications();
     if (res && res.notifications) {
       _notifCache = res.notifications;
+      _lastNotifFetch = Date.now();
     }
     var unread = res && typeof res.unreadCount === 'number' ? res.unreadCount : _notifCache.filter(function(n) { return !n.read; }).length;
     var badge = document.getElementById('notifBadge');
@@ -1253,7 +1255,6 @@ function openNotifPopover() {
     var rect = btn.getBoundingClientRect();
     var cardW = 340;
     var leftPos = rect.left;
-    // 오른쪽 넘침 방지
     if (leftPos + cardW > window.innerWidth - 16) {
       leftPos = window.innerWidth - cardW - 16;
     }
@@ -1263,7 +1264,6 @@ function openNotifPopover() {
     card.style.right = 'auto';
     card.style.bottom = '';
   } else {
-    // 모바일: CSS가 하단 시트로 처리 — 인라인 위치 초기화
     card.style.top = '';
     card.style.left = '';
     card.style.right = '';
@@ -1274,12 +1274,15 @@ function openNotifPopover() {
   overlay.classList.add('open');
   card.classList.add('open');
 
-  // 백그라운드에서 서버 갱신
-  checkAndUpdateNotifBadge().then(function() {
-    if (_notifPopoverOpen) {
-      renderNotifList();
-    }
-  });
+  // 캐시가 비었거나 30초 이상 지났으면 백그라운드 갱신
+  var now = Date.now();
+  if (_notifCache.length === 0 || now - _lastNotifFetch > 30000) {
+    checkAndUpdateNotifBadge().then(function() {
+      if (_notifPopoverOpen) {
+        renderNotifList();
+      }
+    });
+  }
 }
 
 function closeNotifPopover() {

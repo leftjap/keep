@@ -62,6 +62,8 @@ async function showApp() {
 
   injectMockData();
   injectExpenseMockData();
+  // 알림 프리로드 (로딩 화면에서 미리 가져옴)
+  try { await checkAndUpdateNotifBadge(); } catch(e) {}
   // 태블릿뷰: ed-topbar-right를 body로 이동하여 스와이프 영향 차단
   if (window.innerWidth >= 769 && window.innerWidth <= 1400) {
     const topbarRight = document.querySelector('.editor .ed-topbar-right');
@@ -89,9 +91,6 @@ async function showApp() {
     }
     // 태블릿+PC 제스처는 앱이 표시된 후에 초기화
     setupTabletPCGestures();
-
-    // 알림 체크
-    checkAndUpdateNotifBadge();
 
     // 댓글 로드 (파트너 모드)
     loadMySocialComments();
