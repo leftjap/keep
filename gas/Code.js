@@ -470,6 +470,23 @@ function doPost(e) {
       case 'load_db':
         result = loadDatabase(config);
         break;
+      case 'load_all':
+        var allDbData = loadDatabase(config);
+        var notifResult = checkNotifications(config);
+        var socialData = loadSocialData();
+        var comments = (socialData && socialData.comments) ? socialData.comments : [];
+        var email = _getEmailFromConfig(config);
+        var myComments = comments.filter(function(c) { return c.docOwner === email; });
+
+        result = {
+          status: 'ok',
+          db: allDbData.dbData || {},
+          config: allDbData.config || {},
+          notifications: notifResult.notifications || [],
+          unreadCount: notifResult.unreadCount || 0,
+          myComments: myComments
+        };
+        break;
       case 'save_doc':
         var folderName = config.folderMap[data.type] || data.type;
         result = saveDocument(data.id, data.driveId, folderName, data.title, data.content, config);
@@ -878,6 +895,13 @@ function postComment(docId, docOwner, text, config) {
     }
 
     saveSocialData(social);
+
+    // 소셜 캐시 무효화
+    try {
+      var cache = CacheService.getScriptCache();
+      cache.remove('social_' + myEmail);
+    } catch(e) {}
+
     return { status: 'ok', comment: comment };
   } catch (e) {
     console.error('postComment 에러:', e);
@@ -956,6 +980,13 @@ function deleteComment(commentId, config) {
     }
     social.comments = newComments;
     saveSocialData(social);
+
+    // 소셜 캐시 무효화
+    try {
+      var cache = CacheService.getScriptCache();
+      cache.remove('social_' + myEmail);
+    } catch(e) {}
+
     return { status: 'ok' };
   } catch (e) {
     console.error('deleteComment 에러:', e);
@@ -994,6 +1025,13 @@ function editComment(commentId, text, config) {
       return { status: 'error', message: 'Comment not found' };
     }
     saveSocialData(social);
+
+    // 소셜 캐시 무효화
+    try {
+      var cache = CacheService.getScriptCache();
+      cache.remove('social_' + myEmail);
+    } catch(e) {}
+
     return { status: 'ok' };
   } catch (e) {
     console.error('editComment 에러:', e);
@@ -1025,6 +1063,14 @@ function saveDatabase(dbData, config) {
   try {
     var file = getDatabaseFile(config);
     file.setContent(JSON.stringify(dbData));
+
+    // 캐시 갱신
+    try {
+      var cache = CacheService.getScriptCache();
+      var email = _getEmailFromConfig(config);
+      cache.put('db_' + email, JSON.stringify(dbData), 21600);
+    } catch(e) {}
+
     return { status: 'ok' };
   } catch (e) {
     console.error("saveDatabase 에러:", e);

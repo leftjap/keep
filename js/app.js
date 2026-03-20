@@ -35,6 +35,21 @@ window.onload = function() {
   }
 };
 
+// ═══ DB 데이터를 LocalStorage에 적용 ═══
+function _applyLoadedDb(dbData) {
+  if (!dbData || typeof dbData !== 'object') return;
+  if (dbData[K.docs]   && dbData[K.docs].length >= 0) S(K.docs,   dbData[K.docs]);
+  if (dbData[K.books])   S(K.books,   dbData[K.books]);
+  if (dbData[K.quotes])  S(K.quotes,  dbData[K.quotes]);
+  if (dbData[K.memos])   S(K.memos,   dbData[K.memos]);
+  if (dbData[K.checks])  S(K.checks,  dbData[K.checks]);
+  if (dbData[K.expenses]) S(K.expenses, dbData[K.expenses]);
+  if (dbData[K.merchantIcons]) S(K.merchantIcons, dbData[K.merchantIcons]);
+  if (dbData[K.merchantAliases]) S(K.merchantAliases, dbData[K.merchantAliases]);
+  if (dbData[K.brandIcons]) S(K.brandIcons, dbData[K.brandIcons]);
+  if (dbData[K.brandOverrides]) S(K.brandOverrides, dbData[K.brandOverrides]);
+}
+
 async function showApp() {
   const loading = document.getElementById('loadingScreen');
   loading.classList.remove('hidden');
@@ -42,10 +57,42 @@ async function showApp() {
 
   var serverConfig = null;
   try {
-    serverConfig = await SYNC.loadDatabase();
+    // ── 단일 요청으로 모든 데이터 로드 ──
+    var allData = await SYNC.loadAll();
+
+    if (!allData || allData.status !== 'ok') {
+      throw new Error('load_all failed');
+    }
+
+    // DB 데이터 적용
+    serverConfig = allData.config || null;
+    if (allData.db) {
+      _applyLoadedDb(allData.db);
+    }
+
+    // 알림 캐시 적용
+    if (allData.notifications) {
+      _notifCache = allData.notifications;
+      _lastNotifFetch = Date.now();
+      var unread = allData.unreadCount || _notifCache.filter(function(n) { return !n.read; }).length;
+      var badge = document.getElementById('notifBadge');
+      if (badge) {
+        if (unread > 0) {
+          badge.textContent = unread > 99 ? '99+' : String(unread);
+          badge.style.display = '';
+        } else {
+          badge.style.display = 'none';
+        }
+      }
+    }
+
+    // 내 댓글 캐시 적용
+    if (allData.myComments) {
+      _myCommentCache = allData.myComments;
+    }
+
   } catch (e) {
     if (e && e.message === 'Unauthorized') {
-      // 인증 실패: 로컬 토큰 삭제 후 로그인 화면으로
       localStorage.removeItem('gb_auth');
       localStorage.removeItem('gb_id_token');
       loading.classList.add('hidden');
@@ -53,18 +100,32 @@ async function showApp() {
       document.getElementById('lockErr').textContent = '접근 권한이 없는 계정입니다.';
       return;
     }
+    // load_all 실패 시 기존 방식으로 폴백
+    console.warn('[showApp] load_all 실패, 개별 로드로 폴백:', e);
+    try {
+      serverConfig = await SYNC.loadDatabase();
+    } catch(e2) {
+      if (e2 && e2.message === 'Unauthorized') {
+        localStorage.removeItem('gb_auth');
+        localStorage.removeItem('gb_id_token');
+        loading.classList.add('hidden');
+        document.getElementById('lockScreen').classList.remove('hidden');
+        document.getElementById('lockErr').textContent = '접근 권한이 없는 계정입니다.';
+        return;
+      }
+    }
+    checkAndUpdateNotifBadge().catch(function(e){});
   }
 
-  // 서버 config 적용 (사용자별 탭/루틴/카테고리)
+  // 서버 config 적용
   if (serverConfig) {
     applyServerConfig(serverConfig);
   }
 
   injectMockData();
   injectExpenseMockData();
-  // 알림 프리로드 (백그라운드)
-  checkAndUpdateNotifBadge().catch(function(e){})
-  // 태블릿뷰: ed-topbar-right를 body로 이동하여 스와이프 영향 차단
+
+  // 태블릿뷰: ed-topbar-right를 body로 이동
   if (window.innerWidth >= 769 && window.innerWidth <= 1400) {
     const topbarRight = document.querySelector('.editor .ed-topbar-right');
     if (topbarRight && topbarRight.parentElement !== document.body) {
@@ -72,6 +133,7 @@ async function showApp() {
       document.body.appendChild(topbarRight);
     }
   }
+
   init();
   loading.style.opacity = '0';
   setTimeout(() => {
@@ -89,11 +151,7 @@ async function showApp() {
       }
       renderListPanel();
     }
-    // 태블릿+PC 제스처는 앱이 표시된 후에 초기화
     setupTabletPCGestures();
-
-    // 댓글 로드 (파트너 모드)
-    loadMySocialComments();
 
     // visibilitychange에서 알림 체크
     document.addEventListener('visibilitychange', function() {

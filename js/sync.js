@@ -67,6 +67,16 @@ const SYNC = {
   },
 
   // ═══ DB 로드/저장 ═══
+  async loadAll() {
+    try {
+      var res = await this._post({ action: 'load_all' });
+      return res || {};
+    } catch(e) {
+      console.error('[SYNC] loadAll 실패:', e.message);
+      throw e;
+    }
+  },
+
   async loadDatabase() {
     try {
       const res = await this._post({ action: 'load_db' });
