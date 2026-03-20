@@ -590,5 +590,27 @@ const SYNC = {
       console.warn('loadMyComments 실패:', e.message);
       return { comments: [] };
     }
+  },
+
+  // ═══ 소셜: 댓글 삭제 ═══
+  async deleteComment(commentId) {
+    try {
+      var res = await this._post({ action: 'delete_comment', commentId: commentId });
+      return res || { status: 'error' };
+    } catch (e) {
+      console.warn('deleteComment 실패:', e.message);
+      return { status: 'error', message: e.message };
+    }
+  },
+
+  // ═══ 소셜: 댓글 수정 ═══
+  async editComment(commentId, text) {
+    try {
+      var res = await this._post({ action: 'edit_comment', commentId: commentId, text: text });
+      return res || { status: 'error' };
+    } catch (e) {
+      console.warn('editComment 실패:', e.message);
+      return { status: 'error', message: e.message };
+    }
   }
 };

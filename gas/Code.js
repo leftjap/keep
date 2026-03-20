@@ -499,6 +499,12 @@ function doPost(e) {
       case 'mark_read':
         result = markRead(data.notifIds || [], config);
         break;
+      case 'delete_comment':
+        result = deleteComment(data.commentId, config);
+        break;
+      case 'edit_comment':
+        result = editComment(data.commentId, data.text, config);
+        break;
       case 'load_my_comments':
         result = loadMyComments(config);
         break;
@@ -919,6 +925,81 @@ function loadMyComments(config) {
   } catch (e) {
     console.error('loadMyComments 에러:', e);
     return { status: 'error', comments: [], message: e.toString() };
+  }
+}
+
+// ═══ 소셜: 댓글 삭제 ═══
+function deleteComment(commentId, config) {
+  var lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    var social = loadSocialData();
+    var myEmail = _getEmailFromConfig(config);
+    var found = false;
+    var newComments = [];
+    for (var i = 0; i < social.comments.length; i++) {
+      var c = social.comments[i];
+      if (c.id === commentId) {
+        if (c.author !== myEmail) {
+          lock.releaseLock();
+          return { status: 'error', message: 'Not your comment' };
+        }
+        found = true;
+        // 이 댓글을 건너뜀 (삭제)
+      } else {
+        newComments.push(c);
+      }
+    }
+    if (!found) {
+      lock.releaseLock();
+      return { status: 'error', message: 'Comment not found' };
+    }
+    social.comments = newComments;
+    saveSocialData(social);
+    return { status: 'ok' };
+  } catch (e) {
+    console.error('deleteComment 에러:', e);
+    return { status: 'error', message: e.toString() };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// ═══ 소셜: 댓글 수정 ═══
+function editComment(commentId, text, config) {
+  if (!text || !text.trim()) {
+    return { status: 'error', message: 'Empty text' };
+  }
+  var lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    var social = loadSocialData();
+    var myEmail = _getEmailFromConfig(config);
+    var found = false;
+    for (var i = 0; i < social.comments.length; i++) {
+      var c = social.comments[i];
+      if (c.id === commentId) {
+        if (c.author !== myEmail) {
+          lock.releaseLock();
+          return { status: 'error', message: 'Not your comment' };
+        }
+        c.text = text.trim();
+        c.edited = new Date().toISOString();
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      lock.releaseLock();
+      return { status: 'error', message: 'Comment not found' };
+    }
+    saveSocialData(social);
+    return { status: 'ok' };
+  } catch (e) {
+    console.error('editComment 에러:', e);
+    return { status: 'error', message: e.toString() };
+  } finally {
+    lock.releaseLock();
   }
 }
 

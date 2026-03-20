@@ -573,6 +573,99 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   margin-top:-1px;
 }
 
+/* ═══ 댓글 수정/삭제 버튼 ═══ */
+.comment-actions {
+  display: inline-flex;
+  gap: 2px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.comment-action-btn {
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--tx-hint);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color .12s, background .12s;
+  padding: 0;
+  opacity: 0;
+}
+
+.comment-item:hover .comment-action-btn {
+  opacity: 1;
+}
+
+/* 모바일에서는 항상 표시 (hover 없으므로) */
+@media (max-width: 768px) {
+  .comment-action-btn {
+    opacity: 0.5;
+  }
+}
+
+.comment-action-btn:hover {
+  background: rgba(0,0,0,.05);
+  color: var(--tx-d);
+}
+
+.comment-action-del:hover {
+  color: var(--red);
+}
+
+/* 인라인 편집 */
+.comment-edit-input {
+  width: 100%;
+  border: none;
+  border-bottom: 1.5px solid var(--tab-color);
+  background: none;
+  outline: none;
+  font-size: 14px;
+  color: var(--tx);
+  font-family: 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  padding: 2px 0 4px;
+  margin-bottom: 4px;
+}
+
+.comment-edit-btns {
+  display: flex;
+  gap: 6px;
+}
+
+.comment-edit-save,
+.comment-edit-cancel {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 12px;
+  font-family: 'Pretendard', -apple-system, sans-serif;
+  padding: 2px 8px;
+  border-radius: 4px;
+  transition: .12s;
+}
+
+.comment-edit-save {
+  color: var(--tab-color);
+  font-weight: 600;
+}
+
+.comment-edit-save:hover {
+  background: color-mix(in srgb, var(--tab-color) 10%, transparent);
+}
+
+.comment-edit-cancel {
+  color: var(--tx-hint);
+}
+
+.comment-edit-cancel:hover {
+  background: rgba(0,0,0,.05);
+  color: var(--tx-m);
+}
+
 /* 파트너 모드: 댓글 표시 시 본문 하단 패딩 축소 */
 /* 파트너 모드: 본문이 내용 크기만큼만 차지하여 댓글이 바로 아래 표시 */
 .partner-mode .editor-content-wrap {

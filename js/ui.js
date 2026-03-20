@@ -1740,7 +1740,7 @@ function renderComments(docId, ownerEmail) {
   var commentList = document.getElementById('commentList');
   commentList.innerHTML = '';
 
-  // 댓글 소스 결정: 파트너 모드면 _partnerData.comments, 아니면 _myCommentCache
+  // 댓글 소스 결정
   var comments;
   if (_partnerMode && _partnerData && _partnerData.comments) {
     comments = _partnerData.comments;
@@ -1752,12 +1752,22 @@ function renderComments(docId, ownerEmail) {
     return c.docId === docId && c.docOwner === ownerEmail;
   });
 
-  // 댓글이 없으면 빈 목록 (CSS :empty 의사 클래스가 안내 문구 표시)
   if (!docComments.length) return;
+
+  // 내 이메일 가져오기 (버튼 표시 판단용)
+  var myEmail = '';
+  try {
+    var jwt = localStorage.getItem('gb_id_token');
+    if (jwt) {
+      var payload = JSON.parse(atob(jwt.split('.')[1]));
+      myEmail = payload.email || '';
+    }
+  } catch(e) {}
 
   docComments.forEach(function(c) {
     var commentEl = document.createElement('div');
     commentEl.className = 'comment-item';
+    commentEl.setAttribute('data-comment-id', c.id);
 
     var avatar = document.createElement('div');
     avatar.className = 'comment-avatar';
@@ -1776,13 +1786,34 @@ function renderComments(docId, ownerEmail) {
 
     var time = document.createElement('span');
     time.className = 'comment-time';
-    time.textContent = c.created ? getRelativeTime(c.created) : '';
+    var timeText = c.created ? getRelativeTime(c.created) : '';
+    if (c.edited) timeText += ' (수정됨)';
+    time.textContent = timeText;
 
     meta.appendChild(author);
     meta.appendChild(time);
 
+    // 본인 댓글이면 수정/삭제 버튼 추가
+    if (c.author === myEmail) {
+      var actions = document.createElement('span');
+      actions.className = 'comment-actions';
+      actions.innerHTML =
+        '<button class="comment-action-btn" onclick="editComment(\'' + c.id + '\')" title="수정">' +
+          '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+            '<path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>' +
+          '</svg>' +
+        '</button>' +
+        '<button class="comment-action-btn comment-action-del" onclick="deleteComment(\'' + c.id + '\')" title="삭제">' +
+          '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+            '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>' +
+          '</svg>' +
+        '</button>';
+      meta.appendChild(actions);
+    }
+
     var text = document.createElement('div');
     text.className = 'comment-text';
+    text.setAttribute('id', 'comment-text-' + c.id);
     text.textContent = c.text;
 
     body.appendChild(meta);
@@ -1822,6 +1853,98 @@ function _loadMyCommentsAndRender(docId) {
   }).catch(function(e) {
     console.warn('[댓글] 로드 실패:', e);
   });
+}
+
+function deleteComment(commentId) {
+  if (!confirm('댓글을 삭제할까요?')) return;
+
+  // 로컬 캐시에서 즉시 제거
+  if (_partnerMode && _partnerData && _partnerData.comments) {
+    _partnerData.comments = _partnerData.comments.filter(function(c) { return c.id !== commentId; });
+  } else {
+    _myCommentCache = _myCommentCache.filter(function(c) { return c.id !== commentId; });
+  }
+
+  // 즉시 리렌더
+  renderComments(_commentDocId, _commentDocOwner);
+
+  // 서버 삭제 (백그라운드)
+  SYNC.deleteComment(commentId).then(function(res) {
+    if (!res || res.status !== 'ok') {
+      console.warn('[댓글] 서버 삭제 실패');
+    }
+  }).catch(function(e) {
+    console.error('[댓글] 서버 삭제 에러:', e);
+  });
+}
+
+function editComment(commentId) {
+  var textEl = document.getElementById('comment-text-' + commentId);
+  if (!textEl) return;
+
+  var currentText = textEl.textContent;
+
+  // 인라인 편집 UI로 전환
+  textEl.innerHTML = '';
+  var input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'comment-edit-input';
+  input.value = currentText;
+
+  var btnWrap = document.createElement('span');
+  btnWrap.className = 'comment-edit-btns';
+  btnWrap.innerHTML =
+    '<button class="comment-edit-save" onclick="_saveCommentEdit(\'' + commentId + '\')">저장</button>' +
+    '<button class="comment-edit-cancel" onclick="_cancelCommentEdit(\'' + commentId + '\',\'' + currentText.replace(/'/g, "\\'").replace(/\\/g, "\\\\") + '\')">취소</button>';
+
+  textEl.appendChild(input);
+  textEl.appendChild(btnWrap);
+  input.focus();
+  input.select();
+
+  // Enter 키로 저장, Escape 키로 취소
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); _saveCommentEdit(commentId); }
+    if (e.key === 'Escape') { _cancelCommentEdit(commentId, currentText); }
+  });
+}
+
+function _saveCommentEdit(commentId) {
+  var textEl = document.getElementById('comment-text-' + commentId);
+  if (!textEl) return;
+  var input = textEl.querySelector('.comment-edit-input');
+  if (!input) return;
+  var newText = input.value.trim();
+  if (!newText) return;
+
+  // 로컬 캐시 업데이트
+  var comments = (_partnerMode && _partnerData && _partnerData.comments) ? _partnerData.comments : _myCommentCache;
+  for (var i = 0; i < comments.length; i++) {
+    if (comments[i].id === commentId) {
+      comments[i].text = newText;
+      comments[i].edited = new Date().toISOString();
+      break;
+    }
+  }
+
+  // 즉시 리렌더
+  renderComments(_commentDocId, _commentDocOwner);
+
+  // 서버 수정 (백그라운드)
+  SYNC.editComment(commentId, newText).then(function(res) {
+    if (!res || res.status !== 'ok') {
+      console.warn('[댓글] 서버 수정 실패');
+    }
+  }).catch(function(e) {
+    console.error('[댓글] 서버 수정 에러:', e);
+  });
+}
+
+function _cancelCommentEdit(commentId, originalText) {
+  var textEl = document.getElementById('comment-text-' + commentId);
+  if (!textEl) return;
+  textEl.innerHTML = '';
+  textEl.textContent = originalText;
 }
 
 function hideComments() {
