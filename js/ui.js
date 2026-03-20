@@ -780,7 +780,7 @@ function renderListPanel() {
       el.innerHTML = '<div style="text-align:center;padding:80px 20px;color:var(--tx-hint);font-size:15px">기록이 없습니다</div>';
       return;
     }
-    var html = '';
+    let pHtml = '';
     partnerItems.forEach(function(item) {
       // 타입 보정 (book/quote/memo는 type 필드가 없을 수 있음)
       if (!item.type && activeTab === 'book') item.type = 'book';
@@ -792,9 +792,9 @@ function renderListPanel() {
       // onclick을 파트너 전용으로 교체
       itemHtml = itemHtml.replace(/onclick="[^"]*"/,
         'onclick="_loadPartnerDoc(' + JSON.stringify(item).replace(/"/g, '&quot;') + '); if(window.innerWidth<=768) setMobileView(\'editor\');"');
-      html += itemHtml;
+      pHtml += itemHtml;
     });
-    el.innerHTML = html;
+    el.innerHTML = pHtml;
     return;
   }
 
