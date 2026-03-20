@@ -1769,20 +1769,12 @@ function renderComments(docId, ownerEmail) {
     commentEl.className = 'comment-item';
     commentEl.setAttribute('data-comment-id', c.id);
 
-    var avatar = document.createElement('div');
-    avatar.className = 'comment-avatar';
-    var displayName = _getDisplayName(c.author);
-    avatar.textContent = displayName.charAt(0);
-
-    var body = document.createElement('div');
-    body.className = 'comment-body';
-
     var meta = document.createElement('div');
     meta.className = 'comment-meta';
 
     var author = document.createElement('span');
     author.className = 'comment-author';
-    author.textContent = displayName;
+    author.textContent = _getDisplayName(c.author);
 
     var time = document.createElement('span');
     time.className = 'comment-time';
@@ -1816,11 +1808,8 @@ function renderComments(docId, ownerEmail) {
     text.setAttribute('id', 'comment-text-' + c.id);
     text.textContent = c.text;
 
-    body.appendChild(meta);
-    body.appendChild(text);
-
-    commentEl.appendChild(avatar);
-    commentEl.appendChild(body);
+    commentEl.appendChild(meta);
+    commentEl.appendChild(text);
     commentList.appendChild(commentEl);
   });
 }
