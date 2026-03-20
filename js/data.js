@@ -337,10 +337,7 @@ function newDoc(type) {
 }
 
 function updateMetaBar(type, title) {
-  const footLocText = document.getElementById('edFootLocText');
-  if (footLocText) {
-    footLocText.textContent = (type === 'fiction') ? 'Shinjuku, Tokyo' : '와우산로37길 Mapo-gu';
-  }
+  // ed-foot 영역 삭제됨 — 빈 함수 유지 (호출처 에러 방지)
 }
 
 function loadDoc(type, id, force = false) {
@@ -397,15 +394,6 @@ function delDoc(type, id, e) {
 }
 
 function updateWC() {
-  const target = activeTab === 'memo'
-    ? document.getElementById('memo-body')
-    : document.getElementById('edBody');
-  const t     = target ? target.textContent.trim() : '';
-  const c     = t.replace(/\s/g, '').length;
-  const w     = t.split(/\s+/).filter(x => x).length;
-  const pages = (c / 200).toFixed(1);
-  if (document.getElementById('edWords')) document.getElementById('edWords').textContent = w.toLocaleString() + '단어';
-  if (document.getElementById('edPages')) document.getElementById('edPages').textContent = pages + '매';
   updateWritingStats();
 }
 
