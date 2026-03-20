@@ -154,23 +154,27 @@ function switchTab(t, keepLayout) {
 
   // 파트너 모드: 저장 없이 탭만 전환하고 상대방 데이터 렌더
   if (_partnerMode) {
-    activeTab = t;
-    updateEdTabLabel();
-    // 사이드바 메뉴 활성 표시
-    var sms = document.querySelectorAll('.side-menu');
-    sms.forEach(function(m) { m.classList.remove('on'); });
-    var am = document.querySelector('.side-menu[data-tab="' + t + '"]');
-    if (am) am.classList.add('on');
-    // 에디터 패널 리셋
-    document.getElementById('editorText').style.display = textTypes.includes(t) ? 'flex' : 'none';
-    document.getElementById('editorBook').style.display = t === 'book' ? 'flex' : 'none';
-    document.getElementById('editorQuote').style.display = t === 'quote' ? 'flex' : 'none';
-    document.getElementById('editorMemo').style.display = t === 'memo' ? 'flex' : 'none';
-    // 리스트 렌더
-    document.getElementById('pane-list').style.display = 'flex';
-    renderListPanel();
-    if (window.innerWidth <= 768) setMobileView('list');
-    return;
+    if (t === 'expense') {
+      // 파트너 가계부: 일반 가계부 흐름으로 떨어지게 함 (return 하지 않음)
+    } else {
+      activeTab = t;
+      updateEdTabLabel();
+      // 사이드바 메뉴 활성 표시
+      var sms = document.querySelectorAll('.side-menu');
+      sms.forEach(function(m) { m.classList.remove('on'); });
+      var am = document.querySelector('.side-menu[data-tab="' + t + '"]');
+      if (am) am.classList.add('on');
+      // 에디터 패널 리셋
+      document.getElementById('editorText').style.display = textTypes.includes(t) ? 'flex' : 'none';
+      document.getElementById('editorBook').style.display = t === 'book' ? 'flex' : 'none';
+      document.getElementById('editorQuote').style.display = t === 'quote' ? 'flex' : 'none';
+      document.getElementById('editorMemo').style.display = t === 'memo' ? 'flex' : 'none';
+      // 리스트 렌더
+      document.getElementById('pane-list').style.display = 'flex';
+      renderListPanel();
+      if (window.innerWidth <= 768) setMobileView('list');
+      return;
+    }
   }
 
   if (textTypes.includes(activeTab)) saveCurDoc(activeTab);
