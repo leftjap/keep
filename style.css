@@ -667,6 +667,155 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 }
 
 /* ═══════════════════════════════════════
+   알림 벨 + 뱃지 + 알림 리스트
+   ═══════════════════════════════════════ */
+.notif-bell-btn {
+  display: flex;
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--tx-hint);
+  border-radius: 8px;
+  position: relative;
+  flex-shrink: 0;
+  transition: color .12s, background .12s;
+}
+.notif-bell-btn:hover {
+  background: rgba(0,0,0,.05);
+  color: var(--tx-d);
+}
+.notif-bell-btn svg {
+  width: 22px;
+  height: 22px;
+}
+.notif-badge {
+  position: absolute;
+  top: 4px;
+  right: 2px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: #ff3b30;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: 'Pretendard', -apple-system, sans-serif;
+  line-height: 18px;
+  text-align: center;
+  pointer-events: none;
+}
+
+/* 다크 사이드바 — 벨 버튼 */
+.side .notif-bell-btn {
+  color: rgba(255,255,255,.5);
+}
+.side .notif-bell-btn:hover {
+  background: rgba(255,255,255,.08);
+  color: rgba(255,255,255,.8);
+}
+
+/* 알림 리스트 pane */
+.pane-notifications {
+  flex: 1 1 0;
+  height: 0;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-white);
+}
+.notif-header {
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid var(--border-l);
+  position: sticky;
+  top: 0;
+  background: var(--bg-white);
+  z-index: 5;
+}
+.notif-header-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--tx);
+}
+.notif-list {
+  flex: 1;
+  padding: 0;
+}
+.notif-item {
+  display: flex;
+  gap: 12px;
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: background .1s;
+  border-bottom: 1px solid var(--border-l);
+  align-items: flex-start;
+}
+.notif-item:hover {
+  background: rgba(0,0,0,.02);
+}
+.notif-item:active {
+  background: rgba(0,0,0,.04);
+}
+.notif-item-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(229, 86, 67, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.notif-item-icon svg {
+  width: 18px;
+  height: 18px;
+  stroke: #E55643;
+  stroke-width: 1.8;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.notif-item-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.notif-item-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--tx);
+  line-height: 1.4;
+}
+.notif-item-preview {
+  font-size: 13px;
+  color: var(--tx-m);
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.notif-item-time {
+  font-size: 12px;
+  color: var(--tx-hint);
+  flex-shrink: 0;
+  white-space: nowrap;
+  margin-top: 2px;
+}
+.notif-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--tx-hint);
+  font-size: 14px;
+}
+
+/* ═══════════════════════════════════════
    루틴 컴팩트 스타일
    ═══════════════════════════════════════ */
 .routine-compact{

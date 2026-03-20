@@ -1153,3 +1153,130 @@ function updateBackBtnIcon() {
     btn.innerHTML = '<svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>';
   }
 }
+
+// ═══ 알림 (소셜) ═══
+var _notifCache = [];
+var _notifPanelOpen = false;
+
+async function checkAndUpdateNotifBadge() {
+  try {
+    var notifications = await SYNC.checkNotifications();
+    _notifCache = notifications || [];
+    var badge = document.getElementById('notifBadge');
+    if (!badge) return;
+    if (_notifCache.length > 0) {
+      badge.textContent = _notifCache.length > 99 ? '99+' : String(_notifCache.length);
+      badge.style.display = '';
+    } else {
+      badge.style.display = 'none';
+    }
+  } catch (e) {
+    console.warn('checkAndUpdateNotifBadge 실패:', e.message);
+  }
+}
+
+function toggleNotifPanel() {
+  var pane = document.getElementById('pane-notifications');
+  if (!pane) return;
+
+  if (_notifPanelOpen) {
+    // 닫기: 원래 리스트로 복원
+    pane.style.display = 'none';
+    _notifPanelOpen = false;
+    // 현재 탭에 맞는 pane 복원
+    if (activeTab === 'expense') {
+      document.getElementById('pane-expense-dashboard').style.display = 'flex';
+    } else {
+      document.getElementById('pane-list').style.display = 'flex';
+    }
+    return;
+  }
+
+  // 열기: 모든 pane 숨기고 알림 pane 표시
+  document.getElementById('pane-list').style.display = 'none';
+  document.getElementById('pane-photo').style.display = 'none';
+  document.getElementById('pane-calendar').style.display = 'none';
+  document.getElementById('pane-expense-dashboard').style.display = 'none';
+  document.getElementById('pane-expense-detail').style.display = 'none';
+  var routinePane = document.getElementById('pane-routine');
+  if (routinePane) routinePane.style.display = 'none';
+
+  pane.style.display = 'flex';
+  _notifPanelOpen = true;
+
+  // 캐시된 알림으로 즉시 렌더, 동시에 새로 체크
+  renderNotifList(_notifCache);
+  checkAndUpdateNotifBadge().then(function() {
+    if (_notifPanelOpen) renderNotifList(_notifCache);
+  });
+
+  // 모바일: 사이드바 닫고 리스트 뷰로
+  if (window.innerWidth <= 768) {
+    var app = document.getElementById('mainApp');
+    app.classList.remove('view-side');
+    app.classList.remove('view-editor');
+    app.classList.add('view-list');
+  }
+}
+
+function renderNotifList(notifications) {
+  var list = document.getElementById('notifList');
+  if (!list) return;
+
+  if (!notifications || notifications.length === 0) {
+    list.innerHTML = '<div class="notif-empty">새 알림이 없습니다</div>';
+    return;
+  }
+
+  var penIcon = '<svg viewBox="0 0 24 24"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="M15 5l4 4"/></svg>';
+  var commentIcon = '<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
+
+  list.innerHTML = notifications.map(function(n) {
+    var icon = n.type === 'new_post' ? penIcon : commentIcon;
+    var fromName = _getDisplayName(n.from);
+    var title = '';
+    if (n.type === 'new_post') {
+      title = fromName + '님의 새 게시물';
+    } else if (n.type === 'comment') {
+      title = fromName + '님의 댓글';
+    }
+    var preview = n.preview || n.docTitle || '';
+    var time = getRelativeTime(n.created);
+    return '<div class="notif-item" onclick="onNotifClick(\'' + n.id + '\',\'' + (n.docId || '') + '\',\'' + (n.from || '') + '\')">'
+      + '<div class="notif-item-icon">' + icon + '</div>'
+      + '<div class="notif-item-body">'
+      + '<div class="notif-item-title">' + escapeHtml(title) + ' <span class="notif-item-time">' + time + '</span></div>'
+      + '<div class="notif-item-preview">' + escapeHtml(preview) + '</div>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function _getDisplayName(email) {
+  if (!email) return '알 수 없음';
+  if (email.indexOf('soyoun') !== -1) return '소연';
+  if (email.indexOf('leftjap') !== -1) return '지오';
+  return email.split('@')[0];
+}
+
+function onNotifClick(notifId, docId, fromEmail) {
+  // 읽음 처리
+  SYNC.markRead([notifId]);
+  // 캐시에서 제거
+  _notifCache = _notifCache.filter(function(n) { return n.id !== notifId; });
+  // 뱃지 업데이트
+  var badge = document.getElementById('notifBadge');
+  if (badge) {
+    if (_notifCache.length > 0) {
+      badge.textContent = String(_notifCache.length);
+      badge.style.display = '';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+  // 리스트 리렌더
+  renderNotifList(_notifCache);
+
+  // Phase 3에서 구현: 상대방 페이지로 전환
+  console.log('알림 클릭 — Phase 3에서 구현. docId:', docId, 'from:', fromEmail);
+}

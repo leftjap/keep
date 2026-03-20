@@ -522,6 +522,15 @@ gas/                   — Google Apps Script (메인 레포 내 하위 폴더)
 - `handleDone()` — 완료 버튼
 - `toggleTabletList()`, `updateBackBtnIcon()`
 
+**알림 (소셜):**
+- `_notifCache` — 알림 캐시 배열
+- `_notifPanelOpen` — 알림 패널 열림 상태
+- `checkAndUpdateNotifBadge()` — GAS에서 알림 체크 + 벨 뱃지 업데이트
+- `toggleNotifPanel()` — 벨 클릭 → 알림 리스트 pane 열기/닫기
+- `renderNotifList(notifications)` — 알림 리스트 HTML 렌더
+- `_getDisplayName(email)` — 이메일 → 표시명 변환
+- `onNotifClick(notifId, docId, fromEmail)` — 알림 항목 클릭 → 읽음 처리 + Phase 3 연결
+
 **이 파일을 업로드해야 할 때:** 탭 전환 로직 변경, 리스트 렌더링 수정, 새 탭 추가, 팝업 메뉴 수정, 네비게이션 변경
 
 ---
@@ -970,6 +979,7 @@ gas/                   — Google Apps Script (메인 레포 내 하위 폴더)
   │     ├── #pane-routine (루틴 상세)
   │     ├── #pane-list, #pane-photo, #pane-calendar
   │     ├── #pane-expense-dashboard, #pane-expense-detail
+  │     ├── #pane-notifications (알림 리스트)
   │     └── .fab-btn
   │
   └── .editor
@@ -1273,6 +1283,8 @@ Haiku 4.5는 전체 프로젝트 맥락을 알지 못할 수 있다. 각 Step에
 | savedSelection | editor.js | 플로팅 툴바 텍스트 선택 범위 |
 | _editorDirty | editor.js | 마지막 저장 이후 사용자 입력 여부 (서버 병합 판단용) |
 | _unsyncedLocal | editor.js | hidden 시 서버 동기화 실패 여부 (visible 복귀 시 병합 판단용) |
+| _notifCache | ui.js | 알림 캐시 배열 |
+| _notifPanelOpen | ui.js | 알림 패널 열림 상태 |
 
 ---
 

@@ -90,6 +90,16 @@ async function showApp() {
     // 태블릿+PC 제스처는 앱이 표시된 후에 초기화
     setupTabletPCGestures();
 
+    // 알림 체크
+    checkAndUpdateNotifBadge();
+
+    // visibilitychange에서 알림 체크
+    document.addEventListener('visibilitychange', function() {
+      if (document.visibilityState === 'visible') {
+        checkAndUpdateNotifBadge();
+      }
+    });
+
     // 리사이즈 시 topbar-fixed 토글
     window.addEventListener('resize', function() {
       const tr = document.querySelector('.ed-topbar-right');
