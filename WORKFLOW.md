@@ -782,6 +782,12 @@ gas/                   — Google Apps Script (메인 레포 내 하위 폴더)
 - `mergeServerExpenses(dbData)` — 서버 expenses를 ID 기준 병합. dbData 인자가 있으면 사용, 없으면 자체 load_db
 - `mergeServerAll()` — load_db 1회 호출 후 mergeServerExpenses + mergeServerDocs를 동일 응답으로 실행. visible 복귀 시 사용
 
+**소셜 메서드:**
+- `checkNotifications()` — 미읽음 알림 배열 반환
+- `loadPartnerDb()` — 상대방 DB + 댓글 + config 반환
+- `postComment(docId, docOwner, text)` — 댓글 작성
+- `markRead(notifIds)` — 알림 읽음 처리
+
 **이 파일을 업로드해야 할 때:** 동기화 로직 변경, 새 데이터 타입 동기화 추가
 
 ---
@@ -834,6 +840,17 @@ gas/                   — Google Apps Script (메인 레포 내 하위 폴더)
 - `classifyMerchantWithGemini(merchant, card, config)` — Gemini 2.5 Flash API로 매출처 → {category, brand} 분류. JSON 응답 파싱 + 텍스트 매칭 폴백. card 매개변수는 프롬프트 힌트용. 실패 시 {category: autoMatchCategoryServer(...), brand: null}
 - `reclassifyAllExpenses(email)` — 기존 가계부 전체 재분류 (GAS 편집기에서 수동 실행). 고유 매출처만 Gemini 호출, ScriptProperties 캐시, 6분 제한 대응 재실행 방식. brandOverrides에 있는 매출처명 건너뜀
 
+**소셜 (알림 + 댓글):**
+- `getSharedSocialFile()` — 공유 소셜 JSON 파일 조회/생성 (leftjap의 '글방' 폴더)
+- `loadSocialData()`, `saveSocialData(data)` — 공유 소셜 데이터 읽기/쓰기
+- `checkNotifications(config)` — 미읽음 알림 조회 (최대 20개, 최신순)
+- `loadPartnerDb(config)` — 상대방 DB + 댓글 + config 로드 (읽기 전용)
+- `postComment(docId, docOwner, text, config)` — 댓글 저장 + 글 작성자에게 알림. LockService 사용
+- `markRead(notifIds, config)` — 알림 읽음 처리. LockService 사용
+- `_notifyNaviPost(docId, title, content, folderName, config)` — 네비 저장 시 상대방에게 자동 알림 (하루 1회/문서)
+- `_getEmailFromConfig(config)` — config 객체에서 이메일 역조회
+- `_getPartnerEmail(myEmail)` — 상대방 이메일 조회
+
 **일괄 유틸 (GAS 편집기에서 수동 실행):**
 - `importCardSmsSheet()` — card_sms 스프레드시트에서 가계부 일괄 가져오기 (중복 체크, 날짜순 정렬)
 - `removeFakeSms()` — source가 'import'가 아닌 항목 제거
@@ -851,6 +868,10 @@ gas/                   — Google Apps Script (메인 레포 내 하위 폴더)
 | `SYNC._post({action:'upload_image'})` | upload_image | `uploadImageToDrive()` |
 | `SYNC._post({action:'save_expense_sms'})` | save_expense_sms | `saveExpenseFromSMS()` |
 | `SYNC.mergeServerExpenses()` | load_db | `loadDatabase()` → expenses 병합 |
+| `SYNC.checkNotifications()` | check_notifications | `checkNotifications()` |
+| `SYNC.loadPartnerDb()` | load_partner_db | `loadPartnerDb()` |
+| `SYNC.postComment()` | post_comment | `postComment()` |
+| `SYNC.markRead()` | mark_read | `markRead()` |
 
 **이 파일을 업로드해야 할 때:** SMS 파싱 규칙 변경, 새 action 추가, 동기화 로직 수정, 카테고리 매칭 변경, 카드 매핑 추가
 
@@ -1285,7 +1306,19 @@ editor 영역 안에 다음 하위 패널이 있다. 한 번에 하나만 표시
   ├─ 'save_routine': saveRoutineToSheet(dateStr, checks, config)
   ├─ 'save_quote': quoteSheetId 있으면 saveQuoteToSheet(text, by, config)
   ├─ 'upload_image': uploadImageToDrive(bytes, mimeType, filename, config)
-  └─ 'save_expense_sms': saveExpenseFromSMS(smsText, config)
+  ├─ 'save_expense_sms': saveExpenseFromSMS(smsText, config)
+  ├─ 'check_notifications': checkNotifications(config)
+  ├─ 'load_partner_db': loadPartnerDb(config) → getDatabaseFile(partnerConfig) + loadSocialData()
+  ├─ 'post_comment': postComment(docId, docOwner, text, config) → saveSocialData() + 알림 추가
+  └─ 'mark_read': markRead(notifIds, config) → saveSocialData()
+```
+
+### saveDocument → _notifyNaviPost (네비 글 알림)
+```
+→ saveDocument 완료 직전
+→ folderName === '오늘의 네비' 확인
+→ 오늘 같은 docId로 알림 이미 보냈는지 확인
+→ 없으면 shared_social.json에 new_post 알림 추가
 ```
 
 ### switchTab(t)
@@ -1380,6 +1413,18 @@ editor 영역 안에 다음 하위 패널이 있다. 한 번에 하나만 표시
 ### 브랜드 오버라이드 (K.brandOverrides)
 ```
 { "씨유홍대3호점": { "brand": "CU", "created": "2026-03-13" }, ... }
+```
+
+### 공유 소셜 (shared_social.json — leftjap의 '글방' 폴더)
+```
+{
+  "notifications": [
+    { "id": "ntf_...", "type": "new_post"|"comment", "from": "email", "to": "email", "docId": "...", "docTitle": "...", "preview": "...", "created": "ISO", "read": false }
+  ],
+  "comments": [
+    { "id": "cmt_...", "docId": "...", "docOwner": "email", "author": "email", "text": "...", "created": "ISO" }
+  ]
+}
 ```
 
 ---

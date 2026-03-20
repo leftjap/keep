@@ -487,6 +487,18 @@ function doPost(e) {
       case 'upload_image':
         result = uploadImageToDrive(data.bytes, data.mimeType, data.filename, config);
         break;
+      case 'check_notifications':
+        result = checkNotifications(config);
+        break;
+      case 'load_partner_db':
+        result = loadPartnerDb(config);
+        break;
+      case 'post_comment':
+        result = postComment(data.docId, data.docOwner, data.text, config);
+        break;
+      case 'mark_read':
+        result = markRead(data.notifIds || [], config);
+        break;
       case 'save_expense_sms':
         result = saveExpenseFromSMS(data.smsText, config);
         break;
@@ -562,6 +574,8 @@ function saveDocument(docId, driveId, folderName, title, content, config) {
       body.clear();
       body.setText(content);
       doc.saveAndClose();
+      // 네비 알림 훅
+      _notifyNaviPost(docId, title, content, folderName, config);
       return { status: 'updated', driveId: targetFile.getId() };
     }
 
@@ -575,6 +589,8 @@ function saveDocument(docId, driveId, folderName, title, content, config) {
     }
     newFile.moveTo(folder);
 
+    // 네비 알림 훅
+    _notifyNaviPost(docId, title, content, folderName, config);
     return { status: 'created', driveId: newFile.getId() };
 
   } catch (e) {
@@ -582,6 +598,53 @@ function saveDocument(docId, driveId, folderName, title, content, config) {
     throw new Error("파일 저장 중 에러: " + e.toString());
   } finally {
     lock.releaseLock();
+  }
+}
+
+// ═══ 네비 글 저장 시 상대방에게 알림 ═══
+function _notifyNaviPost(docId, title, content, folderName, config) {
+  try {
+    if (folderName !== '오늘의 네비') return;
+    // 빈 문서는 알림하지 않음
+    if (!content || content.trim().length < 10) return;
+
+    var myEmail = _getEmailFromConfig(config);
+    var partnerEmail = _getPartnerEmail(myEmail);
+    if (!partnerEmail) return;
+
+    var social = loadSocialData();
+    var todayStr = Utilities.formatDate(new Date(), 'Asia/Seoul', 'yyyy-MM-dd');
+
+    // 오늘 같은 docId로 이미 알림을 보냈는지 확인
+    for (var i = 0; i < social.notifications.length; i++) {
+      var n = social.notifications[i];
+      if (n.type === 'new_post' && n.docId === docId && n.from === myEmail) {
+        var nDate = (n.created || '').substring(0, 10);
+        if (nDate === todayStr) return; // 오늘 이미 알림 보냄
+      }
+    }
+
+    // 미리보기 텍스트 생성 (HTML 태그 제거, 50자)
+    var preview = (content || '').replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+    if (preview.length > 50) preview = preview.substring(0, 50) + '...';
+
+    var notif = {
+      id: 'ntf_' + new Date().getTime(),
+      type: 'new_post',
+      from: myEmail,
+      to: partnerEmail,
+      docId: docId,
+      docTitle: title || '제목 없음',
+      preview: preview,
+      created: new Date().toISOString(),
+      read: false
+    };
+
+    social.notifications.push(notif);
+    saveSocialData(social);
+  } catch (e) {
+    // 알림 실패가 문서 저장을 막으면 안 됨
+    console.warn('_notifyNaviPost 에러 (무시):', e);
   }
 }
 
@@ -671,6 +734,181 @@ function getDatabaseFile(config) {
   var files = folder.getFilesByName('app_database.json');
   if (files.hasNext()) return files.next();
   return folder.createFile('app_database.json', '{}', MimeType.PLAIN_TEXT);
+}
+
+// ═══ 공유 소셜 파일 (알림 + 댓글) ═══
+function getSharedSocialFile() {
+  // 항상 leftjap의 '글방' 폴더에 저장 (양쪽 사용자 공유)
+  var hostConfig = USER_CONFIG['leftjap@gmail.com'];
+  var folder = getOrCreateFolder(DriveApp.getRootFolder(), hostConfig.rootFolder);
+  var files = folder.getFilesByName('shared_social.json');
+  if (files.hasNext()) return files.next();
+  var initial = JSON.stringify({ notifications: [], comments: [] });
+  return folder.createFile('shared_social.json', initial, MimeType.PLAIN_TEXT);
+}
+
+function loadSocialData() {
+  var file = getSharedSocialFile();
+  var content = file.getBlob().getDataAsString();
+  return JSON.parse(content || '{"notifications":[],"comments":[]}');
+}
+
+function saveSocialData(data) {
+  var file = getSharedSocialFile();
+  file.setContent(JSON.stringify(data));
+}
+
+// ═══ 소셜: 알림 확인 ═══
+function checkNotifications(config) {
+  try {
+    var social = loadSocialData();
+    var myEmail = _getEmailFromConfig(config);
+    var unread = [];
+    for (var i = 0; i < social.notifications.length; i++) {
+      var n = social.notifications[i];
+      if (n.to === myEmail && !n.read) {
+        unread.push(n);
+      }
+    }
+    // 최신 순 정렬 (최대 20개)
+    unread.sort(function(a, b) { return (b.created || '').localeCompare(a.created || ''); });
+    if (unread.length > 20) unread = unread.slice(0, 20);
+    return { status: 'ok', notifications: unread };
+  } catch (e) {
+    console.error('checkNotifications 에러:', e);
+    return { status: 'error', message: e.toString() };
+  }
+}
+
+// ═══ 소셜: 상대방 DB 로드 (읽기 전용) ═══
+function loadPartnerDb(config) {
+  try {
+    var myEmail = _getEmailFromConfig(config);
+    var partnerEmail = _getPartnerEmail(myEmail);
+    if (!partnerEmail) {
+      return { status: 'error', message: 'No partner found' };
+    }
+    var partnerConfig = USER_CONFIG[partnerEmail];
+    if (!partnerConfig) {
+      return { status: 'error', message: 'Partner config not found' };
+    }
+
+    var file = getDatabaseFile(partnerConfig);
+    var content = file.getBlob().getDataAsString();
+    var dbData = JSON.parse(content || '{}');
+
+    // 상대방의 소셜 댓글도 함께 로드
+    var social = loadSocialData();
+    var comments = social.comments || [];
+
+    return {
+      status: 'ok',
+      dbData: dbData,
+      comments: comments,
+      partnerEmail: partnerEmail,
+      config: {
+        tabs: partnerConfig.tabs,
+        textTypes: partnerConfig.textTypes,
+        tabNames: partnerConfig.tabNames,
+        routines: partnerConfig.routines,
+        expenseCategories: partnerConfig.expenseCategories,
+        folderMap: partnerConfig.folderMap
+      }
+    };
+  } catch (e) {
+    console.error('loadPartnerDb 에러:', e);
+    return { status: 'error', message: e.toString() };
+  }
+}
+
+// ═══ 소셜: 댓글 작성 ═══
+function postComment(docId, docOwner, text, config) {
+  var lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    var social = loadSocialData();
+    var myEmail = _getEmailFromConfig(config);
+    var now = new Date().toISOString();
+
+    // 댓글 추가
+    var comment = {
+      id: 'cmt_' + new Date().getTime(),
+      docId: docId,
+      docOwner: docOwner,
+      author: myEmail,
+      text: text,
+      created: now
+    };
+    social.comments.push(comment);
+
+    // 글 작성자에게 알림 (자기 글에 자기가 댓글 달면 알림 안 함)
+    if (docOwner !== myEmail) {
+      // 댓글 미리보기 (30자)
+      var preview = text.length > 30 ? text.substring(0, 30) + '...' : text;
+      var notif = {
+        id: 'ntf_' + new Date().getTime(),
+        type: 'comment',
+        from: myEmail,
+        to: docOwner,
+        docId: docId,
+        preview: preview,
+        created: now,
+        read: false
+      };
+      social.notifications.push(notif);
+    }
+
+    saveSocialData(social);
+    return { status: 'ok', comment: comment };
+  } catch (e) {
+    console.error('postComment 에러:', e);
+    return { status: 'error', message: e.toString() };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// ═══ 소셜: 알림 읽음 처리 ═══
+function markRead(notifIds, config) {
+  var lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    var social = loadSocialData();
+    var idSet = {};
+    for (var i = 0; i < notifIds.length; i++) {
+      idSet[notifIds[i]] = true;
+    }
+    for (var j = 0; j < social.notifications.length; j++) {
+      if (idSet[social.notifications[j].id]) {
+        social.notifications[j].read = true;
+      }
+    }
+    saveSocialData(social);
+    return { status: 'ok' };
+  } catch (e) {
+    console.error('markRead 에러:', e);
+    return { status: 'error', message: e.toString() };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// ═══ 소셜 헬퍼: config에서 이메일 추출 ═══
+function _getEmailFromConfig(config) {
+  var emails = Object.keys(USER_CONFIG);
+  for (var i = 0; i < emails.length; i++) {
+    if (USER_CONFIG[emails[i]] === config) return emails[i];
+  }
+  return null;
+}
+
+// ═══ 소셜 헬퍼: 상대방 이메일 ═══
+function _getPartnerEmail(myEmail) {
+  var emails = Object.keys(USER_CONFIG);
+  for (var i = 0; i < emails.length; i++) {
+    if (emails[i] !== myEmail) return emails[i];
+  }
+  return null;
 }
 
 function saveDatabase(dbData, config) {

@@ -536,5 +536,48 @@ const SYNC = {
     // 서버가 같거나 오래됨 → 기존대로 동기화
     await this.syncAll();
     window._unsyncedLocal = false;
+  },
+
+  // ═══ 소셜: 알림 확인 ═══
+  async checkNotifications() {
+    try {
+      var res = await this._post({ action: 'check_notifications' });
+      return (res && res.notifications) ? res.notifications : [];
+    } catch (e) {
+      console.warn('checkNotifications 실패:', e.message);
+      return [];
+    }
+  },
+
+  // ═══ 소셜: 상대방 DB 로드 ═══
+  async loadPartnerDb() {
+    try {
+      var res = await this._post({ action: 'load_partner_db' });
+      if (res && res.status === 'ok') return res;
+      return null;
+    } catch (e) {
+      console.warn('loadPartnerDb 실패:', e.message);
+      return null;
+    }
+  },
+
+  // ═══ 소셜: 댓글 작성 ═══
+  async postComment(docId, docOwner, text) {
+    try {
+      var res = await this._post({ action: 'post_comment', docId: docId, docOwner: docOwner, text: text });
+      return res;
+    } catch (e) {
+      console.warn('postComment 실패:', e.message);
+      return null;
+    }
+  },
+
+  // ═══ 소셜: 알림 읽음 처리 ═══
+  async markRead(notifIds) {
+    try {
+      await this._post({ action: 'mark_read', notifIds: notifIds });
+    } catch (e) {
+      console.warn('markRead 실패:', e.message);
+    }
   }
 };
