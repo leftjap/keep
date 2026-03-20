@@ -541,6 +541,11 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 .comment-send-btn:hover{opacity:0.9}
 .comment-send-btn:active{opacity:0.8}
 
+/* 파트너 모드: 댓글 표시 시 본문 하단 패딩 축소 */
+.partner-mode .editor-content-wrap {
+  padding-bottom: 0 !important;
+}
+
 .special-form{padding:0 0 24px;display:flex;flex-direction:column;gap:20px;border-bottom:none;margin-bottom:0}
 .sf-field{display:flex;flex-direction:column;gap:6px}.sf-row{display:flex;gap:16px}
 .sf-label{font-size:11px;font-weight:600;color:var(--tx-hint);letter-spacing:.3px;text-transform:uppercase}
