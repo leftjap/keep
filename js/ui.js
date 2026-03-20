@@ -1793,33 +1793,52 @@ function hideComments() {
   _commentDocOwner = null;
 }
 
-async function sendComment() {
-  if (!_commentDocId || !_commentDocOwner) {
-    alert('댓글을 작성할 문서가 선택되지 않았습니다.');
-    return;
-  }
+function sendComment() {
+  if (!_commentDocId || !_commentDocOwner) return;
 
   var input = document.getElementById('commentInput');
   var text = input.value.trim();
-  if (!text) {
-    alert('댓글을 입력하세요.');
-    return;
+  if (!text) return;
+
+  // 입력 필드 즉시 비우기
+  input.value = '';
+
+  // 로컬 캐시에 즉시 추가
+  var myEmail = localStorage.getItem('gb_id_token') ? 'leftjap@gmail.com' : '';
+  try {
+    var jwt = localStorage.getItem('gb_id_token');
+    if (jwt) {
+      var payload = JSON.parse(atob(jwt.split('.')[1]));
+      myEmail = payload.email || myEmail;
+    }
+  } catch(e) {}
+
+  var localComment = {
+    id: 'cmt_local_' + Date.now(),
+    docId: _commentDocId,
+    docOwner: _commentDocOwner,
+    author: myEmail,
+    text: text,
+    created: new Date().toISOString()
+  };
+
+  if (_partnerData && _partnerData.comments) {
+    _partnerData.comments.push(localComment);
   }
 
-  try {
-    var res = await SYNC.postComment(_commentDocId, _commentDocOwner, text);
-    if (res && res.status === 'ok') {
-      input.value = '';
-      // 댓글 다시 로드
-      await loadMySocialComments();
-      renderComments(_commentDocId, _commentDocOwner);
-    } else {
-      alert('댓글 작성 중 오류가 발생했습니다.');
+  // 즉시 렌더
+  renderComments(_commentDocId, _commentDocOwner);
+
+  // 서버 저장은 백그라운드
+  var docId = _commentDocId;
+  var docOwner = _commentDocOwner;
+  SYNC.postComment(docId, docOwner, text).then(function(res) {
+    if (!res || res.status !== 'ok') {
+      console.warn('[댓글] 서버 저장 실패');
     }
-  } catch (e) {
-    console.error('sendComment error:', e);
-    alert('댓글 작성 실패: ' + e.message);
-  }
+  }).catch(function(e) {
+    console.error('[댓글] 서버 저장 에러:', e);
+  });
 }
 
 async function loadMySocialComments() {
