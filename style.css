@@ -69,34 +69,32 @@ body{font-family:'Pretendard',-apple-system,'SF Pro Display',sans-serif;backgrou
 #syncDot{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--tab-color)}
 .sync-btn{display:none}
 
-/* ═══ 파트너 모드 배너 ═══ */
-.partner-banner {
+/* ═══ 파트너 모드 — 사이드 헤더 돌아가기 ═══ */
+.side-hdr.partner-back {
+  cursor: pointer;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  padding: 0;
+}
+.partner-back-inner {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 8px 16px;
-  background: #FFF3E0;
-  border-bottom: 1px solid #FFE0B2;
+  gap: 8px;
+  width: 100%;
+  height: 100%;
+  padding: 14px 16px;
+}
+.partner-back-inner svg {
   flex-shrink: 0;
+  color: var(--tx-sub);
 }
-.partner-banner-text {
-  font-size: 13px;
+.partner-back-text {
+  font-size: 14px;
   font-weight: 600;
-  color: #E65100;
+  color: var(--tx);
 }
-.partner-banner-btn {
-  font-size: 12px;
-  font-weight: 600;
-  color: #fff;
-  background: #E55643;
-  border: none;
-  border-radius: 6px;
-  padding: 5px 12px;
-  cursor: pointer;
-  transition: opacity .15s;
-}
-.partner-banner-btn:active {
-  opacity: 0.8;
+.side-hdr.partner-back:active {
+  background: var(--hover);
 }
 
 .side-scroll{flex:1;overflow-y:auto;padding-bottom:16px}
