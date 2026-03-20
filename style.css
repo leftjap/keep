@@ -869,6 +869,14 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   font-size: 14px;
 }
 
+/* 읽은 알림 — 흐리게 표시 */
+.notif-item-read {
+  opacity: 0.5;
+}
+.notif-item-read:hover {
+  opacity: 0.7;
+}
+
 /* ═══ 알림 팝오버 (드롭다운) ═══ */
 .notif-popover-overlay {
   position: fixed;

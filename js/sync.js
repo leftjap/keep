@@ -542,10 +542,10 @@ const SYNC = {
   async checkNotifications() {
     try {
       var res = await this._post({ action: 'check_notifications' });
-      return (res && res.notifications) ? res.notifications : [];
+      return res || { notifications: [], unreadCount: 0 };
     } catch (e) {
       console.warn('checkNotifications 실패:', e.message);
-      return [];
+      return { notifications: [], unreadCount: 0 };
     }
   },
 

@@ -1210,12 +1210,18 @@ var _notifPopoverOpen = false;
 
 async function checkAndUpdateNotifBadge() {
   try {
-    var notifications = await SYNC.checkNotifications();
-    _notifCache = notifications || [];
+    var res = await SYNC.checkNotifications();
+    var notifications = (res && res.notifications) ? res.notifications : [];
+    var unreadCount = (res && typeof res.unreadCount === 'number') ? res.unreadCount : 0;
+    // 서버 응답이 있으면 캐시 업데이트
+    if (notifications.length > 0) {
+      _notifCache = notifications;
+    }
+    // 뱃지는 미읽음 수로 표시
     var badge = document.getElementById('notifBadge');
     if (!badge) return;
-    if (_notifCache.length > 0) {
-      badge.textContent = _notifCache.length > 99 ? '99+' : String(_notifCache.length);
+    if (unreadCount > 0) {
+      badge.textContent = unreadCount > 99 ? '99+' : String(unreadCount);
       badge.style.display = '';
     } else {
       badge.style.display = 'none';
@@ -1284,7 +1290,7 @@ function renderNotifList(notifications) {
   if (!body) return;
 
   if (!notifications || notifications.length === 0) {
-    body.innerHTML = '<div class="notif-empty">새 알림이 없습니다</div>';
+    body.innerHTML = '<div class="notif-empty">알림이 없습니다</div>';
     return;
   }
 
@@ -1302,7 +1308,8 @@ function renderNotifList(notifications) {
     }
     var preview = n.preview || n.docTitle || '';
     var time = getRelativeTime(n.created);
-    return '<div class="notif-item" onclick="onNotifClick(\'' + n.id + '\',\'' + (n.docId || '') + '\',\'' + (n.from || '') + '\')">'
+    var readClass = n.read ? ' notif-item-read' : '';
+    return '<div class="notif-item' + readClass + '" onclick="onNotifClick(\'' + n.id + '\',\'' + (n.docId || '') + '\',\'' + (n.from || '') + '\')">'
       + '<div class="notif-item-icon">' + icon + '</div>'
       + '<div class="notif-item-body">'
       + '<div class="notif-item-title">' + escapeHtml(title) + ' <span class="notif-item-time">' + time + '</span></div>'
@@ -1323,15 +1330,26 @@ function onNotifClick(notifId, docId, fromEmail) {
   // 팝오버 닫기
   closeNotifPopover();
 
-  // 읽음 처리
+  // 읽음 처리 (서버)
   SYNC.markRead([notifId]);
-  // 캐시에서 제거
-  _notifCache = _notifCache.filter(function(n) { return n.id !== notifId; });
-  // 뱃지 업데이트
+
+  // 캐시에서 해당 알림을 읽음 상태로 변경 (제거하지 않음)
+  for (var i = 0; i < _notifCache.length; i++) {
+    if (_notifCache[i].id === notifId) {
+      _notifCache[i].read = true;
+      break;
+    }
+  }
+
+  // 뱃지 업데이트 (미읽음 수 재계산)
+  var unreadCount = 0;
+  for (var j = 0; j < _notifCache.length; j++) {
+    if (!_notifCache[j].read) unreadCount++;
+  }
   var badge = document.getElementById('notifBadge');
   if (badge) {
-    if (_notifCache.length > 0) {
-      badge.textContent = String(_notifCache.length);
+    if (unreadCount > 0) {
+      badge.textContent = String(unreadCount);
       badge.style.display = '';
     } else {
       badge.style.display = 'none';
