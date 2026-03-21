@@ -1236,6 +1236,7 @@ async function checkAndUpdateNotifBadge() {
 }
 
 function toggleNotifPopover() {
+  if (_partnerMode) return;
   if (_notifBlocked) return;
   if (_notifPopoverOpen) {
     closeNotifPopover();
