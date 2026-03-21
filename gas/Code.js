@@ -471,17 +471,48 @@ function doPost(e) {
         result = loadDatabase(config);
         break;
       case 'load_all':
-        var allDbData = loadDatabase(config);
-        var notifResult = checkNotifications(config);
+        // ── 최적화: Drive 읽기 최소화 ──
+        // 1. 본인 DB 1회 읽기
+        var myFile = getDatabaseFile(config);
+        var myContent = myFile.getBlob().getDataAsString();
+        var myDbData = JSON.parse(myContent || '{}');
+
+        // 2. masterBrandIcons (CacheService 활용, 본인 DB 재사용)
+        var myEmail = _getEmailFromConfig(config);
+        var preloadedDbs = {};
+        preloadedDbs[myEmail] = myDbData;
+        var masterBI = _getMasterBrandIcons(preloadedDbs);
+
+        // 3. shared_social.json 1회 읽기
         var socialData = loadSocialData();
+
+        // 4. checkNotifications — socialData 재사용 + 상대방 DB 재사용
+        // preloadedDbs에 상대방 DB가 있으면 senderDbCache로 전달
+        var senderCache = {};
+        var allConfigEmails = Object.keys(USER_CONFIG);
+        for (var ae = 0; ae < allConfigEmails.length; ae++) {
+          if (preloadedDbs[allConfigEmails[ae]]) {
+            senderCache[allConfigEmails[ae]] = preloadedDbs[allConfigEmails[ae]];
+          }
+        }
+        var notifResult = checkNotifications(config, socialData, senderCache);
+
+        // 5. 댓글 필터 — socialData 재사용
         var comments = (socialData && socialData.comments) ? socialData.comments : [];
-        var email = _getEmailFromConfig(config);
-        var myComments = comments.filter(function(c) { return c.docOwner === email; });
+        var myComments = comments.filter(function(c) { return c.docOwner === myEmail; });
 
         result = {
           status: 'ok',
-          db: allDbData.dbData || {},
-          config: allDbData.config || {},
+          db: myDbData,
+          config: {
+            tabs: config.tabs,
+            textTypes: config.textTypes,
+            tabNames: config.tabNames,
+            routines: config.routines,
+            expenseCategories: config.expenseCategories,
+            folderMap: config.folderMap
+          },
+          masterBrandIcons: masterBI,
           notifications: notifResult.notifications || [],
           unreadCount: notifResult.unreadCount || 0,
           myComments: myComments
@@ -802,15 +833,15 @@ function saveSocialData(data) {
 }
 
 // ═══ 소셜: 알림 확인 ═══
-function checkNotifications(config) {
+function checkNotifications(config, _socialData, _senderDbCache) {
   try {
     var email = _getEmailFromConfig(config);
-    var social = loadSocialData();
+    var social = _socialData || loadSocialData();
     var myNotifs = [];
     var unreadCount = 0;
 
     // 발신자별 DB 캐시 — 같은 발신자의 DB를 여러 번 읽지 않기 위함
-    var senderDbCache = {};
+    var senderDbCache = _senderDbCache || {};
 
     for (var i = 0; i < social.notifications.length; i++) {
       var n = social.notifications[i];
@@ -1169,6 +1200,7 @@ function saveDatabase(dbData, config) {
       var cache = CacheService.getScriptCache();
       var email = _getEmailFromConfig(config);
       cache.put('db_' + email, JSON.stringify(dbData), 21600);
+      cache.remove('masterBrandIcons');
     } catch(e) {}
 
     return { status: 'ok' };
@@ -1176,6 +1208,59 @@ function saveDatabase(dbData, config) {
     console.error("saveDatabase 에러:", e);
     return { status: 'error', message: e.toString() };
   }
+}
+
+// ═══ masterBrandIcons 캐싱 헬퍼 ═══
+function _getMasterBrandIcons(preloadedDbs) {
+  // 1. CacheService 체크
+  try {
+    var cache = CacheService.getScriptCache();
+    var cached = cache.get('masterBrandIcons');
+    if (cached) return JSON.parse(cached);
+  } catch (e) {}
+
+  // 2. 캐시 MISS → 직접 계산
+  var masterBrandIcons = {};
+  var allEmails = Object.keys(USER_CONFIG);
+  for (var ei = 0; ei < allEmails.length; ei++) {
+    var email = allEmails[ei];
+    var userDb = null;
+
+    // preloadedDbs에 이미 읽은 DB가 있으면 재사용
+    if (preloadedDbs && preloadedDbs[email]) {
+      userDb = preloadedDbs[email];
+    } else {
+      var userConfig = USER_CONFIG[email];
+      if (userConfig) {
+        try {
+          var userFile = getDatabaseFile(userConfig);
+          var userContent = userFile.getBlob().getDataAsString();
+          userDb = JSON.parse(userContent || '{}');
+        } catch (e2) {
+          console.warn('brandIcons 로드 실패 (' + email + '):', e2);
+        }
+      }
+    }
+
+    if (userDb) {
+      var userIcons = userDb['gb_brand_icons'] || {};
+      var iconKeys = Object.keys(userIcons);
+      for (var ik = 0; ik < iconKeys.length; ik++) {
+        var brand = iconKeys[ik];
+        if (!masterBrandIcons[brand]) {
+          masterBrandIcons[brand] = userIcons[brand];
+        }
+      }
+    }
+  }
+
+  // 3. 캐시 저장 (5분)
+  try {
+    var cache = CacheService.getScriptCache();
+    cache.put('masterBrandIcons', JSON.stringify(masterBrandIcons), 300);
+  } catch (e) {}
+
+  return masterBrandIcons;
 }
 
 function loadDatabase(config) {
