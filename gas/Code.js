@@ -1120,8 +1120,47 @@ function _getPartnerEmail(myEmail) {
   return null;
 }
 
+// ═══ DB 저장 전 자동 백업 (10분 쿨다운) ═══
+function _backupDatabaseIfNeeded(config) {
+  try {
+    var props = PropertiesService.getScriptProperties();
+    var email = _getEmailFromConfig(config);
+    var cooldownKey = 'db_backup_ts_' + (email || 'default');
+    var lastBackup = parseInt(props.getProperty(cooldownKey) || '0');
+    var now = new Date().getTime();
+
+    // 10분(600,000ms) 미경과 시 건너뜀
+    if (now - lastBackup < 600000) return;
+
+    var folder = getOrCreateFolder(DriveApp.getRootFolder(), config.rootFolder);
+    var backupName = 'app_database_backup.json';
+
+    // 현재 DB 파일 내용 읽기
+    var dbFile = getDatabaseFile(config);
+    var content = dbFile.getBlob().getDataAsString();
+
+    // 빈 DB는 백업하지 않음
+    if (!content || content === '{}') return;
+
+    // 기존 백업 파일이 있으면 덮어쓰기, 없으면 새로 생성
+    var backupFiles = folder.getFilesByName(backupName);
+    if (backupFiles.hasNext()) {
+      var backupFile = backupFiles.next();
+      backupFile.setContent(content);
+    } else {
+      folder.createFile(backupName, content, MimeType.PLAIN_TEXT);
+    }
+
+    props.setProperty(cooldownKey, String(now));
+  } catch (e) {
+    // 백업 실패는 저장을 막지 않는다
+    console.warn('_backupDatabaseIfNeeded 실패 (무시):', e);
+  }
+}
+
 function saveDatabase(dbData, config) {
   try {
+    _backupDatabaseIfNeeded(config);
     var file = getDatabaseFile(config);
     file.setContent(JSON.stringify(dbData));
 

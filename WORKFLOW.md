@@ -1056,7 +1056,8 @@ gas/                   — Google Apps Script (메인 레포 내 하위 폴더)
 | 598~610 | `saveQuoteToSheet(...)` | 어구록 스프레드시트 행 추가 |
 | 613~625 | `uploadImageToDrive(...)` | base64 → Blob → Drive 파일 생성 |
 | 628~640 | `getDatabaseFile(config)` | app_database.json 파일 조회/생성 |
-| 642~655 | `saveDatabase(dbData, config)` | DB 저장 |
+| — | `_backupDatabaseIfNeeded(config)` | DB 저장 전 자동 백업 (10분 쿨다운, app_database_backup.json) |
+| 642~655 | `saveDatabase(dbData, config)` | DB 저장. 첫 줄에서 _backupDatabaseIfNeeded 호출 |
 | 657~695 | `loadDatabase(config)` | DB 로드 + masterBrandIcons + config 응답 |
 | 698~790 | `saveExpenseFromSMS(smsText, config)` | SMS → 파싱 → cleanMerchantName → MERCHANT_TO_BRAND → Gemini → brandOverrides → DB 저장. LockService 사용 |
 | 793~920 | `parseSMSServer(text, config)` | SMS 문자열 파싱 → {amount, merchant, card, date, time, category} |
