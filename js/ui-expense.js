@@ -540,9 +540,10 @@ function renderMonthCalendar(yearMonth) {
     const dateStr = `${yearMonth}-${String(i).padStart(2,'0')}`;
     const total = getDayTotal(dateStr);
     const isToday = dateStr === todayStr ? 'today' : '';
+    const selectedClass = (_selectedExpenseDate === dateStr) ? ' exp-day-selected' : '';
     const amountClass = total > avgDaily * 1.5 ? 'high' : '';
 
-    html += `<div class="exp-month-day ${isToday}" onclick="onExpCalDayClick(event, '${dateStr}')">
+    html += `<div class="exp-month-day ${isToday}${selectedClass}" onclick="onExpCalDayClick(event, '${dateStr}')">
       <div class="exp-month-day-num">${i}</div>
       ${total > 0 ? `<div class="exp-month-day-amount ${amountClass}">${total.toLocaleString()}</div>` : ''}
     </div>`;
