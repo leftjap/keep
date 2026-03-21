@@ -1660,6 +1660,15 @@ function _setReadOnly(readOnly) {
     if (moreBtn) moreBtn.style.display = '';
     if (aaBtn) aaBtn.style.display = '';
   }
+
+  // 벨 뱃지: 파트너 모드에서 숨김
+  var notifBadge = document.getElementById('notifBadge');
+  if (readOnly) {
+    if (notifBadge) notifBadge.style.display = 'none';
+  } else {
+    // 복원 시 최신 알림 체크
+    checkAndUpdateNotifBadge();
+  }
 }
 
 function _renderPartnerSidebar() {
