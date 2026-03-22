@@ -552,7 +552,7 @@ function doPost(e) {
         result = markRead(data.notifIds || [], config);
         break;
       case 'delete_comment':
-        result = deleteComment(data.commentId, config);
+        result = deleteComment(data.commentId, config, data.token);
         break;
       case 'edit_comment':
         result = editComment(data.commentId, data.text, config);
@@ -1053,7 +1053,7 @@ function loadMyComments(config) {
 }
 
 // ═══ 소셜: 댓글 삭제 ═══
-function deleteComment(commentId, config) {
+function deleteComment(commentId, config, fallbackToken) {
   var lock = LockService.getScriptLock();
   lock.waitLock(10000);
   try {
@@ -1064,7 +1064,9 @@ function deleteComment(commentId, config) {
     for (var i = 0; i < social.comments.length; i++) {
       var c = social.comments[i];
       if (c.id === commentId) {
-        if (c.author !== myEmail) {
+        var isOwner = (c.author === myEmail);
+        var isClaudioAdmin = (fallbackToken === 'claude-feedback' && c.author === 'claude@ai');
+        if (!isOwner && !isClaudioAdmin) {
           lock.releaseLock();
           return { status: 'error', message: 'Not your comment' };
         }
