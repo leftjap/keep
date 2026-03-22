@@ -603,6 +603,16 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   font-family:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
 }
 
+/* AI (클로드) 댓글 구분 */
+.comment-item.comment-ai {
+  border-left: 3px solid #E55643;
+  background: rgba(229, 86, 67, 0.04);
+  padding-left: 12px;
+}
+.comment-item.comment-ai .comment-author {
+  color: #E55643;
+}
+
 .comment-input-wrap{
   display:flex;gap:8px;align-items:center;
   padding-top:12px;

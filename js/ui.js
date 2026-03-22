@@ -1358,6 +1358,7 @@ function renderNotifList() {
 
 function _getDisplayName(email) {
   if (!email) return '알 수 없음';
+  if (email === 'claude@ai') return '클로드';
   if (email.indexOf('soyoun') !== -1) return '소연';
   if (email.indexOf('leftjap') !== -1) return '지오';
   return email.split('@')[0];
@@ -1861,7 +1862,7 @@ function renderComments(docId, ownerEmail) {
 
   docComments.forEach(function(c) {
     var commentEl = document.createElement('div');
-    commentEl.className = 'comment-item';
+    commentEl.className = 'comment-item' + (c.author === 'claude@ai' ? ' comment-ai' : '');
     commentEl.setAttribute('data-comment-id', c.id);
 
     var meta = document.createElement('div');

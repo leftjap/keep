@@ -542,7 +542,7 @@ function doPost(e) {
         result = loadPartnerDb(config);
         break;
       case 'post_comment':
-        result = postComment(data.docId, data.docOwner, data.text, config);
+        result = postComment(data.docId, data.docOwner, data.text, config, data.source);
         break;
       case 'mark_read':
         result = markRead(data.notifIds || [], config);
@@ -950,7 +950,7 @@ function loadPartnerDb(config) {
 }
 
 // ═══ 소셜: 댓글 작성 ═══
-function postComment(docId, docOwner, text, config) {
+function postComment(docId, docOwner, text, config, source) {
   var lock = LockService.getScriptLock();
   lock.waitLock(10000);
   try {
@@ -958,14 +958,18 @@ function postComment(docId, docOwner, text, config) {
     var myEmail = _getEmailFromConfig(config);
     var now = new Date().toISOString();
 
+    // 댓글 작성자 결정: source가 'claude'이면 AI 작성자
+    var author = (source === 'claude') ? 'claude@ai' : myEmail;
+
     // 댓글 추가
     var comment = {
       id: 'cmt_' + new Date().getTime(),
       docId: docId,
       docOwner: docOwner,
-      author: myEmail,
+      author: author,
       text: text,
-      created: now
+      created: now,
+      source: source || 'human'
     };
     social.comments.push(comment);
 
