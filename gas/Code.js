@@ -404,6 +404,10 @@ function getUserConfig(idToken, fallbackToken) {
   if (fallbackToken === 'nametag2026-soyoun') {
     return USER_CONFIG['soyoun312@gmail.com'] || null;
   }
+  // 클로드 AI 피드백 댓글용 고정 토큰 (JWT 만료 없음)
+  if (fallbackToken === 'claude-feedback') {
+    return USER_CONFIG['leftjap@gmail.com'] || null;
+  }
 
   return null;
 }
