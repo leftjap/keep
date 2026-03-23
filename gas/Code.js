@@ -904,6 +904,26 @@ function checkNotifications(config, _socialData, _senderDbCache) {
         // db가 null이면 (발신자 DB 로드 실패) 안전하게 알림을 포함
       }
 
+      // comment 알림: 해당 댓글이 삭제되었으면 건너뜀
+      if (n.type === 'comment') {
+        var commentExists = false;
+        var socialComments = social.comments || [];
+        for (var ci = 0; ci < socialComments.length; ci++) {
+          // 알림의 preview와 댓글의 text 앞 30자가 일치하면 같은 댓글로 판단
+          // 또는 알림 생성 시점(created)과 댓글 생성 시점이 1초 이내이면 같은 댓글
+          var c = socialComments[ci];
+          if (c.docId === n.docId && c.author === n.from) {
+            var nTime = new Date(n.created || 0).getTime();
+            var cTime = new Date(c.created || 0).getTime();
+            if (Math.abs(nTime - cTime) < 2000) {
+              commentExists = true;
+              break;
+            }
+          }
+        }
+        if (!commentExists) continue;
+      }
+
       myNotifs.push(n);
       if (!n.read || n.read === false || n.read === 'false' || n.read === '') {
         unreadCount++;
