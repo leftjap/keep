@@ -557,13 +557,23 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 .comment-section{
   display:flex;flex-direction:column;gap:0;
   padding:0 40px 24px;
-  border-top:1px solid var(--border-l);
+  border-top:none;
   background:var(--bg-white);
   align-self:stretch;
   width:100%;
   max-width:720px;
   margin:0 auto;
   box-sizing:border-box;
+}
+
+/* 본문 ↔ 댓글 섹션 갭 */
+.comment-section::before {
+  content: '';
+  display: block;
+  height: 12px;
+  background: var(--bg);
+  margin: 0 -40px 16px;
+  flex-shrink: 0;
 }
 
 .comment-list{
@@ -602,8 +612,8 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   font-family:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
 }
 
-/* AI (클로드) 댓글 구분 */
-.comment-item.comment-ai .comment-author::before {
+/* 댓글 작성자명 앞 세로바 (전체 댓글 공통) */
+.comment-item .comment-author::before {
   content: '';
   display: inline-block;
   width: 3px;
@@ -1825,6 +1835,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   .ed-foot{display:none!important}
   .editor-content-wrap{padding:20px 20px 80px}
   .comment-section{padding:0 20px 20px}
+  .comment-section::before{margin:0 -20px 12px}
   .ed-title{font-size:20px;margin-bottom:16px}
   .ed-body{font-size:17px;line-height:1.9}
 
