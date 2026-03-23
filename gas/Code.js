@@ -447,6 +447,18 @@ function doGet(e) {
       return _jsonResponse({ items: [] });
     }
 
+    if (action === 'load_partner_db') {
+      var token = e.parameter.token || '';
+      if (token !== 'claude-feedback') {
+        return _jsonResponse({ status: 'error', message: 'Unauthorized' });
+      }
+      var config = getUserConfig(null, token);
+      if (!config) {
+        return _jsonResponse({ status: 'error', message: 'Config not found' });
+      }
+      return _jsonResponse(loadPartnerDb(config));
+    }
+
     return _jsonResponse({ status: 'ok', message: 'GAS is running' });
   } catch (err) {
     console.error("doGet error:", err);
