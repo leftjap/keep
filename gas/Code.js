@@ -990,13 +990,16 @@ function postComment(docId, docOwner, text, config, source) {
     social.comments.push(comment);
 
     // 글 작성자에게 알림 (자기 글에 자기가 댓글 달면 알림 안 함)
-    if (docOwner !== myEmail) {
+    // 클로드 댓글은 항상 알림 발송
+    var notifFrom = (source === 'claude') ? 'claude@ai' : myEmail;
+    var shouldNotify = (source === 'claude') ? true : (docOwner !== myEmail);
+    if (shouldNotify) {
       // 댓글 미리보기 (30자)
       var preview = text.length > 30 ? text.substring(0, 30) + '...' : text;
       var notif = {
         id: 'ntf_' + new Date().getTime(),
         type: 'comment',
-        from: myEmail,
+        from: notifFrom,
         to: docOwner,
         docId: docId,
         preview: preview,
