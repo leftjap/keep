@@ -3465,7 +3465,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 }
 
 .exp-pc-calendar-wrap .exp-month-grid {
-  gap: 4px 8px;
+  gap: 4px 2px;
 }
 
 .exp-pc-calendar-wrap .exp-month-day {
@@ -3484,6 +3484,10 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 
 .exp-pc-calendar-wrap .exp-month-day-amount {
   font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .exp-pc-calendar-wrap .exp-month-dow {
@@ -5168,7 +5172,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
     padding: 4px 0 8px;
   }
   .pane-expense-dashboard .exp-pc-calendar-wrap .exp-month-grid {
-    gap: 4px 8px;
+    gap: 4px 2px;
   }
   .pane-expense-dashboard .exp-pc-calendar-wrap .exp-month-day {
     aspect-ratio: auto;
@@ -5182,7 +5186,11 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
     font-size: 15px;
   }
   .pane-expense-dashboard .exp-pc-calendar-wrap .exp-month-day-amount {
-    font-size: 10px;
+    font-size: 9px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
   }
   .pane-expense-dashboard .exp-pc-calendar-wrap .exp-month-dow {
     font-size: 11px;
