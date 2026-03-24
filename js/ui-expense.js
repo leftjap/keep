@@ -2220,9 +2220,11 @@ function _bindExpCalLongPress() {
           if (dayExpenses.length === 0) return;
           var totalAmount = dayExpenses.reduce(function(s, ex) { return s + ex.amount; }, 0);
           var msg = dateStr.split('-')[1].replace(/^0/, '') + '월 ' + dateStr.split('-')[2].replace(/^0/, '') + '일 내역 ' + dayExpenses.length + '건 (' + totalAmount.toLocaleString() + '원)을 삭제할까요?';
-          if (confirm(msg)) {
-            _deleteExpensesOnDate(dateStr);
-          }
+          showExpConfirm(msg, function(confirmed) {
+            if (confirmed) {
+              _deleteExpensesOnDate(dateStr);
+            }
+          });
         }, 600);
       }, { passive: true });
 
@@ -2263,6 +2265,30 @@ function _bindExpCalLongPress() {
       });
 
     })(cells[ci]);
+  }
+}
+
+var _expConfirmCallback = null;
+
+function showExpConfirm(message, onResult) {
+  var overlay = document.getElementById('expConfirmOverlay');
+  var msgEl = document.getElementById('expConfirmMsg');
+  if (!overlay || !msgEl) { if (onResult) onResult(false); return; }
+  msgEl.textContent = message;
+  _expConfirmCallback = onResult;
+  overlay.style.display = 'flex';
+  requestAnimationFrame(function() { overlay.classList.add('open'); });
+}
+
+function hideExpConfirm(result) {
+  var overlay = document.getElementById('expConfirmOverlay');
+  if (overlay) {
+    overlay.classList.remove('open');
+    setTimeout(function() { overlay.style.display = 'none'; }, 200);
+  }
+  if (_expConfirmCallback) {
+    _expConfirmCallback(result);
+    _expConfirmCallback = null;
   }
 }
 

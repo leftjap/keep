@@ -637,6 +637,8 @@ gas/                   — Google Apps Script (메인 레포 내 하위 폴더)
 - `onExpCalDayClick(event, dateStr)` — 캘린더 셀 짧은 탭: 날짜 선택 + 해당 날짜 지출 항목 플로팅 팝업 열기
 - `_bindExpCalLongPress()` — 캘린더 셀 터치/클릭 이벤트 바인딩 (짧은 탭→onExpCalDayClick, 꾹누르기 600ms→날짜별 삭제 확인). renderExpenseDashboard/renderExpenseFullDetail/renderExpenseFullDetailMobile 끝에서 호출
 - `_deleteExpensesOnDate(dateStr)` — 해당 날짜의 가계부 전체 삭제 + updateExpenseCompact + SYNC.scheduleDatabaseSave + 화면 리렌더
+- `showExpConfirm(message, onResult)` — 커스텀 삭제 확인 모달 표시. onResult(true/false) 콜백
+- `hideExpConfirm(result)` — 모달 닫기 + 콜백 실행
 
 - `renderExpenseTimeline(ym, useModal)` — 타임라인
 - `renderExpenseFullTimeline(ym, query)` — 검색/필터 적용 타임라인
@@ -1351,6 +1353,7 @@ $file = 'C:\dev\nametag\AGENTS.md'
 | _yearlyEndYM | ui-expense.js | 연간 섹션이 집계하는 마지막 월 (YYYY-MM). renderYearlySection에서 설정, 팝업 함수에서 참조 |
 | _expenseCategoryFilter | ui-expense.js | 가계부 카테고리 필터 ID |
 | _expenseCategoryFilterName | ui-expense.js | 가계부 카테고리 필터 이름 |
+| _expConfirmCallback | ui-expense.js | 삭제 확인 모달 콜백 함수 |
 | _expenseDetailSearchQuery | ui-expense.js | 가계부 전체 내역 검색어 |
 | _prefetchedClipboard | ui-expense.js | 클립보드 사전 읽기 텍스트 (사용 후 null 초기화) |
 | _routineViewYM | routine-cal.js | 루틴 캘린더 보고 있는 월 |

@@ -567,6 +567,17 @@
   <div class="notif-popover-body" id="notifPopoverBody"></div>
 </div>
 
+<!-- 가계부 삭제 확인 모달 -->
+<div class="exp-confirm-overlay" id="expConfirmOverlay" style="display:none;" onclick="hideExpConfirm(false)">
+  <div class="exp-confirm-card" onclick="event.stopPropagation()">
+    <div class="exp-confirm-msg" id="expConfirmMsg"></div>
+    <div class="exp-confirm-btns">
+      <button class="exp-confirm-btn cancel" onclick="hideExpConfirm(false)">취소</button>
+      <button class="exp-confirm-btn delete" onclick="hideExpConfirm(true)">삭제</button>
+    </div>
+  </div>
+</div>
+
 <!-- 가계부 입력/수정 모달 (전역 — PC/태블릿) -->
 <div class="modal-overlay" id="expenseModalOverlay" style="display:none" onclick="onExpenseModalOverlayClick(event)">
   <div class="modal-card" style="max-width:480px;max-height:85vh;display:flex;flex-direction:column">

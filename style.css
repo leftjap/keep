@@ -3180,6 +3180,71 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   margin: 0 0 8px;
 }
 
+/* 가계부 삭제 확인 모달 */
+.exp-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0,0,0,.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity .2s;
+}
+.exp-confirm-overlay.open {
+  opacity: 1;
+}
+.exp-confirm-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px 24px 20px;
+  width: min(300px, calc(100vw - 48px));
+  text-align: center;
+  transform: scale(.92);
+  transition: transform .2s;
+}
+.exp-confirm-overlay.open .exp-confirm-card {
+  transform: scale(1);
+}
+.exp-confirm-msg {
+  font-size: 15px;
+  font-weight: 500;
+  color: #2D2D2D;
+  line-height: 1.5;
+  margin-bottom: 24px;
+  white-space: pre-line;
+}
+.exp-confirm-btns {
+  display: flex;
+  gap: 10px;
+}
+.exp-confirm-btn {
+  flex: 1;
+  padding: 13px 0;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: Pretendard, sans-serif;
+  transition: background .15s;
+}
+.exp-confirm-btn.cancel {
+  background: #F0F0F0;
+  color: #6C6C6C;
+}
+.exp-confirm-btn.cancel:active {
+  background: #E0E0E0;
+}
+.exp-confirm-btn.delete {
+  background: #E55643;
+  color: #fff;
+}
+.exp-confirm-btn.delete:active {
+  background: #d04535;
+}
+
 /* ═══════════════════════════════════════
    문자 붙여넣기 하단 시트
    ═══════════════════════════════════════ */
