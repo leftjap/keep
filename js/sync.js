@@ -15,6 +15,8 @@ const SYNC = {
   dirtyDocs:      {},
   quoteSyncHistory: {},
   _dbSaveQueued:  false,
+  _dbRetryTimer:  null,
+  _dbRetryCount:  0,
 
   setSyncStatus(text, type) {
     const el  = document.getElementById('syncStatus');
@@ -140,8 +142,11 @@ const SYNC = {
 
   async saveDatabase() {
     if (!this.isDbLoaded) return;
+    // 새 저장 요청이 오면 기존 재시도를 취소 (새 호출이 최신 데이터를 보냄)
+    clearTimeout(this._dbRetryTimer);
+    this._dbRetryCount = 0;
     try {
-      const dbData = {
+      var dbData = {
         [K.docs]:            L(K.docs)            || [],
         [K.books]:           L(K.books)           || [],
         [K.memos]:           L(K.memos)           || [],
@@ -153,10 +158,56 @@ const SYNC = {
         [K.brandIcons]:      L(K.brandIcons)      || {},
         [K.brandOverrides]:  L(K.brandOverrides)  || {}
       };
-      await this._post({ action: 'save_db', dbData });
+      await this._post({ action: 'save_db', dbData: dbData });
+      this.setSyncStatus('완료됨', 'ok');
     } catch (e) {
-      console.warn('saveDatabase 실패:', e.message);
+      if (e.message === 'Unauthorized' || e.message === 'LocalMode') {
+        console.warn('saveDatabase 실패 (재시도 불가):', e.message);
+        return;
+      }
+      console.warn('saveDatabase 실패, 재시도 예약:', e.message);
+      this._scheduleDbRetry();
     }
+  },
+
+  _scheduleDbRetry() {
+    var delays = [5000, 15000, 45000];
+    if (this._dbRetryCount >= delays.length) {
+      console.warn('saveDatabase 재시도 한도 초과 (' + delays.length + '회)');
+      this.setSyncStatus('저장 실패', 'error');
+      return;
+    }
+    var delay = delays[this._dbRetryCount];
+    this._dbRetryCount++;
+    var self = this;
+    console.log('saveDatabase 재시도 ' + self._dbRetryCount + '/' + delays.length + ' (' + (delay / 1000) + '초 후)');
+    this.setSyncStatus('재시도 대기', 'error');
+    this._dbRetryTimer = setTimeout(function() {
+      var dbData = {
+        [K.docs]:            L(K.docs)            || [],
+        [K.books]:           L(K.books)           || [],
+        [K.memos]:           L(K.memos)           || [],
+        [K.quotes]:          L(K.quotes)          || [],
+        [K.checks]:          L(K.checks)          || {},
+        [K.expenses]:        L(K.expenses)        || [],
+        [K.merchantIcons]:   L(K.merchantIcons)   || [],
+        [K.merchantAliases]: L(K.merchantAliases) || [],
+        [K.brandIcons]:      L(K.brandIcons)      || {},
+        [K.brandOverrides]:  L(K.brandOverrides)  || {}
+      };
+      self._post({ action: 'save_db', dbData: dbData }).then(function() {
+        self._dbRetryCount = 0;
+        console.log('saveDatabase 재시도 성공');
+        self.setSyncStatus('완료됨', 'ok');
+      }).catch(function(e2) {
+        if (e2.message === 'Unauthorized' || e2.message === 'LocalMode') {
+          console.warn('saveDatabase 재시도 중단 (재시도 불가):', e2.message);
+          return;
+        }
+        console.warn('saveDatabase 재시도 실패 (' + self._dbRetryCount + '/' + delays.length + '):', e2.message);
+        self._scheduleDbRetry();
+      });
+    }, delay);
   },
 
   scheduleDatabaseSave() {
