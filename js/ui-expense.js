@@ -159,6 +159,7 @@ function renderExpenseDashboard(platform) {
     }
 
     container.innerHTML = html;
+    _bindExpCalLongPress();
 
   } else {
     // ═══ 모바일: PC와 동일 구성 ═══
@@ -217,6 +218,7 @@ function renderExpenseDashboard(platform) {
     }
 
     container.innerHTML = html;
+    _bindExpCalLongPress();
   }
 }
 
@@ -514,43 +516,45 @@ function renderRecentExpenses(yearMonth) {
 }
 
 function renderMonthCalendar(yearMonth) {
-  const d = new Date(yearMonth + '-01');
-  const year = d.getFullYear();
-  const month = d.getMonth();
-  const firstDay = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  var d = new Date(yearMonth + '-01');
+  var year = d.getFullYear();
+  var month = d.getMonth();
+  var firstDay = new Date(year, month, 1).getDay();
+  var daysInMonth = new Date(year, month + 1, 0).getDate();
 
-  let html = '<div class="exp-month-cal"><div class="exp-month-grid">';
+  var html = '<div class="exp-month-cal"><div class="exp-month-grid">';
   html += '<div class="exp-month-dow-row">';
   html += '<div class="exp-month-dow">일</div><div class="exp-month-dow">월</div><div class="exp-month-dow">화</div>';
   html += '<div class="exp-month-dow">수</div><div class="exp-month-dow">목</div><div class="exp-month-dow">금</div><div class="exp-month-dow">토</div>';
   html += '</div>';
 
-  for (let i = 0; i < firstDay; i++) {
+  for (var i = 0; i < firstDay; i++) {
     html += '<div class="exp-month-day empty"></div>';
   }
 
-  const now = new Date();
-  const todayStr = getLocalYMD(now);
-  const monthExpenses = getMonthExpenses(yearMonth);
-  const totalDaysWithExpense = new Set(monthExpenses.map(e => e.date)).size;
-  const avgDaily = totalDaysWithExpense > 0 ? monthExpenses.reduce((s, e) => s + e.amount, 0) / totalDaysWithExpense : 0;
+  var now = new Date();
+  var todayStr = getLocalYMD(now);
+  var monthExpenses = getMonthExpenses(yearMonth);
+  var totalDaysWithExpense = new Set(monthExpenses.map(function(e) { return e.date; })).size;
+  var avgDaily = totalDaysWithExpense > 0 ? monthExpenses.reduce(function(s, e) { return s + e.amount; }, 0) / totalDaysWithExpense : 0;
 
-  for (let i = 1; i <= daysInMonth; i++) {
-    const dateStr = `${yearMonth}-${String(i).padStart(2,'0')}`;
-    const total = getDayTotal(dateStr);
-    const isToday = dateStr === todayStr ? 'today' : '';
-    const selectedClass = (_selectedExpenseDate === dateStr) ? ' exp-day-selected' : '';
-    const amountClass = total > avgDaily * 1.5 ? 'high' : '';
+  for (var i = 1; i <= daysInMonth; i++) {
+    var dateStr = yearMonth + '-' + String(i).padStart(2, '0');
+    var total = getDayTotal(dateStr);
+    var isToday = dateStr === todayStr ? 'today' : '';
+    var selectedClass = (_selectedExpenseDate === dateStr) ? ' exp-day-selected' : '';
+    var amountClass = total > avgDaily * 1.5 ? 'high' : '';
+    var hasData = total > 0 ? '1' : '0';
 
-    html += `<div class="exp-month-day ${isToday}${selectedClass}" onclick="onExpCalDayClick(event, '${dateStr}')">
-      <div class="exp-month-day-num">${i}</div>
-      ${total > 0 ? `<div class="exp-month-day-amount ${amountClass}">${total.toLocaleString()}</div>` : ''}
-    </div>`;
+    html += '<div class="exp-month-day ' + isToday + selectedClass + '" data-date="' + dateStr + '" data-has-data="' + hasData + '" style="-webkit-user-select:none;user-select:none;">';
+    html += '<div class="exp-month-day-num">' + i + '</div>';
+    if (total > 0) {
+      html += '<div class="exp-month-day-amount ' + amountClass + '">' + total.toLocaleString() + '</div>';
+    }
+    html += '</div>';
   }
 
   html += '</div></div>';
-
   return html;
 }
 
@@ -880,6 +884,7 @@ function renderExpenseFullDetail(yearMonth) {
   html += '</div>';
 
   container.innerHTML = html;
+  _bindExpCalLongPress();
 }
 
 function renderExpenseFullTimeline(yearMonth, query = '') {
@@ -989,6 +994,7 @@ function renderExpenseFullDetailMobile(yearMonth) {
   html += '</div>';
 
   container.innerHTML = html;
+  _bindExpCalLongPress();
 }
 
 
@@ -2155,7 +2161,7 @@ function onExpCalDayClick(event, dateStr) {
   document.querySelectorAll('.exp-month-day.exp-day-selected').forEach(function(el) {
     el.classList.remove('exp-day-selected');
   });
-  var clickedCell = event.currentTarget;
+  var clickedCell = event.target ? event.target.closest('.exp-month-day') : null;
   if (clickedCell) clickedCell.classList.add('exp-day-selected');
 
   if (expenses.length === 0) return;
@@ -2180,10 +2186,109 @@ function onExpCalDayClick(event, dateStr) {
   contentHtml += '<span class="exp-fp-footer-amount">' + dayTotal.toLocaleString() + '원</span>';
   contentHtml += '</div>';
 
-  var rect = event.currentTarget.getBoundingClientRect();
+  var rect = clickedCell ? clickedCell.getBoundingClientRect() : { left: window.innerWidth / 2, width: 0, bottom: window.innerHeight / 2 };
   var anchorX = rect.left + rect.width / 2;
   var anchorY = rect.bottom;
   openExpenseFloatingPopup(title, contentHtml, anchorX, anchorY);
+}
+
+function _bindExpCalLongPress() {
+  var cells = document.querySelectorAll('.exp-month-day[data-date]');
+  var _lastTouchEnd = 0;
+
+  for (var ci = 0; ci < cells.length; ci++) {
+    (function(cell) {
+      var dateStr = cell.getAttribute('data-date');
+      if (!dateStr) return;
+      var hasData = cell.getAttribute('data-has-data') === '1';
+
+      var timer = null;
+      var triggered = false;
+      var startX = 0;
+      var startY = 0;
+
+      cell.addEventListener('touchstart', function(e) {
+        triggered = false;
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+
+        if (!hasData) return;
+
+        timer = setTimeout(function() {
+          triggered = true;
+          var dayExpenses = getDayExpenses(dateStr);
+          if (dayExpenses.length === 0) return;
+          var totalAmount = dayExpenses.reduce(function(s, ex) { return s + ex.amount; }, 0);
+          var msg = dateStr.split('-')[1].replace(/^0/, '') + '월 ' + dateStr.split('-')[2].replace(/^0/, '') + '일 내역 ' + dayExpenses.length + '건 (' + totalAmount.toLocaleString() + '원)을 삭제할까요?';
+          if (confirm(msg)) {
+            _deleteExpensesOnDate(dateStr);
+          }
+        }, 600);
+      }, { passive: true });
+
+      cell.addEventListener('touchmove', function(e) {
+        if (!timer) return;
+        var dx = Math.abs(e.touches[0].clientX - startX);
+        var dy = Math.abs(e.touches[0].clientY - startY);
+        if (dx > 10 || dy > 10) {
+          clearTimeout(timer);
+          timer = null;
+          triggered = false;
+        }
+      }, { passive: true });
+
+      cell.addEventListener('touchend', function(e) {
+        _lastTouchEnd = Date.now();
+        if (timer) { clearTimeout(timer); timer = null; }
+
+        if (triggered) {
+          e.preventDefault();
+          triggered = false;
+          return;
+        }
+
+        // 짧은 탭: 기존 onExpCalDayClick 동작 재현
+        onExpCalDayClick(e, dateStr);
+      }, { passive: false });
+
+      cell.addEventListener('touchcancel', function() {
+        if (timer) { clearTimeout(timer); timer = null; }
+        triggered = false;
+      }, { passive: true });
+
+      // PC 클릭 지원
+      cell.addEventListener('click', function(e) {
+        if (Date.now() - _lastTouchEnd < 200) return;
+        onExpCalDayClick(e, dateStr);
+      });
+
+    })(cells[ci]);
+  }
+}
+
+function _deleteExpensesOnDate(dateStr) {
+  var dayExpenses = getDayExpenses(dateStr);
+  if (dayExpenses.length === 0) return;
+
+  for (var i = 0; i < dayExpenses.length; i++) {
+    delExpense(dayExpenses[i].id);
+  }
+
+  _selectedExpenseDate = null;
+  updateExpenseCompact();
+  SYNC.scheduleDatabaseSave();
+
+  // 현재 화면 리렌더
+  if (window.innerWidth > 768) {
+    renderExpenseDashboard('pc');
+  } else {
+    var mDetail = document.getElementById('pane-expense-detail');
+    if (mDetail && mDetail.style.display !== 'none') {
+      renderExpenseFullDetailMobile(getExpenseViewYM());
+    } else {
+      renderExpenseDashboard('mobile');
+    }
+  }
 }
 
 // ═══════════════════════════════════════
