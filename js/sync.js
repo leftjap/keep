@@ -99,6 +99,13 @@ const SYNC = {
             return da.localeCompare(db2);
           });
           S(K.expenses, merged);
+          if (localOnly.length > 0) {
+            console.log('[loadDatabase] 로컬 전용 expenses ' + localOnly.length + '건 발견, 서버 재저장');
+            var self = this;
+            setTimeout(function() {
+              self.saveDatabase().catch(function(e) { console.warn('로컬 전용 expenses 서버 저장 실패:', e.message); });
+            }, 2000);
+          }
         }
         if (db[K.merchantIcons]) S(K.merchantIcons, db[K.merchantIcons]);
         if (db[K.merchantAliases]) S(K.merchantAliases, db[K.merchantAliases]);

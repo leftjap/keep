@@ -595,9 +595,9 @@ function setupAutoSave() {
         _lastSyncTime = now;
         // 미동기화 로컬 변경이 있으면 먼저 서버에 올린 뒤 병합
         if (window._unsyncedLocal) {
-          SYNC.syncAll().then(function() {
+          SYNC.mergeServerAll().then(function() {
             window._unsyncedLocal = false;
-            return SYNC.mergeServerAll();
+            return SYNC.syncAll();
           }).catch(function(e) { console.warn('resync:', e.message); });
         } else if (!window._editorDirty) {
           SYNC.mergeServerAll().catch(function(e) { console.warn('mergeServerAll:', e.message); });

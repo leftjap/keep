@@ -59,6 +59,13 @@ function _applyLoadedDb(dbData) {
       return da.localeCompare(db2);
     });
     S(K.expenses, merged);
+    // 로컬 전용 항목이 있으면 서버에 즉시 업로드
+    if (localOnly.length > 0) {
+      console.log('[_applyLoadedDb] 로컬 전용 expenses ' + localOnly.length + '건 발견, 서버 재저장');
+      setTimeout(function() {
+        SYNC.saveDatabase().catch(function(e) { console.warn('로컬 전용 expenses 서버 저장 실패:', e.message); });
+      }, 2000);
+    }
   }
   if (dbData[K.merchantIcons]) S(K.merchantIcons, dbData[K.merchantIcons]);
   if (dbData[K.merchantAliases]) S(K.merchantAliases, dbData[K.merchantAliases]);
