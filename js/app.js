@@ -92,6 +92,7 @@ async function showApp() {
     if (allData.db) {
       _applyLoadedDb(allData.db);
     }
+    SYNC.isDbLoaded = true;
 
     // 알림 캐시 적용
     if (allData.notifications) {
