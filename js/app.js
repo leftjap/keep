@@ -59,23 +59,58 @@ async function showApp() {
   SYNC.setSyncStatus('동기화 중', 'syncing');
 
   var serverConfig = null;
-  try {
-    // ── 1단계: 내 DB만 로드 (빠른 로딩) ──
-    serverConfig = await SYNC.loadDatabase();
-    // loadDatabase() 내부에서 _applyLoadedDb 역할을 수행하고 isDbLoaded = true 설정됨
+  var hasLocalData = !!(L(K.docs) && L(K.expenses));
 
-  } catch (e) {
-    if (e && e.message === 'Unauthorized') {
-      localStorage.removeItem('gb_auth');
-      localStorage.removeItem('gb_id_token');
-      loading.classList.add('hidden');
-      document.getElementById('lockScreen').classList.remove('hidden');
-      document.getElementById('lockErr').textContent = '접근 권한이 없는 계정입니다.';
-      return;
+  if (hasLocalData) {
+    // ── 로컬 캐시 우선: 즉시 UI 표시 ──
+    _initAndShow(loading, serverConfig);
+
+    // 백그라운드에서 서버 동기화
+    SYNC.loadDatabase().then(function(config) {
+      SYNC.isDbLoaded = true;
+      if (config) applyServerConfig(config);
+      // 서버 데이터가 LocalStorage에 반영됨 (loadDatabase 내부에서 처리)
+      // 가계부 탭이 열려있으면 리렌더
+      if (activeTab === 'expense') {
+        var platform = window.innerWidth > 768 ? 'pc' : 'mobile';
+        renderExpenseDashboard(platform);
+      }
+      updateExpenseCompact();
+      renderListPanel();
+      SYNC.setSyncStatus('완료됨', 'ok');
+    }).catch(function(e) {
+      if (e && e.message === 'Unauthorized') {
+        localStorage.removeItem('gb_auth');
+        localStorage.removeItem('gb_id_token');
+        document.getElementById('lockScreen').classList.remove('hidden');
+        document.getElementById('lockErr').textContent = '접근 권한이 없는 계정입니다.';
+        return;
+      }
+      console.warn('[showApp] 백그라운드 loadDatabase 실패:', e);
+      SYNC.isDbLoaded = true;
+      SYNC.setSyncStatus('오프라인', 'error');
+    });
+
+  } else {
+    // ── 첫 설치: 서버 대기 후 UI 표시 ──
+    try {
+      serverConfig = await SYNC.loadDatabase();
+    } catch (e) {
+      if (e && e.message === 'Unauthorized') {
+        localStorage.removeItem('gb_auth');
+        localStorage.removeItem('gb_id_token');
+        loading.classList.add('hidden');
+        document.getElementById('lockScreen').classList.remove('hidden');
+        document.getElementById('lockErr').textContent = '접근 권한이 없는 계정입니다.';
+        return;
+      }
+      console.warn('[showApp] loadDatabase 실패:', e);
     }
-    console.warn('[showApp] loadDatabase 실패:', e);
+    _initAndShow(loading, serverConfig);
   }
+}
 
+function _initAndShow(loading, serverConfig) {
   // 서버 config 적용
   if (serverConfig) {
     applyServerConfig(serverConfig);
@@ -112,16 +147,11 @@ async function showApp() {
     }
     setupTabletPCGestures();
 
-    // ── 2단계: 백그라운드 로드 (UI 표시 후) ──
-    // 순서: 1) masterBrandIcons 병합 → 2) 알림+댓글 체크
+    // ── 백그라운드: 알림 로드 ──
     setTimeout(function() {
-      // 2-1. masterBrandIcons는 loadDatabase() 응답에 이미 포함되어 병합됨 — 추가 작업 불필요
-
-      // 2-2. 알림 + 댓글 백그라운드 로드
       checkAndUpdateNotifBadge().catch(function(e) {
         console.warn('[showApp] 백그라운드 알림 로드 실패:', e);
       });
-      // 댓글은 파트너 모드 진입 시 로드하므로 여기서는 생략
     }, 1000);
 
     // visibilitychange에서 알림 체크

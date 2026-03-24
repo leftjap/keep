@@ -956,7 +956,8 @@ gas/                   — Google Apps Script (메인 레포 내 하위 폴더)
 
 **초기화:**
 - `window.onload` — 인증 체크 → showApp
-- `showApp()` — DB 로드 → 모의 데이터 → init → 앱 표시. 태블릿 topbar-fixed 처리, 리사이즈 핸들러
+- `showApp()` — 로컬 캐시 우선 표시. LocalStorage에 데이터가 있으면 서버 대기 없이 즉시 init → UI 표시, 서버 동기화는 백그라운드. 첫 설치 시에만 서버 대기
+- `_initAndShow(loading, serverConfig)` — init + UI 표시 공통 로직. 태블릿 topbar-fixed, 리사이즈 핸들러, 백그라운드 알림 로드
 - `init()` — 렌더링 초기화, 이벤트 등록, 초기 문서 로드
 
 **지도 모달:**
