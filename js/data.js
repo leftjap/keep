@@ -698,6 +698,9 @@ function togglePin(type, id, e) {
 // 가계부 (Expense) CRUD
 // ═══════════════════════════════════════
 function getExpenses() {
+  if (_partnerMode && _partnerData && _partnerData.dbData) {
+    return _partnerData.dbData[K.expenses] || [];
+  }
   return L(K.expenses) || [];
 }
 
@@ -1177,6 +1180,9 @@ function saveMerchantIcon(keyword, iconUrl) {
 // 매출처 별명(alias) 매핑
 // ═══════════════════════════════════════
 function getMerchantAliases() {
+  if (_partnerMode && _partnerData && _partnerData.dbData) {
+    return _partnerData.dbData[K.merchantAliases] || [];
+  }
   return L(K.merchantAliases) || [];
 }
 
@@ -1227,6 +1233,9 @@ function reverseAlias(alias) {
 // 브랜드 아이콘 (K.brandIcons)
 // ═══════════════════════════════════════
 function getBrandIcons() {
+  if (_partnerMode && _partnerData && _partnerData.dbData) {
+    return _partnerData.dbData[K.brandIcons] || {};
+  }
   return L(K.brandIcons) || {};
 }
 
@@ -1255,6 +1264,9 @@ function setBrandIcon(brand, iconUrl) {
 // 브랜드 오버라이드 (K.brandOverrides)
 // ═══════════════════════════════════════
 function getBrandOverrides() {
+  if (_partnerMode && _partnerData && _partnerData.dbData) {
+    return _partnerData.dbData[K.brandOverrides] || {};
+  }
   return L(K.brandOverrides) || {};
 }
 

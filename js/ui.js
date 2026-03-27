@@ -1450,17 +1450,20 @@ async function enterPartnerMode(partnerEmail, targetDocId) {
     curMemoId: curMemoId,
     textTypes: textTypes.slice(),
     TAB_META: JSON.parse(JSON.stringify(TAB_META)),
-    expenses: L(K.expenses),
-    brandIcons: L(K.brandIcons),
-    brandOverrides: L(K.brandOverrides),
-    merchantAliases: L(K.merchantAliases)
+    isDbLoaded: SYNC.isDbLoaded
   };
 
+  // ★ 동기화 완전 차단 — 파트너 모드 중 saveDatabase 방지
+  SYNC.isDbLoaded = false;
+  clearTimeout(SYNC.dbTimer);
+  SYNC._dbSaveQueued = false;
+
   try {
-    var r = await SYNC.loadPartnerDb();
+    var r = await SYNC._post({ action: 'load_partner_db', token: APP_TOKEN, idToken: localStorage.getItem(_LS_PREFIX + 'gb_id_token') });
     if (!r || r.status !== 'ok') {
       console.error('[파트너] loadPartnerDb 실패');
       _myBackup = null;
+      SYNC.isDbLoaded = _myBackup ? _myBackup.isDbLoaded : true;
       if (loadingScreen) { loadingScreen.classList.add('hidden'); loadingScreen.style.display = 'none'; }
       return;
     }
@@ -1473,6 +1476,7 @@ async function enterPartnerMode(partnerEmail, targetDocId) {
     };
   } catch (e) {
     console.error('[파트너] 에러:', e);
+    SYNC.isDbLoaded = _myBackup ? _myBackup.isDbLoaded : true;
     _myBackup = null;
     if (loadingScreen) { loadingScreen.classList.add('hidden'); loadingScreen.style.display = 'none'; }
     return;
@@ -1483,11 +1487,9 @@ async function enterPartnerMode(partnerEmail, targetDocId) {
 
   _partnerMode = true;
 
-  // 파트너 가계부 데이터를 LocalStorage에 교체
-  S(K.expenses, _partnerData.dbData['gb_expenses'] || []);
-  S(K.brandIcons, _partnerData.dbData['gb_brandIcons'] || {});
-  S(K.brandOverrides, _partnerData.dbData['gb_brandOverrides'] || {});
-  S(K.merchantAliases, _partnerData.dbData['gb_merchantAliases'] || []);
+  // ★ LocalStorage에 파트너 데이터를 쓰지 않음
+  // getExpenses(), getBrandIcons(), getBrandOverrides(), getMerchantAliases()가
+  // _partnerMode일 때 _partnerData.dbData에서 직접 읽음
 
   // 파트너 config 적용 (const 변수 내용만 교체)
   var pc = _partnerData.config;
@@ -1497,6 +1499,34 @@ async function enterPartnerMode(partnerEmail, targetDocId) {
 
     Object.keys(TAB_META).forEach(function(k) { delete TAB_META[k]; });
     Object.assign(TAB_META, pc.tabNames || {});
+  }
+
+  // 파트너 config에서 가계부 카테고리 임시 적용
+  if (pc && pc.expenseCategories) {
+    window._myExpenseCategories = EXPENSE_CATEGORIES.slice();
+    EXPENSE_CATEGORIES.length = 0;
+    pc.expenseCategories.forEach(function(c) {
+      var existing = null;
+      var defaultCats = [
+        { id: 'dining', color: '#E55643' }, { id: 'delivery', color: '#E8845A' },
+        { id: 'online', color: '#5BA0A0' }, { id: 'conv', color: '#E09E6A' },
+        { id: 'subscribe', color: '#8B7FBF' }, { id: 'transport', color: '#6A9FBF' },
+        { id: 'food', color: '#C96B4F' }, { id: 'cafe', color: '#D4789A' },
+        { id: 'convenience', color: '#E09E6A' }, { id: 'gift', color: '#CC8899' },
+        { id: 'overseas', color: '#5B85B0' }, { id: 'invest', color: '#6B7FA0' },
+        { id: 'cat', color: '#E8A87C' }, { id: 'health', color: '#7BAEAE' },
+        { id: 'culture', color: '#7B83C4' }, { id: 'fashion', color: '#B5678E' },
+        { id: 'etc', color: '#A0A0A8' }, { id: 'shopping', color: '#5BA0A0' }
+      ];
+      for (var j = 0; j < defaultCats.length; j++) {
+        if (defaultCats[j].id === c.id) { existing = defaultCats[j]; break; }
+      }
+      EXPENSE_CATEGORIES.push({
+        id: c.id, name: c.name,
+        color: c.color || (existing ? existing.color : '#B0B0B8'),
+        bg: c.bg || (existing ? existing.color : '#B0B0B8')
+      });
+    });
   }
 
   // UI 전환 — 상단 배너 표시
@@ -1550,7 +1580,7 @@ async function enterPartnerMode(partnerEmail, targetDocId) {
     _loadPartnerDoc(docs[0]);
   }
 
-  console.log('[파트너] 진입 완료');
+  console.log('[파트너] 진입 완료 (동기화 차단됨, LocalStorage 미사용)');
 }
 
 function exitPartnerMode() {
@@ -1564,7 +1594,6 @@ function exitPartnerMode() {
   if (typeof hideComments === 'function') hideComments();
 
   // ★ 핵심: 에디터 비우고 currentLoadedDoc 초기화
-  // → switchTab 내부의 saveCurDoc이 실행되어도 저장 대상이 없음
   document.getElementById('edTitle').value = '';
   document.getElementById('edBody').innerHTML = '';
   currentLoadedDoc = { type: null, id: null };
@@ -1586,13 +1615,19 @@ function exitPartnerMode() {
     Object.keys(TAB_META).forEach(function(k) { delete TAB_META[k]; });
     Object.assign(TAB_META, _myBackup.TAB_META);
 
-    // 가계부 데이터 복원
-    if (_myBackup.expenses !== undefined) S(K.expenses, _myBackup.expenses);
-    if (_myBackup.brandIcons !== undefined) S(K.brandIcons, _myBackup.brandIcons);
-    if (_myBackup.brandOverrides !== undefined) S(K.brandOverrides, _myBackup.brandOverrides);
-    if (_myBackup.merchantAliases !== undefined) S(K.merchantAliases, _myBackup.merchantAliases);
+    // ★ 동기화 복원
+    SYNC.isDbLoaded = _myBackup.isDbLoaded;
+
+    // ★ LocalStorage 복원 불필요 — 파트너 모드에서 쓰지 않았으므로 원래 데이터 그대로
 
     _myBackup = null;
+  }
+
+  // 가계부 카테고리 복원
+  if (window._myExpenseCategories) {
+    EXPENSE_CATEGORIES.length = 0;
+    window._myExpenseCategories.forEach(function(c) { EXPENSE_CATEGORIES.push(c); });
+    delete window._myExpenseCategories;
   }
 
   // UI 복원 — 상단 배너 숨기기
@@ -1612,12 +1647,9 @@ function exitPartnerMode() {
   updateWritingStats();
   updateBookStats();
 
-  // ★ switchTab 전에 curIds가 복원되었으므로 saveCurDoc은
-  // currentLoadedDoc이 null이 아닌 유효한 객체라 저장 시도하지만,
-  // saveCurDoc 함수 시작에 안전장치가 있으므로 저장되지 않음
   switchTab(activeTab, true);
 
-  // 레이아웃 복원 — 태블릿/모바일은 사이드바로
+  // 레이아웃 복원
   var w = window.innerWidth;
   if (w >= 769 && w <= 1400) {
     var app = document.getElementById('mainApp');
@@ -1632,7 +1664,7 @@ function exitPartnerMode() {
   }
   renderListPanel();
 
-  console.log('[파트너] 퇴장 완료');
+  console.log('[파트너] 퇴장 완료 (동기화 복원됨)');
 }
 
 // ═══ 파트너 모드 헬퍼 ═══
