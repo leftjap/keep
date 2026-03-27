@@ -35,13 +35,16 @@ function parseSMS(text) {
 
     const autoCardMatch = text.match(/\[([^\]]*카드[^\]]*)\](\d{4})/);
     if (autoCardMatch) {
-      const autoIssuer = autoCardMatch[1].replace(/카드.*$/, '');
-      const autoShortKey = autoIssuer + autoCardMatch[2];
-      if (CARD_NAME_MAP[autoShortKey]) {
-        autoResult.card = CARD_NAME_MAP[autoShortKey];
-      } else {
-        autoResult.card = autoCardMatch[1];
+      const issuer = autoCardMatch[1];
+      const num = autoCardMatch[2];
+      let mapped = null;
+      for (const key in CARD_NAME_MAP) {
+        if (key.indexOf(num) !== -1) {
+          mapped = CARD_NAME_MAP[key];
+          break;
+        }
       }
+      autoResult.card = mapped || (issuer + ' ' + num);
     }
 
     const autoDateMatch = text.match(/(\d{1,2})\/(\d{1,2})접수/);

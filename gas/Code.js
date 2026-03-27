@@ -1501,15 +1501,20 @@ function parseSMSServer(text, config) {
     if (autoResult.amount <= 0) return null;
 
     // 카드: "[삼성카드]1337"
-    var autoCardMatch = text.match(/\[([^\]]*카드[^\]]*)\](\d{4})/);
-    if (autoCardMatch) {
-      var autoIssuer = autoCardMatch[1].replace(/카드.*$/, '');
-      var autoShortKey = autoIssuer + autoCardMatch[2];
-      if (config.cardNameMap && config.cardNameMap[autoShortKey]) {
-        autoResult.card = config.cardNameMap[autoShortKey];
-      } else {
-        autoResult.card = autoCardMatch[1];
+    var cardMatch = text.match(/\[([^\]]*카드[^\]]*)\](\d{4})/);
+    if (cardMatch) {
+      var issuer = cardMatch[1];
+      var num = cardMatch[2];
+      var mapped = null;
+      if (config && config.cardNameMap) {
+        for (var key in config.cardNameMap) {
+          if (key.indexOf(num) !== -1) {
+            mapped = config.cardNameMap[key];
+            break;
+          }
+        }
       }
+      autoResult.card = mapped || (issuer + ' ' + num);
     }
 
     // 날짜: "03/19접수"
