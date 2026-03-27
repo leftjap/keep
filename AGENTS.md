@@ -371,6 +371,22 @@ editorText, editorBook, editorQuote, editorMemo, editorExpense, editorDayList, e
 - 가계부: `saveExpenseForm` 내에서 `SYNC.scheduleDatabaseSave()`
 - SMS 자동: `visibilitychange(visible)` → `SYNC.mergeServerExpenses()`
 
+### SMS 파이프라인: iOS 단축어 → GAS → keep
+
+**iOS 단축어 자동화 설정 (iPhone)**
+
+| 항목 | 값 |
+|---|---|
+| 트리거 | 메시지 수신, 포함 내용: "승인", 즉시 실행 |
+| 입력 | 메시지(를) 입력으로 받기 |
+| 액션 | URL 콘텐츠 가져오기 (POST) |
+| URL | GAS 웹앱 exec URL (배포 URL과 동일) |
+| 본문 | JSON — `action`: `save_expense_sms`, `token`: `nametag2026`, `smsText`: (단축어 입력 — SMS 원문) |
+
+**흐름**: SMS 수신 → 단축어가 GAS에 POST → `saveExpenseFromSMS()` → 시트에 저장 → keep 앱 `visibilitychange(visible)` 시 `mergeServerExpenses()`로 클라이언트에 반영
+
+**주의**: 현재 트리거 조건이 "승인" 포함 메시지만 감지한다. 휴대폰 요금 등 '승인' 키워드가 없는 결제 알림은 이 파이프라인에 진입하지 못한다. (→ B-24 참조)
+
 ---
 
 ## 12. 이벤트 핸들러 규칙
