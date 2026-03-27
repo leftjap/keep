@@ -120,6 +120,14 @@ const SYNC = {
 
   async saveDatabase() {
     if (!this.isDbLoaded) return;
+    // 병합 진행 중이면 3초 후 재시도 (병합이 서버 데이터를 로컬에 적용하는 중 저장하면 구 데이터로 덮어쓸 위험)
+    if (this._merging) {
+      console.log('saveDatabase: 병합 중이므로 3초 후 재시도');
+      var self = this;
+      clearTimeout(this._mergeSaveTimer);
+      this._mergeSaveTimer = setTimeout(function() { self.saveDatabase(); }, 3000);
+      return;
+    }
     // 새 저장 요청이 오면 기존 재시도를 취소 (새 호출이 최신 데이터를 보냄)
     clearTimeout(this._dbRetryTimer);
     this._dbRetryCount = 0;
@@ -501,6 +509,8 @@ const SYNC = {
   // ═══ 서버 전체 병합 (load_db 1회로 expenses + docs 병합) ═══
   async mergeServerAll() {
     if (!this.isDbLoaded) return;
+    if (this._merging) return;
+    this._merging = true;
     try {
       var res = await this._post({ action: 'load_db' });
       if (!res || !res.dbData) return;
@@ -509,6 +519,8 @@ const SYNC = {
       await this.mergeServerDocs(res.dbData);
     } catch (e) {
       console.warn('mergeServerAll 실패:', e.message);
+    } finally {
+      this._merging = false;
     }
   },
 

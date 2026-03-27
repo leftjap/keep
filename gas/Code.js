@@ -149,7 +149,7 @@ var BRAND_CATEGORY_MAP = {
   'BART': 'transport', 'SK네트웍스': 'transport', '티머니': 'transport',
   '대한항공': 'transport', '한화커넥트': 'transport',
   // 통신/구독
-  'SK텔레콤': 'subscribe', '네이버페이': 'subscribe',
+  'SK텔레콤': 'subscribe', '네이버페이': 'subscribe', 'Anthropic': 'subscribe',
   // 해외
   'AIRALO': 'overseas', 'KKday': 'overseas', '마이리얼트립': 'overseas',
   'DOUBLETREE': 'overseas', 'Dusit Thani': 'overseas',
@@ -174,9 +174,14 @@ function cleanMerchantName(merchant) {
 
   // 통화코드 접두어 제거 (해외 결제)
   m = m.replace(/^(달러|유로|엔화|위안|바트|동|링깃|루피|페소)\s+/i, '');
+  // "USD 22.00 CLAUDE" / "HUF 124,000.00 COS" — 통화코드+금액(콤마/점 포함)+공백
+  m = m.replace(/^[A-Z]{3}\s+[\d,.]+\s+/, '');
+  // "HUF 124 000 COS" — 통화코드+숫자+공백 (콤마/점 없는 경우)
   m = m.replace(/^[A-Z]{3}(\s+[\d\s]+\s+)/, '');
-  m = m.replace(/^KRW\s+[\d\s]+\s+/i, '');
-  m = m.replace(/^\d+\s+/, '');
+  // "KRW 533,000 ..." — KRW 전용
+  m = m.replace(/^KRW\s+[\d,.\s]+\s+/i, '');
+  // 선행 숫자 제거 ("22.00 CLAUDE", "8100 LAWSON")
+  m = m.replace(/^[\d,.]+\s+/, '');
 
   // 변형 통합
   if (/^사러가/.test(m)) m = '사러가';
@@ -184,6 +189,11 @@ function cleanMerchantName(merchant) {
   if (/^COS\b/.test(m)) m = 'COS';
   if (/^온브릭스/.test(m)) m = '온브릭스';
   if (/^씨유홍대3호/.test(m)) m = '씨유홍대3호점';
+  if (/^SP\s+STUSSY/i.test(m)) m = 'STUSSY';
+  if (/^KITH\s+HAWAI/i.test(m)) m = 'KITH';
+  if (/^LARINASCEN/i.test(m)) m = 'LA RINASCENTE';
+  if (/^www\.curefi|^CUREFIP\.CO/i.test(m)) m = 'CUREFIP';
+  if (/^KIX\s*(DFS|DUTY)/i.test(m)) m = 'KIX DUTY FREE';
 
   return m.trim() || merchant;
 }
@@ -205,6 +215,8 @@ var MERCHANT_TO_BRAND = {
   '1차 민생회복 씨유홍대3호': 'CU', 'CU 에이케이': 'CU', 'CU참전숲길점': 'CU',
   '씨유 인천공항T2교통센터': 'CU', '씨유 홍대서교점': 'CU',
   '씨유과천르센토데시앙점': 'CU', '씨유홍대3호': 'CU', '씨유홍대3호점': 'CU',
+  'CLAUDE.AISUBSCRIPTIO': 'Anthropic',
+  'CLAUDE.AISUBSCRIPTION': 'Anthropic',
   'CUREFIP': 'CUREFIP',
   'DOUBLE TRE': 'DOUBLETREE',
   'PHP DUSIT THAN': 'Dusit Thani',
@@ -1335,6 +1347,8 @@ function loadDatabase(config) {
 function saveExpenseFromSMS(smsText, config) {
   console.log('=== saveExpenseFromSMS 호출 ===');
   console.log('smsText: ' + String(smsText));
+  console.log('smsText length: ' + String(smsText).length + ', has \\n: ' + (String(smsText).indexOf('\n') !== -1) + ', has \\r: ' + (String(smsText).indexOf('\r') !== -1));
+  console.log('smsText escaped: ' + JSON.stringify(String(smsText)));
 
   if (!smsText) {
     console.log('smsText 비어있음 — 종료');
@@ -1564,8 +1578,18 @@ function parseSMSServer(text, config) {
     }
   }
 
-  // 날짜 추출
-  var dateMatch = text.match(/(\d{1,2})[\/\-](\d{1,2})/);
+  // 날짜 추출 — 월(1-12)/일(1-31) 범위 검증
+  var dateMatch = null;
+  var dateRegex = /(\d{1,2})[\/\-](\d{1,2})/g;
+  var dm;
+  while ((dm = dateRegex.exec(text)) !== null) {
+    var mm = parseInt(dm[1], 10);
+    var dd = parseInt(dm[2], 10);
+    if (mm >= 1 && mm <= 12 && dd >= 1 && dd <= 31) {
+      dateMatch = dm;
+      break;
+    }
+  }
   if (dateMatch) {
     var m = ('0' + dateMatch[1]).slice(-2);
     var d = ('0' + dateMatch[2]).slice(-2);

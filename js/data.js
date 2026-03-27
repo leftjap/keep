@@ -50,6 +50,9 @@ var BRAND_CATEGORY_MAP = {
   '마이리얼트립': 'overseas', '신세계면세점': 'overseas',
   '인터컨티넨탈호텔': 'overseas', '인터파크': 'overseas',
 
+  // subscribe (통신/구독)
+  'Anthropic': 'subscribe',
+
   // fashion (패션/뷰티)
   'COS': 'fashion', 'H&M': 'fashion', 'HDC아이파크몰': 'fashion',
   'KITH': 'fashion', 'LF': 'fashion', 'STUSSY': 'fashion',
@@ -133,6 +136,8 @@ var MERCHANT_TO_BRAND = {
   '1차 민생회복 씨유홍대3호': 'CU', 'CU 에이케이': 'CU', 'CU참전숲길점': 'CU',
   '씨유 인천공항T2교통센터': 'CU', '씨유 홍대서교점': 'CU',
   '씨유과천르센토데시앙점': 'CU', '씨유홍대3호': 'CU', '씨유홍대3호점': 'CU',
+  'CLAUDE.AISUBSCRIPTIO': 'Anthropic',
+  'CLAUDE.AISUBSCRIPTION': 'Anthropic',
   'CUREFIP': 'CUREFIP',
   'DOUBLE TRE': 'DOUBLETREE',
   'PHP DUSIT THAN': 'Dusit Thani',
@@ -319,8 +324,12 @@ function cleanMerchantName(merchant) {
 
   // 3. 통화코드 접두어 제거 (달러, 엔화, 유로, 위안, 바트, 페소 등 + 숫자)
   m = m.replace(/^(달러|엔화|유로|위안|바트|페소)\s+/, '');
-  m = m.replace(/^[A-Z]{3}\s+[\d\s]+\s+/, '');
-  m = m.replace(/^\d+\s+/, '');
+  // "USD 22.00 CLAUDE" / "HUF 124,000.00 COS" — 통화코드+금액(콤마/점 포함)+공백
+  m = m.replace(/^[A-Z]{3}\s+[\d,.]+\s+/, '');
+  // "HUF 124 000 COS" — 통화코드+숫자+공백 (콤마/점 없는 경우)
+  m = m.replace(/^[A-Z]{3}(\s+[\d\s]+\s+)/, '');
+  // 선행 숫자 제거 ("22.00 CLAUDE", "8100 LAWSON")
+  m = m.replace(/^[\d,.]+\s+/, '');
 
   // 4. 매출처명 변형 통합
   if (m.match(/^사러가/)) m = '사러가';

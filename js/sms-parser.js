@@ -117,14 +117,23 @@ function parseSMS(text) {
     }
   }
 
-  // 날짜 추출
-  const dateMatch = text.match(/(\d{1,2})[\/\-](\d{1,2})/);
+  // 날짜 추출 — 월(1-12)/일(1-31) 범위 검증
+  let dateMatch = null;
+  const dateRegex = /(\d{1,2})[\/\-](\d{1,2})/g;
+  let dm;
+  while ((dm = dateRegex.exec(text)) !== null) {
+    const mm = parseInt(dm[1], 10);
+    const dd = parseInt(dm[2], 10);
+    if (mm >= 1 && mm <= 12 && dd >= 1 && dd <= 31) {
+      dateMatch = dm;
+      break;
+    }
+  }
   if (dateMatch) {
     const m = ('0' + dateMatch[1]).slice(-2);
     const d = ('0' + dateMatch[2]).slice(-2);
     const now = new Date();
     let y = now.getFullYear();
-    // 파싱된 날짜가 오늘보다 미래이면 연도를 1년씩 뺀다
     const todayStr = now.getFullYear() + '-' + ('0' + (now.getMonth()+1)).slice(-2) + '-' + ('0' + now.getDate()).slice(-2);
     while (y + '-' + m + '-' + d > todayStr && y > 2020) {
       y--;
