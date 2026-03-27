@@ -1384,9 +1384,9 @@ function _backupDatabaseIfNeeded(config) {
 
 function saveDatabase(dbData, config) {
   try {
-    // ═══ 무결성 검증: expenses 급변 감지 ═══
+    // ═══ 무결성 검증 ═══
     var newExpenses = dbData['gb_expenses'];
-    if (newExpenses && Array.isArray(newExpenses)) {
+    if (newExpenses && Array.isArray(newExpenses) && newExpenses.length > 0) {
       var file = getDatabaseFile(config);
       var currentContent = file.getBlob().getDataAsString();
       var currentDb = {};
@@ -1394,28 +1394,62 @@ function saveDatabase(dbData, config) {
       var currentExpenses = currentDb['gb_expenses'] || [];
       var currentCount = currentExpenses.length;
       var newCount = newExpenses.length;
+      var email = _getEmailFromConfig(config);
 
-      // 기존 데이터가 50건 이상이고, 신규가 50% 이상 증가하면 차단
+      // ── 검증 1: expenses 건수 급변 (±50%) ──
       if (currentCount >= 50 && newCount > currentCount * 1.5) {
-        var email = _getEmailFromConfig(config);
-        console.error('⚠️ saveDatabase 차단: expenses 급증 감지 (' + email + '). 기존 ' + currentCount + '건 → 신규 ' + newCount + '건 (' + Math.round(newCount / currentCount * 100) + '%)');
+        console.error('⚠️ saveDatabase 차단: expenses 급증 감지 (' + email + '). 기존 ' + currentCount + '건 → 신규 ' + newCount + '건');
         return { status: 'error', message: 'Integrity check failed: expenses count surge (' + currentCount + ' → ' + newCount + ')' };
       }
-
-      // 기존 데이터가 50건 이상이고, 신규가 50% 이상 감소하면 차단
       if (currentCount >= 50 && newCount < currentCount * 0.5) {
-        var email = _getEmailFromConfig(config);
-        console.error('⚠️ saveDatabase 차단: expenses 급감 감지 (' + email + '). 기존 ' + currentCount + '건 → 신규 ' + newCount + '건 (' + Math.round(newCount / currentCount * 100) + '%)');
+        console.error('⚠️ saveDatabase 차단: expenses 급감 감지 (' + email + '). 기존 ' + currentCount + '건 → 신규 ' + newCount + '건');
         return { status: 'error', message: 'Integrity check failed: expenses count drop (' + currentCount + ' → ' + newCount + ')' };
       }
 
-      // ★ 검증 통과 시에만 백업 (이미 읽은 file을 재사용)
-      _backupDatabaseIfNeeded(config);
+      // ── 검증 2: 카드 교차 오염 감지 ──
+      // 각 사용자의 "자기 카드가 아닌 카드"가 포함되어 있으면 차단
+      var OWNER_CARDS = {
+        'leftjap@gmail.com': ['삼성카드 & MILEAGE PLATINUM'],
+        'soyoun312@gmail.com': ['삼성카드 iD SIMPLE', '신한카드 Air', 'K-패스 신한카드 체크', '현대백화점카드']
+      };
+      var myCards = OWNER_CARDS[email];
+      if (myCards) {
+        // 상대방의 카드 목록 구성
+        var otherCards = [];
+        var allEmails = Object.keys(OWNER_CARDS);
+        for (var oe = 0; oe < allEmails.length; oe++) {
+          if (allEmails[oe] !== email) {
+            var oc = OWNER_CARDS[allEmails[oe]];
+            for (var oci = 0; oci < oc.length; oci++) {
+              otherCards.push(oc[oci]);
+            }
+          }
+        }
 
-      // 저장 (이미 읽은 file 재사용)
+        // expenses에서 상대방 카드 검색
+        var foreignCards = {};
+        for (var ei = 0; ei < newExpenses.length; ei++) {
+          var card = newExpenses[ei].card || '';
+          for (var fi = 0; fi < otherCards.length; fi++) {
+            if (card === otherCards[fi]) {
+              foreignCards[card] = (foreignCards[card] || 0) + 1;
+            }
+          }
+        }
+
+        var foreignCardNames = Object.keys(foreignCards);
+        if (foreignCardNames.length > 0) {
+          var detail = foreignCardNames.map(function(c) { return c + ':' + foreignCards[c] + '건'; }).join(', ');
+          console.error('⚠️ saveDatabase 차단: 카드 교차 오염 감지 (' + email + '). 타 사용자 카드 발견: ' + detail);
+          return { status: 'error', message: 'Integrity check failed: foreign card detected (' + detail + ')' };
+        }
+      }
+
+      // ★ 검증 통과 — 백업 후 저장
+      _backupDatabaseIfNeeded(config);
       file.setContent(JSON.stringify(dbData));
     } else {
-      // expenses가 없는 저장 (정상 케이스: 초기 상태 등)
+      // expenses가 없거나 빈 배열인 저장 (초기 상태 등)
       _backupDatabaseIfNeeded(config);
       var file = getDatabaseFile(config);
       file.setContent(JSON.stringify(dbData));
