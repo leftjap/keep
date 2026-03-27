@@ -77,7 +77,21 @@ async function showApp() {
     }, 4000);
 
     SYNC.loadDatabase().then(function(config) {
-      if (_syncDone) return; // 타임아웃 이미 발동
+      if (_syncDone) {
+        // 타임아웃 이후 뒤늦게 도착 — config만 적용하고 필요 시 리렌더
+        if (config) {
+          applyServerConfig(config);
+          renderWritingGrid();
+          if (activeTab === 'expense') {
+            if (typeof renderExpenseCategoryGrid === 'function') renderExpenseCategoryGrid();
+            if (typeof renderExpenseDashboard === 'function') {
+              renderExpenseDashboard(window.innerWidth > 768 ? 'pc' : 'mobile');
+            }
+          }
+        }
+        SYNC.setSyncStatus('완료됨', 'ok');
+        return;
+      }
       _syncDone = true;
       clearTimeout(_syncTimeout);
       SYNC.isDbLoaded = true;

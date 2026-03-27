@@ -1109,19 +1109,27 @@ function hasRoutineDataInMonth(ym) {
 // ═══════════════════════════════════════
 // 가계부 카테고리 상수
 // ═══════════════════════════════════════
-let EXPENSE_CATEGORIES = [
-  { id: 'dining',    name: '외식',   color: '#E55643', bg: '#E55643' },
-  { id: 'delivery',  name: '배달',   color: '#E8845A', bg: '#E8845A' },
-  { id: 'online',    name: '온라인쇼핑', color: '#5BA0A0', bg: '#5BA0A0' },
-  { id: 'conv',      name: '편의점', color: '#E09E6A', bg: '#E09E6A' },
-  { id: 'cat',       name: '고양이', color: '#E8A87C', bg: '#E8A87C' },
-  { id: 'health',    name: '건강',   color: '#7BAEAE', bg: '#7BAEAE' },
-  { id: 'culture',   name: '문화',   color: '#7B83C4', bg: '#7B83C4' },
-  { id: 'fashion',   name: '패션',   color: '#B5678E', bg: '#B5678E' },
-  { id: 'subscribe', name: '구독',   color: '#8B7FBF', bg: '#8B7FBF' },
-  { id: 'transport', name: '교통',   color: '#6A9FBF', bg: '#6A9FBF' },
-  { id: 'etc',       name: '기타',   color: '#A0A0A8', bg: '#A0A0A8' }
-];
+let EXPENSE_CATEGORIES = (function() {
+  // 이전 세션에서 캐싱된 카테고리가 있으면 복원 (서버 미응답 재발방지)
+  var cached = L('gb_expenseCategories');
+  if (cached && Array.isArray(cached) && cached.length > 0) {
+    return cached;
+  }
+  // 캐시 없음: leftjap 기본값 (첫 설치 또는 캐시 손실 시)
+  return [
+    { id: 'dining',    name: '외식',   color: '#E55643', bg: '#E55643' },
+    { id: 'delivery',  name: '배달',   color: '#E8845A', bg: '#E8845A' },
+    { id: 'online',    name: '온라인쇼핑', color: '#5BA0A0', bg: '#5BA0A0' },
+    { id: 'conv',      name: '편의점', color: '#E09E6A', bg: '#E09E6A' },
+    { id: 'cat',       name: '고양이', color: '#E8A87C', bg: '#E8A87C' },
+    { id: 'health',    name: '건강',   color: '#7BAEAE', bg: '#7BAEAE' },
+    { id: 'culture',   name: '문화',   color: '#7B83C4', bg: '#7B83C4' },
+    { id: 'fashion',   name: '패션',   color: '#B5678E', bg: '#B5678E' },
+    { id: 'subscribe', name: '구독',   color: '#8B7FBF', bg: '#8B7FBF' },
+    { id: 'transport', name: '교통',   color: '#6A9FBF', bg: '#6A9FBF' },
+    { id: 'etc',       name: '기타',   color: '#A0A0A8', bg: '#A0A0A8' }
+  ];
+})();
 
 // ═══════════════════════════════════════
 // 매출처 아이콘 매핑
@@ -1356,6 +1364,8 @@ function applyServerConfig(config) {
         bg:    c.bg || (existing ? existing.bg : '#B0B0B8')
       };
     });
+    // 적용된 카테고리를 LocalStorage에 캐싱 (서버 미응답 시 복원용)
+    try { S('gb_expenseCategories', EXPENSE_CATEGORIES); } catch(e) {}
   }
 
   // 카드 매핑 (sms-parser.js의 CARD_NAME_MAP 덮어쓰기)
