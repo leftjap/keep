@@ -180,6 +180,8 @@ function cleanMerchantName(merchant) {
   m = m.replace(/^[A-Z]{3}(\s+[\d\s]+\s+)/, '');
   // "KRW 533,000 ..." — KRW 전용
   m = m.replace(/^KRW\s+[\d,.\s]+\s+/i, '');
+  // "USD CLAUDE", "EUR LARINASCENTE" — 통화코드+공백+영문 (금액 없이 바로 매출처명)
+  m = m.replace(/^(USD|EUR|JPY|GBP|CNY|THB|VND|PHP|HUF|KHR|SGD|KRW|MYR|INR)\s+/i, '');
   // 선행 숫자 제거 ("22.00 CLAUDE", "8100 LAWSON")
   m = m.replace(/^[\d,.]+\s+/, '');
 

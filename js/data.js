@@ -328,6 +328,8 @@ function cleanMerchantName(merchant) {
   m = m.replace(/^[A-Z]{3}\s+[\d,.]+\s+/, '');
   // "HUF 124 000 COS" — 통화코드+숫자+공백 (콤마/점 없는 경우)
   m = m.replace(/^[A-Z]{3}(\s+[\d\s]+\s+)/, '');
+  // "USD CLAUDE", "EUR LARINASCENTE" — 통화코드+공백+영문 (금액 없이 바로 매출처명)
+  m = m.replace(/^(USD|EUR|JPY|GBP|CNY|THB|VND|PHP|HUF|KHR|SGD|KRW|MYR|INR)\s+/i, '');
   // 선행 숫자 제거 ("22.00 CLAUDE", "8100 LAWSON")
   m = m.replace(/^[\d,.]+\s+/, '');
 
