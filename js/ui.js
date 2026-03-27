@@ -180,6 +180,7 @@ function switchTab(t, keepLayout) {
   if (textTypes.includes(activeTab)) saveCurDoc(activeTab);
   // 태블릿: topbar-fixed 버튼은 body에 유지
   activeTab = t;
+  _saveActiveTab();
   applyTabColor(t);
   updateEdTabLabel();
 

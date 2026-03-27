@@ -15,6 +15,24 @@ function currentLocProfile() {
 }
 
 const curIds = {};
+function _saveCurIds() {
+  S('gb_curIds', curIds);
+}
+function _restoreCurIds() {
+  var saved = L('gb_curIds');
+  if (saved && typeof saved === 'object') {
+    Object.keys(saved).forEach(function(k) { curIds[k] = saved[k]; });
+  }
+}
+function _saveActiveTab() {
+  S('gb_activeTab', activeTab);
+}
+function _restoreActiveTab() {
+  var saved = L('gb_activeTab');
+  if (saved && typeof saved === 'string' && Object.keys(TAB_META).indexOf(saved) !== -1) {
+    activeTab = saved;
+  }
+}
 let curQuoteId = null;
 let curBookId  = null;
 let curMemoId  = null;
@@ -345,6 +363,7 @@ function loadDoc(type, id, force = false) {
   if (!doc) return;
   if (!force && currentLoadedDoc.type === type && currentLoadedDoc.id === id) return;
   curIds[type] = id;
+  _saveCurIds();
   currentLoadedDoc = { type, id };
   document.getElementById('edTitle').value      = doc.title;
   document.getElementById('edBody').innerHTML   = fixDriveImageUrls(doc.content);
@@ -444,6 +463,7 @@ function loadBook(id, force = false) {
   if (!b) return;
   if (!force && currentLoadedDoc.type === 'book' && currentLoadedDoc.id === id) return;
   curBookId = id;
+  S('gb_curBookId', curBookId);
   currentLoadedDoc = { type: 'book', id };
   document.getElementById('book-title').value     = b.title;
   document.getElementById('book-author').value    = b.author || '';
@@ -585,6 +605,7 @@ function loadMemo(id, force = false) {
   if (!m) return;
   if (!force && currentLoadedDoc.type === 'memo' && currentLoadedDoc.id === id) return;
   curMemoId = id;
+  S('gb_curMemoId', curMemoId);
   currentLoadedDoc = { type: 'memo', id };
   document.getElementById('memo-title').value     = m.title || '';
   document.getElementById('memo-body').innerHTML  = fixDriveImageUrls(m.content);

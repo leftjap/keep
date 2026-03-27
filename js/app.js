@@ -77,6 +77,12 @@ async function showApp() {
       }
       updateExpenseCompact();
       renderListPanel();
+      // 서버 동기화 후 현재 열린 문서 리프레시
+      if (currentLoadedDoc && currentLoadedDoc.type && currentLoadedDoc.id) {
+        if (textTypes.includes(currentLoadedDoc.type)) loadDoc(currentLoadedDoc.type, currentLoadedDoc.id, true);
+        else if (currentLoadedDoc.type === 'book') loadBook(currentLoadedDoc.id, true);
+        else if (currentLoadedDoc.type === 'memo') loadMemo(currentLoadedDoc.id, true);
+      }
       SYNC.setSyncStatus('완료됨', 'ok');
     }).catch(function(e) {
       if (e && e.message === 'Unauthorized') {
@@ -249,11 +255,27 @@ function init() {
     setupListContextMenu();
     setupExpenseContextMenu();
 
-    // 초기 문서 로드 (동적 첫 번째 텍스트 탭)
-    var initialTab = textTypes[0] || 'navi';
+    // 저장된 상태 복원
+    _restoreCurIds();
+    _restoreActiveTab();
+    var restoredBookId = L('gb_curBookId');
+    if (restoredBookId) curBookId = restoredBookId;
+    var restoredMemoId = L('gb_curMemoId');
+    if (restoredMemoId) curMemoId = restoredMemoId;
+
+    // 초기 문서 로드 (저장된 탭 + 문서 우선, 없으면 첫 번째)
+    var initialTab = activeTab && textTypes.includes(activeTab) ? activeTab : (textTypes[0] || 'navi');
+    if (initialTab !== activeTab) activeTab = initialTab;
     var initialDocs = getDocs(initialTab);
-    if (initialDocs.length) loadDoc(initialTab, initialDocs[0].id, true);
-    else { var nd = newDoc(initialTab); loadDoc(initialTab, nd.id, true); }
+    var savedId = curIds[initialTab];
+    if (savedId && initialDocs.find(function(d) { return d.id === savedId; })) {
+      loadDoc(initialTab, savedId, true);
+    } else if (initialDocs.length) {
+      loadDoc(initialTab, initialDocs[0].id, true);
+    } else {
+      var nd = newDoc(initialTab);
+      loadDoc(initialTab, nd.id, true);
+    }
 
     updateEdTabLabel();
 
