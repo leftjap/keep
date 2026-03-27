@@ -1462,8 +1462,8 @@ async function enterPartnerMode(partnerEmail, targetDocId) {
     var r = await SYNC._post({ action: 'load_partner_db', token: APP_TOKEN, idToken: localStorage.getItem(_LS_PREFIX + 'gb_id_token') });
     if (!r || r.status !== 'ok') {
       console.error('[파트너] loadPartnerDb 실패');
-      _myBackup = null;
       SYNC.isDbLoaded = _myBackup ? _myBackup.isDbLoaded : true;
+      _myBackup = null;
       if (loadingScreen) { loadingScreen.classList.add('hidden'); loadingScreen.style.display = 'none'; }
       return;
     }
