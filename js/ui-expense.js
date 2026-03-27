@@ -1531,24 +1531,30 @@ function _triggerExpenseDatePicker(mode) {
   var suffix = mode === 'modal' ? 'Modal' : '';
   var pickerEl = document.getElementById('expenseDatePicker' + suffix);
   if (!pickerEl) return;
-  // iOS Safari/PWA에서 display:none 또는 크기 0인 요소에 showPicker()/click()이 무시됨.
-  // 잠시 가시 상태로 만들어 picker를 트리거한 뒤, change/blur 후 복원한다.
-  var orig = pickerEl.style.cssText;
-  pickerEl.style.cssText = 'position:absolute;opacity:0;pointer-events:auto;width:1px;height:1px;overflow:hidden;z-index:-1;';
+  // iOS Safari/PWA에서 visibility:hidden, width:0, height:0인 요소에 showPicker()가 무시됨.
+  // CSS 클래스를 임시 제거하고 인라인으로 최소 가시 상태를 만든 뒤, picker 종료 후 복원한다.
+  var hadClass = pickerEl.classList.contains('expense-date-picker-hidden');
+  if (hadClass) pickerEl.classList.remove('expense-date-picker-hidden');
+  pickerEl.style.cssText = 'position:fixed;top:0;left:0;opacity:0;width:1px;height:1px;pointer-events:auto;z-index:-1;';
   function restore() {
-    pickerEl.style.cssText = orig;
-    pickerEl.removeEventListener('change', restore);
-    pickerEl.removeEventListener('blur', restore);
+    pickerEl.style.cssText = '';
+    if (hadClass) pickerEl.classList.add('expense-date-picker-hidden');
+    pickerEl.removeEventListener('change', onChangeRestore);
+    pickerEl.removeEventListener('blur', onBlurRestore);
+    clearTimeout(safetyTimer);
   }
-  pickerEl.addEventListener('change', restore, { once: true });
-  pickerEl.addEventListener('blur', restore, { once: true });
+  function onChangeRestore() { restore(); }
+  function onBlurRestore() { restore(); }
+  pickerEl.addEventListener('change', onChangeRestore, { once: true });
+  pickerEl.addEventListener('blur', onBlurRestore, { once: true });
+  // 5초 안전망: 사용자가 취소해서 change/blur가 안 오는 경우
+  var safetyTimer = setTimeout(restore, 5000);
   if (typeof pickerEl.showPicker === 'function') {
-    try { pickerEl.showPicker(); } catch (e) { pickerEl.click(); }
+    try { pickerEl.showPicker(); } catch (e) { pickerEl.focus(); pickerEl.click(); }
   } else {
+    pickerEl.focus();
     pickerEl.click();
   }
-  // 5초 안전망: 사용자가 취소해서 change/blur가 안 오는 경우
-  setTimeout(restore, 5000);
 }
 
 function onExpenseDatePickerChange(inputEl, mode) {
