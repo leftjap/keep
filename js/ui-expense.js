@@ -1261,10 +1261,11 @@ function newExpenseForm(mode = 'normal') {
     dateEl.setAttribute('onclick', '_triggerExpenseDatePicker(\'' + mode + '\')');
     dateEl.classList.remove('expense-date-readonly');
     dateEl.classList.add('expense-date-editable');
+    // overlay 설정
+    setTimeout(function() {
+      _setupDateOverlay(dateEl, mode);
+    }, 0);
   }
-  // 숨겨진 date picker 초기화
-  var pickerEl = document.getElementById('expenseDatePicker' + suffix);
-  if (pickerEl) pickerEl.value = today();
   // ── 문자 붙여넣기 표시 복원 ──
   var pasteBtn = document.getElementById('expensePasteBtn' + (suffix || ''));
   if (pasteBtn) pasteBtn.style.display = '';
@@ -1320,10 +1321,11 @@ function loadExpense(id, mode = 'normal') {
     dateEl.setAttribute('onclick', '_triggerExpenseDatePicker(\'' + mode + '\')');
     dateEl.classList.remove('expense-date-readonly');
     dateEl.classList.add('expense-date-editable');
+    // overlay 설정
+    setTimeout(function() {
+      _setupDateOverlay(dateEl, mode);
+    }, 0);
   }
-  // 숨겨진 date picker에 현재 날짜 세팅
-  var pickerEl = document.getElementById('expenseDatePicker' + suffix);
-  if (pickerEl) pickerEl.value = e.date;
   // 그리드 접힌 상태 보장
   var catGrid = document.getElementById('expenseCategoryGrid' + suffix);
   if (catGrid) { catGrid.classList.remove('grid-open'); catGrid.style.display = 'none'; }
@@ -1528,33 +1530,31 @@ function openExpenseDatePicker() {
 }
 
 function _triggerExpenseDatePicker(mode) {
-  var suffix = mode === 'modal' ? 'Modal' : '';
-  var pickerEl = document.getElementById('expenseDatePicker' + suffix);
-  if (!pickerEl) return;
-  // iOS Safari/PWA에서 visibility:hidden, width:0, height:0인 요소에 showPicker()가 무시됨.
-  // CSS 클래스를 임시 제거하고 인라인으로 최소 가시 상태를 만든 뒤, picker 종료 후 복원한다.
-  var hadClass = pickerEl.classList.contains('expense-date-picker-hidden');
-  if (hadClass) pickerEl.classList.remove('expense-date-picker-hidden');
-  pickerEl.style.cssText = 'position:fixed;top:0;left:0;opacity:0;width:1px;height:1px;pointer-events:auto;z-index:-1;';
-  function restore() {
-    pickerEl.style.cssText = '';
-    if (hadClass) pickerEl.classList.add('expense-date-picker-hidden');
-    pickerEl.removeEventListener('change', onChangeRestore);
-    pickerEl.removeEventListener('blur', onBlurRestore);
-    clearTimeout(safetyTimer);
-  }
-  function onChangeRestore() { restore(); }
-  function onBlurRestore() { restore(); }
-  pickerEl.addEventListener('change', onChangeRestore, { once: true });
-  pickerEl.addEventListener('blur', onBlurRestore, { once: true });
-  // 5초 안전망: 사용자가 취소해서 change/blur가 안 오는 경우
-  var safetyTimer = setTimeout(restore, 5000);
-  if (typeof pickerEl.showPicker === 'function') {
-    try { pickerEl.showPicker(); } catch (e) { pickerEl.focus(); pickerEl.click(); }
-  } else {
-    pickerEl.focus();
-    pickerEl.click();
-  }
+  // overlay 방식에서는 이 함수가 불필요 — input이 직접 탭됨
+  // 하위 호환용으로 빈 함수로 유지
+}
+
+function _setupDateOverlay(areaEl, mode) {
+  if (!areaEl) return;
+  // 이미 overlay가 있으면 스킵
+  if (areaEl.querySelector('.expense-date-overlay')) return;
+
+  areaEl.classList.add('expense-date-area');
+
+  var input = document.createElement('input');
+  input.type = 'date';
+  input.className = 'expense-date-overlay';
+  var currentDate = areaEl.getAttribute('data-date');
+  if (currentDate) input.value = currentDate;
+
+  input.addEventListener('change', function() {
+    onExpenseDatePickerChange(this, mode);
+  });
+
+  areaEl.appendChild(input);
+
+  // onclick 제거 (기존 _triggerExpenseDatePicker 호출 방지)
+  areaEl.removeAttribute('onclick');
 }
 
 function onExpenseDatePickerChange(inputEl, mode) {
