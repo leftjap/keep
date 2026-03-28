@@ -67,6 +67,11 @@ async function showApp() {
   var serverConfig = null;
   var hasLocalData = !!(L(K.docs) && L(K.expenses));
 
+  // 빈 LS 보호: 로컬 데이터가 없으면 서버 복원 완료까지 save 차단
+  if (!hasLocalData) {
+    SYNC.isDbLoaded = false;  // saveDatabase()가 isDbLoaded 체크로 차단됨
+  }
+
   if (hasLocalData) {
     // ── 로컬 캐시 있음: 서버 동기화 후 UI 표시 (최대 4초 대기) ──
     var _syncDone = false;
