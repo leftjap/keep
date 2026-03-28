@@ -1384,37 +1384,70 @@ function _backupDatabaseIfNeeded(config) {
 
 function saveDatabase(dbData, config) {
   try {
+    var file = getDatabaseFile(config);
+    var currentContent = file.getBlob().getDataAsString();
+    var currentDb = {};
+    try { currentDb = JSON.parse(currentContent || '{}'); } catch(e) {}
+    var email = _getEmailFromConfig(config);
+
     // ═══ 무결성 검증 ═══
-    var newExpenses = dbData['gb_expenses'];
-    if (newExpenses && Array.isArray(newExpenses) && newExpenses.length > 0) {
-      var file = getDatabaseFile(config);
-      var currentContent = file.getBlob().getDataAsString();
-      var currentDb = {};
-      try { currentDb = JSON.parse(currentContent || '{}'); } catch(e) {}
-      var currentExpenses = currentDb['gb_expenses'] || [];
-      var currentCount = currentExpenses.length;
-      var newCount = newExpenses.length;
-      var email = _getEmailFromConfig(config);
 
-      // ── 검증 1: expenses 건수 급변 (±50%) ──
-      if (currentCount >= 50 && newCount > currentCount * 1.5) {
-        console.error('⚠️ saveDatabase 차단: expenses 급증 감지 (' + email + '). 기존 ' + currentCount + '건 → 신규 ' + newCount + '건');
-        return { status: 'error', message: 'Integrity check failed: expenses count surge (' + currentCount + ' → ' + newCount + ')' };
-      }
-      if (currentCount >= 50 && newCount < currentCount * 0.5) {
-        console.error('⚠️ saveDatabase 차단: expenses 급감 감지 (' + email + '). 기존 ' + currentCount + '건 → 신규 ' + newCount + '건');
-        return { status: 'error', message: 'Integrity check failed: expenses count drop (' + currentCount + ' → ' + newCount + ')' };
-      }
+    // ── 검증 0: 전체 데이터 비어있음 차단 ──
+    var newDocs = dbData['gb_docs'] || [];
+    var newExpenses = dbData['gb_expenses'] || [];
+    var newBooks = dbData['gb_books'] || [];
+    var curDocs = currentDb['gb_docs'] || [];
+    var curExpenses = currentDb['gb_expenses'] || [];
+    var curBooks = currentDb['gb_books'] || [];
+    var curQuotes = currentDb['gb_quotes'] || [];
+    var newQuotes = dbData['gb_quotes'] || [];
 
-      // ── 검증 2: 카드 교차 오염 감지 ──
-      // 각 사용자의 "자기 카드가 아닌 카드"가 포함되어 있으면 차단
+    var curTotal = curDocs.length + curExpenses.length + curBooks.length;
+    if (curTotal >= 10 && newDocs.length === 0 && newExpenses.length === 0 && newBooks.length === 0) {
+      console.error('⚠️ saveDatabase 차단: 전체 데이터 비어있음 (' + email + '). 기존 합계 ' + curTotal + '건 → 신규 합계 0건');
+      return { status: 'error', message: 'Integrity check failed: all data empty (was ' + curTotal + ')' };
+    }
+
+    // ── 검증 1: expenses 건수 급변 (±50%) ──
+    if (newExpenses.length > 0) {
+      var currentExpCount = curExpenses.length;
+      var newExpCount = newExpenses.length;
+      if (currentExpCount >= 50 && newExpCount > currentExpCount * 1.5) {
+        console.error('⚠️ saveDatabase 차단: expenses 급증 감지 (' + email + '). 기존 ' + currentExpCount + '건 → 신규 ' + newExpCount + '건');
+        return { status: 'error', message: 'Integrity check failed: expenses count surge (' + currentExpCount + ' → ' + newExpCount + ')' };
+      }
+      if (currentExpCount >= 50 && newExpCount < currentExpCount * 0.5) {
+        console.error('⚠️ saveDatabase 차단: expenses 급감 감지 (' + email + '). 기존 ' + currentExpCount + '건 → 신규 ' + newExpCount + '건');
+        return { status: 'error', message: 'Integrity check failed: expenses count drop (' + currentExpCount + ' → ' + newExpCount + ')' };
+      }
+    }
+
+    // ── 검증 2: docs 건수 급감 (50% 미만) ──
+    if (curDocs.length >= 10 && newDocs.length < curDocs.length * 0.5) {
+      console.error('⚠️ saveDatabase 차단: docs 급감 감지 (' + email + '). 기존 ' + curDocs.length + '건 → 신규 ' + newDocs.length + '건');
+      return { status: 'error', message: 'Integrity check failed: docs count drop (' + curDocs.length + ' → ' + newDocs.length + ')' };
+    }
+
+    // ── 검증 3: books 건수 급감 (50% 미만) ──
+    if (curBooks.length >= 5 && newBooks.length < curBooks.length * 0.5) {
+      console.error('⚠️ saveDatabase 차단: books 급감 감지 (' + email + '). 기존 ' + curBooks.length + '건 → 신규 ' + newBooks.length + '건');
+      return { status: 'error', message: 'Integrity check failed: books count drop (' + curBooks.length + ' → ' + newBooks.length + ')' };
+    }
+
+    // ── 검증 4: quotes 건수 급감 (50% 미만) ──
+    if (curQuotes.length >= 10 && newQuotes.length < curQuotes.length * 0.5) {
+      console.error('⚠️ saveDatabase 차단: quotes 급감 감지 (' + email + '). 기존 ' + curQuotes.length + '건 → 신규 ' + newQuotes.length + '건');
+      return { status: 'error', message: 'Integrity check failed: quotes count drop (' + curQuotes.length + ' → ' + newQuotes.length + ')' };
+    }
+
+    // ── 검증 5: 카드 교차 오염 감지 ──
+    if (newExpenses.length > 0) {
       var OWNER_CARDS = {
         'leftjap@gmail.com': ['삼성카드 & MILEAGE PLATINUM'],
         'soyoun312@gmail.com': ['삼성카드 iD SIMPLE', '신한카드 Air', 'K-패스 신한카드 체크', '현대백화점카드']
       };
       var myCards = OWNER_CARDS[email];
       if (myCards) {
-        // 상대방의 카드 목록 구성
         var otherCards = [];
         var allEmails = Object.keys(OWNER_CARDS);
         for (var oe = 0; oe < allEmails.length; oe++) {
@@ -1425,8 +1458,6 @@ function saveDatabase(dbData, config) {
             }
           }
         }
-
-        // expenses에서 상대방 카드 검색
         var foreignCards = {};
         for (var ei = 0; ei < newExpenses.length; ei++) {
           var card = newExpenses[ei].card || '';
@@ -1436,7 +1467,6 @@ function saveDatabase(dbData, config) {
             }
           }
         }
-
         var foreignCardNames = Object.keys(foreignCards);
         if (foreignCardNames.length > 0) {
           var detail = foreignCardNames.map(function(c) { return c + ':' + foreignCards[c] + '건'; }).join(', ');
@@ -1444,21 +1474,15 @@ function saveDatabase(dbData, config) {
           return { status: 'error', message: 'Integrity check failed: foreign card detected (' + detail + ')' };
         }
       }
-
-      // ★ 검증 통과 — 백업 후 저장
-      _backupDatabaseIfNeeded(config);
-      file.setContent(JSON.stringify(dbData));
-    } else {
-      // expenses가 없거나 빈 배열인 저장 (초기 상태 등)
-      _backupDatabaseIfNeeded(config);
-      var file = getDatabaseFile(config);
-      file.setContent(JSON.stringify(dbData));
     }
+
+    // ★ 검증 통과 — 백업 후 저장
+    _backupDatabaseIfNeeded(config);
+    file.setContent(JSON.stringify(dbData));
 
     // 캐시 갱신
     try {
       var cache = CacheService.getScriptCache();
-      var email = _getEmailFromConfig(config);
       cache.put('db_' + email, JSON.stringify(dbData), 21600);
       cache.remove('masterBrandIcons');
     } catch(e) {}
