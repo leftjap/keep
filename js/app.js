@@ -69,7 +69,7 @@ async function showApp() {
 
   // 빈 LS 보호: 로컬 데이터가 없으면 서버 복원 완료까지 save 차단
   if (!hasLocalData) {
-    SYNC.isDbLoaded = false;  // saveDatabase()가 isDbLoaded 체크로 차단됨
+    SYNC.isDbLoaded = false;
   }
 
   if (hasLocalData) {
@@ -81,6 +81,8 @@ async function showApp() {
       if (!_syncDone) {
         _syncDone = true;
         console.warn('[showApp] 서버 동기화 타임아웃 — 로컬 데이터로 표시');
+        // _dbLoading은 유지 — loadDatabase 응답이 도착하면 DB 적용 + _dbLoading 해제
+        // isDbLoaded는 true로 설정하여 UI는 표시하되, saveDatabase는 _dbLoading 가드로 차단
         SYNC.isDbLoaded = true;
         SYNC.setSyncStatus('오프라인', 'error');
         _initAndShow(loading, serverConfig);
@@ -89,7 +91,8 @@ async function showApp() {
 
     SYNC.loadDatabase().then(function(config) {
       if (_syncDone) {
-        // 타임아웃 이후 뒤늦게 도착 — config만 적용하고 필요 시 리렌더
+        // 타임아웃 이후 뒤늦게 도착 — DB 데이터는 이미 loadDatabase 내부에서 로컬에 적용됨
+        // (_dbLoading은 loadDatabase의 finally에서 false로 해제됨 → 대기 중이던 saveDatabase가 최신 로컬로 진행)
         if (config) {
           applyServerConfig(config);
           renderWritingGrid();
@@ -99,6 +102,15 @@ async function showApp() {
               renderExpenseDashboard(window.innerWidth > 768 ? 'pc' : 'mobile');
             }
           }
+        }
+        // 뒤늦은 서버 데이터로 UI 갱신
+        renderListPanel();
+        var cl = currentLoadedDoc;
+        if (cl && cl.type && cl.id) {
+          if (textTypes.includes(cl.type)) loadDoc(cl.type, cl.id, true);
+          else if (cl.type === 'book')  loadBook(cl.id, true);
+          else if (cl.type === 'memo')  loadMemo(cl.id, true);
+          else if (cl.type === 'quote') loadQuote(cl.id, true);
         }
         SYNC.setSyncStatus('완료됨', 'ok');
         return;

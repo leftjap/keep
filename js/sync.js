@@ -19,6 +19,7 @@ const SYNC = {
   _dbSaveQueued:  false,
   _dbRetryTimer:  null,
   _dbRetryCount:  0,
+  _dbLoading:     false,
 
   setSyncStatus(text, type) {
     const el  = document.getElementById('syncStatus');
@@ -82,6 +83,7 @@ const SYNC = {
   },
 
   async loadDatabase() {
+    this._dbLoading = true;
     try {
       const res = await this._post({ action: 'load_db' });
       if (res && res.dbData && Object.keys(res.dbData).length > 0) {
@@ -92,7 +94,6 @@ const SYNC = {
         if (db[K.memos])   S(K.memos,   db[K.memos]);
         if (db[K.checks])  S(K.checks,  db[K.checks]);
         if (db[K.expenses]) {
-          // LWW: 서버 데이터를 그대로 적용 (삭제 항목 부활 방지)
           S(K.expenses, db[K.expenses]);
         }
         if (db[K.merchantIcons]) S(K.merchantIcons, db[K.merchantIcons]);
@@ -110,19 +111,36 @@ const SYNC = {
       }
     } catch (e) {
       if (e.message === 'Unauthorized') {
-        throw e; // showApp()에서 처리
+        throw e;
       }
       this.isDbLoaded = true;
       if (e.message === 'LocalMode') this.setSyncStatus('로컬 전용', 'error');
       else this.setSyncStatus('불러오기 실패', 'error');
       console.warn('loadDatabase 실패:', e.message);
       return null;
+    } finally {
+      this._dbLoading = false;
     }
   },
 
   async saveDatabase() {
     if (!this.isDbLoaded) return;
-    // 병합 진행 중이면 3초 후 재시도 (병합이 서버 데이터를 로컬에 적용하는 중 저장하면 구 데이터로 덮어쓸 위험)
+    // loadDatabase 진행 중이면 완료까지 대기 (최대 10초)
+    if (this._dbLoading) {
+      console.log('saveDatabase: loadDatabase 진행 중 — 완료 대기');
+      var self = this;
+      var waited = 0;
+      while (self._dbLoading && waited < 10000) {
+        await new Promise(function(r) { setTimeout(r, 200); });
+        waited += 200;
+      }
+      if (self._dbLoading) {
+        console.warn('saveDatabase: loadDatabase 대기 타임아웃 (10초) — 저장 건너뜀');
+        return;
+      }
+      console.log('saveDatabase: loadDatabase 완료 — 저장 진행');
+    }
+    // 병합 진행 중이면 3초 후 재시도
     if (this._merging) {
       console.log('saveDatabase: 병합 중이므로 3초 후 재시도');
       var self = this;
@@ -130,7 +148,6 @@ const SYNC = {
       this._mergeSaveTimer = setTimeout(function() { self.saveDatabase(); }, 3000);
       return;
     }
-    // 새 저장 요청이 오면 기존 재시도를 취소 (새 호출이 최신 데이터를 보냄)
     clearTimeout(this._dbRetryTimer);
     this._dbRetryCount = 0;
     try {
@@ -512,6 +529,10 @@ const SYNC = {
   async mergeServerAll() {
     if (!this.isDbLoaded) return;
     if (this._merging) return;
+    if (this._dbLoading) {
+      console.log('mergeServerAll: loadDatabase 진행 중 — 건너뜀');
+      return;
+    }
     this._merging = true;
     try {
       var res = await this._post({ action: 'load_db' });
