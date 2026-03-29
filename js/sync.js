@@ -650,10 +650,12 @@ const SYNC = {
   // ═══ 서버 expenses 병합 (SMS 자동 반영) ═══
   async mergeServerExpenses(dbData) {
     if (!this.isDbLoaded) return;
+    // 미동기화 로컬 변경이 있으면 서버로 덮어쓰지 않음
     if (window._unsyncedLocal) {
       console.log('mergeServerExpenses: 미동기화 로컬 변경이 있어 서버 병합 건너뜀');
       return;
     }
+    // dbData가 없으면 직접 로드 (단독 호출 대비)
     if (!dbData) {
       try {
         var res = await this._post({ action: 'load_db' });
@@ -667,15 +669,17 @@ const SYNC = {
     var serverExpenses = dbData[K.expenses];
     if (!serverExpenses || !Array.isArray(serverExpenses)) return;
 
-    // ── 항목별 id 비교 병합 (docs와 동일 패턴) ──
+    // ── 항목별 id 비교 병합 (docs 병합과 동일 패턴) ──
+    // raw 배열 사용 (_deleted 포함) — getExpenses()는 _filterDeleted를 적용하므로 L() 직접 사용
     var localExpenses = L(K.expenses) || [];
+
     if (!localExpenses.length) {
       // 로컬 비어있음 → 서버 데이터 적용 (삭제 항목 제외)
       var filtered = [];
       for (var fi = 0; fi < serverExpenses.length; fi++) {
         if (!serverExpenses[fi]._deleted) filtered.push(serverExpenses[fi]);
       }
-      saveExpenses(filtered);
+      S(K.expenses, filtered);
       updateExpenseCompact();
       if (activeTab === 'expense') {
         var platform = window.innerWidth > 768 ? 'pc' : 'mobile';
@@ -696,7 +700,7 @@ const SYNC = {
       if (le) {
         // 로컬에서 삭제된 항목은 서버 데이터로 복원하지 않음
         if (le._deleted) continue;
-        // created 비교 (expenses는 updated가 없고 created 사용)
+        // created 비교 — expenses는 updated 필드가 없으므로 created 사용
         var seTime = se.created || se.date || '';
         var leTime = le.created || le.date || '';
         if (seTime && leTime && seTime > leTime) {
