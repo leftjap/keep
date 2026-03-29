@@ -1776,6 +1776,27 @@ function saveExpenseFromSMS(smsText, config) {
       expense.currency = parsed.currency;
     }
 
+    // ═══ Append-Only 시트 기록 (덮어쓰기 방지용 원본 보존) ═══
+    try {
+      if (config.cardSmsSheetId) {
+        var smsSheet = SpreadsheetApp.openById(config.cardSmsSheetId);
+        var sheet = smsSheet.getSheets()[0];
+        sheet.appendRow([
+          new Date(),           // A: 수신시각
+          smsText,              // B: SMS 원문
+          parsed.amount,        // C: 금액
+          parsed.merchant,      // D: 매출처(정제 후)
+          parsed.card,          // E: 카드명
+          category,             // F: 카테고리
+          brand || '',          // G: 브랜드
+          parsed.date,          // H: 결제일
+          parsed.time || ''     // I: 결제시각
+        ]);
+      }
+    } catch (sheetErr) {
+      console.warn('SMS 시트 기록 실패 (무시):', sheetErr);
+    }
+
     db['gb_expenses'].unshift(expense);
     file.setContent(JSON.stringify(db));
 
@@ -2437,8 +2458,17 @@ function importCardSmsSheet(email) {
       parsed.merchant = cleanMerchantName(parsed.merchant);
     }
 
-    // sent_date에서 정확한 날짜/시간 추출 (문자 안에는 연도가 없으므로)
-    if (sentDate instanceof Date) {
+    // H열(결제일)이 있으면 우선 사용, 없으면 A열(sent_date)에서 추출
+    var colH = data[i][7];  // H열: 결제일 (yyyy-MM-dd)
+    var colI = data[i][8];  // I열: 결제시각 (HH:mm)
+
+    if (colH && /^\d{4}-\d{2}-\d{2}$/.test(String(colH).trim())) {
+      // 새 형식: H열 결제일 우선
+      parsed.date = String(colH).trim();
+      if (colI && /^\d{2}:\d{2}$/.test(String(colI).trim())) {
+        parsed.time = String(colI).trim();
+      }
+    } else if (sentDate instanceof Date) {
       var y = sentDate.getFullYear();
       var m = ('0' + (sentDate.getMonth() + 1)).slice(-2);
       var d = ('0' + sentDate.getDate()).slice(-2);
