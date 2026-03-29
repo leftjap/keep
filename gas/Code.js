@@ -1383,6 +1383,8 @@ function _backupDatabaseIfNeeded(config) {
 }
 
 function saveDatabase(dbData, config) {
+  var lock = LockService.getScriptLock();
+  lock.waitLock(15000);
   try {
     var file = getDatabaseFile(config);
     var currentContent = file.getBlob().getDataAsString();
@@ -1577,6 +1579,8 @@ function saveDatabase(dbData, config) {
   } catch (e) {
     console.error("saveDatabase 에러:", e);
     return { status: 'error', message: e.toString() };
+  } finally {
+    lock.releaseLock();
   }
 }
 
