@@ -1441,6 +1441,8 @@ function saveDatabase(dbData, config) {
     }
 
     // ── 검증 4.5: 개별 항목 소실 감지 (soft delete 연동) ──
+    // 누락 3건 이하: 자동 보정 (_deleted 마킹 후 저장 허용)
+    // 누락 4건 이상: 차단 (비정상 대량 소실 가능성)
     var deletedIds = dbData._deletedIds || {};
     var collections = [
       { key: 'gb_docs',   label: 'docs',     delIds: deletedIds.docs     || [] },
@@ -1476,9 +1478,28 @@ function saveDatabase(dbData, config) {
           missingIds.push(checkId);
         }
       }
-      if (missingIds.length > 0) {
-        console.error('⚠️ saveDatabase 차단: ' + col.label + ' 개별 항목 소실 감지 (' + email + '). 누락 id: ' + missingIds.join(', '));
+      if (missingIds.length > 3) {
+        // 4건 이상 누락: 비정상 — 차단
+        console.error('⚠️ saveDatabase 차단: ' + col.label + ' 대량 항목 소실 감지 (' + email + '). 누락 ' + missingIds.length + '건, ids: ' + missingIds.slice(0, 5).join(', '));
         return { status: 'error', message: 'Integrity check failed: ' + col.label + ' item(s) missing (' + missingIds.length + ' ids: ' + missingIds.slice(0, 3).join(',') + ')' };
+      }
+      if (missingIds.length > 0) {
+        // 1~3건 누락: 자동 보정 — 서버 기존 항목을 _deleted 마킹하여 클라이언트 데이터에 병합
+        console.warn('saveDatabase 자동 보정: ' + col.label + ' ' + missingIds.length + '건 누락 → _deleted 처리 (' + email + '). ids: ' + missingIds.join(', '));
+        var nowISO = new Date().toISOString();
+        for (var ri = 0; ri < missingIds.length; ri++) {
+          var recoverId = missingIds[ri];
+          for (var fi = 0; fi < curItems.length; fi++) {
+            if (String(curItems[fi].id) === String(recoverId)) {
+              var tombstone = JSON.parse(JSON.stringify(curItems[fi]));
+              tombstone._deleted = true;
+              tombstone._deletedAt = nowISO;
+              newItems.push(tombstone);
+              break;
+            }
+          }
+        }
+        dbData[col.key] = newItems;
       }
     }
 
