@@ -230,12 +230,14 @@ const SYNC = {
       };
       await this._post({ action: 'save_db', dbData: dbData });
       localStorage.removeItem('gb_purgedIds');
+      window._unsyncedLocal = false;
       this.setSyncStatus('완료됨', 'ok');
     } catch (e) {
       if (e.message === 'Unauthorized' || e.message === 'LocalMode') {
         console.warn('saveDatabase 실패 (재시도 불가):', e.message);
         return;
       }
+      window._unsyncedLocal = true;
       console.warn('saveDatabase 실패, 재시도 예약:', e.message);
       this._scheduleDbRetry();
     }
@@ -245,6 +247,7 @@ const SYNC = {
     var delays = [5000, 15000, 45000];
     if (this._dbRetryCount >= delays.length) {
       console.warn('saveDatabase 재시도 한도 초과 (' + delays.length + '회)');
+      window._unsyncedLocal = false;
       this.setSyncStatus('저장 실패', 'error');
       return;
     }
@@ -279,6 +282,7 @@ const SYNC = {
       self._post({ action: 'save_db', dbData: dbData }).then(function() {
         self._dbRetryCount = 0;
         localStorage.removeItem('gb_purgedIds');
+        window._unsyncedLocal = false;
         console.log('saveDatabase 재시도 성공');
         self.setSyncStatus('완료됨', 'ok');
       }).catch(function(e2) {
@@ -333,6 +337,15 @@ const SYNC = {
       try {
         var token = localStorage.getItem(_LS_PREFIX + 'gb_id_token');
         if (token && this.isDbLoaded && !this._dbLoading) {
+          var deletedIds = { docs: [], books: [], memos: [], quotes: [], expenses: [] };
+          try {
+            var purged = JSON.parse(localStorage.getItem('gb_purgedIds') || '{}');
+            deletedIds.docs     = _getDeletedIds(L(K.docs)     || []).concat(purged.docs     || []);
+            deletedIds.books    = _getDeletedIds(L(K.books)    || []).concat(purged.books    || []);
+            deletedIds.memos    = _getDeletedIds(L(K.memos)    || []).concat(purged.memos    || []);
+            deletedIds.quotes   = _getDeletedIds(L(K.quotes)   || []).concat(purged.quotes   || []);
+            deletedIds.expenses = _getDeletedIds(L(K.expenses) || []).concat(purged.expenses || []);
+          } catch (e3) { /* deletedIds 구성 실패 시 빈 배열 사용 */ }
           var dbData = {
             [K.docs]:            L(K.docs)            || [],
             [K.books]:           L(K.books)           || [],
@@ -343,7 +356,8 @@ const SYNC = {
             [K.merchantIcons]:   L(K.merchantIcons)   || [],
             [K.merchantAliases]: L(K.merchantAliases) || [],
             [K.brandIcons]:      L(K.brandIcons)      || {},
-            [K.brandOverrides]:  L(K.brandOverrides)  || {}
+            [K.brandOverrides]:  L(K.brandOverrides)  || {},
+            _deletedIds: deletedIds
           };
           var payload = JSON.stringify({
             action: 'save_db',

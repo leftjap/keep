@@ -307,6 +307,12 @@ function init() {
       loadDoc(initialTab, savedId, true);
     } else if (initialDocs.length) {
       loadDoc(initialTab, initialDocs[0].id, true);
+    } else if (SYNC._dbLoading) {
+      // loadDatabase 진행 중 — 빈 문서 생성하지 않고 에디터를 비워둔다
+      // loadDatabase 완료 후 showApp의 뒤늦은 도착 핸들러에서 renderListPanel + loadDoc이 호출됨
+      console.log('init: loadDatabase 진행 중이므로 빈 문서 생성 보류');
+      document.getElementById('edTitle').value = '';
+      document.getElementById('edBody').innerHTML = '';
     } else {
       var nd = newDoc(initialTab);
       loadDoc(initialTab, nd.id, true);
