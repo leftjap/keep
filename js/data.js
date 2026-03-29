@@ -537,8 +537,8 @@ function saveCurDoc(type) {
   if (!curIds[type]) return;
   const title   = document.getElementById('edTitle').value.trim();
   const content = document.getElementById('edBody').innerHTML;
-  const docs    = allDocs();
-  const idx     = docs.findIndex(d => d.id === curIds[type]);
+  const docs    = L(K.docs) || [];
+  const idx     = docs.findIndex(d => d.id === curIds[type] && !d._deleted);
   if (idx !== -1) {
     docs[idx].title   = title;
     docs[idx].tags    = '';
