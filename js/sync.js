@@ -160,7 +160,7 @@ const SYNC = {
       if (e.message === 'Unauthorized') {
         throw e;
       }
-      this.isDbLoading = true;
+      this.isDbLoaded = true;
       if (e.message === 'LocalMode') this.setSyncStatus('로컬 전용', 'error');
       else this.setSyncStatus('불러오기 실패', 'error');
       console.warn('loadDatabase 실패:', e.message);
