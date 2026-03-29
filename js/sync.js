@@ -206,6 +206,7 @@ const SYNC = {
     clearTimeout(this._dbRetryTimer);
     this._dbRetryCount = 0;
     try {
+      var purged = JSON.parse(localStorage.getItem('gb_purgedIds') || '{}');
       var dbData = {
         [K.docs]:            L(K.docs)            || [],
         [K.books]:           L(K.books)           || [],
@@ -218,14 +219,15 @@ const SYNC = {
         [K.brandIcons]:      L(K.brandIcons)      || {},
         [K.brandOverrides]:  L(K.brandOverrides)  || {},
         _deletedIds: {
-          docs:     _getDeletedIds(L(K.docs)     || []),
-          books:    _getDeletedIds(L(K.books)    || []),
-          memos:    _getDeletedIds(L(K.memos)    || []),
-          quotes:   _getDeletedIds(L(K.quotes)   || []),
-          expenses: _getDeletedIds(L(K.expenses) || [])
+          docs:     _getDeletedIds(L(K.docs)     || []).concat(purged.docs     || []),
+          books:    _getDeletedIds(L(K.books)    || []).concat(purged.books    || []),
+          memos:    _getDeletedIds(L(K.memos)    || []).concat(purged.memos    || []),
+          quotes:   _getDeletedIds(L(K.quotes)   || []).concat(purged.quotes   || []),
+          expenses: _getDeletedIds(L(K.expenses) || []).concat(purged.expenses || [])
         }
       };
       await this._post({ action: 'save_db', dbData: dbData });
+      localStorage.removeItem('gb_purgedIds');
       this.setSyncStatus('완료됨', 'ok');
     } catch (e) {
       if (e.message === 'Unauthorized' || e.message === 'LocalMode') {
@@ -250,6 +252,7 @@ const SYNC = {
     console.log('saveDatabase 재시도 ' + self._dbRetryCount + '/' + delays.length + ' (' + (delay / 1000) + '초 후)');
     this.setSyncStatus('재시도 대기', 'error');
     this._dbRetryTimer = setTimeout(function() {
+      var purged = JSON.parse(localStorage.getItem('gb_purgedIds') || '{}');
       var dbData = {
         [K.docs]:            L(K.docs)            || [],
         [K.books]:           L(K.books)           || [],
@@ -262,15 +265,16 @@ const SYNC = {
         [K.brandIcons]:      L(K.brandIcons)      || {},
         [K.brandOverrides]:  L(K.brandOverrides)  || {},
         _deletedIds: {
-          docs:     _getDeletedIds(L(K.docs)     || []),
-          books:    _getDeletedIds(L(K.books)    || []),
-          memos:    _getDeletedIds(L(K.memos)    || []),
-          quotes:   _getDeletedIds(L(K.quotes)   || []),
-          expenses: _getDeletedIds(L(K.expenses) || [])
+          docs:     _getDeletedIds(L(K.docs)     || []).concat(purged.docs     || []),
+          books:    _getDeletedIds(L(K.books)    || []).concat(purged.books    || []),
+          memos:    _getDeletedIds(L(K.memos)    || []).concat(purged.memos    || []),
+          quotes:   _getDeletedIds(L(K.quotes)   || []).concat(purged.quotes   || []),
+          expenses: _getDeletedIds(L(K.expenses) || []).concat(purged.expenses || [])
         }
       };
       self._post({ action: 'save_db', dbData: dbData }).then(function() {
         self._dbRetryCount = 0;
+        localStorage.removeItem('gb_purgedIds');
         console.log('saveDatabase 재시도 성공');
         self.setSyncStatus('완료됨', 'ok');
       }).catch(function(e2) {

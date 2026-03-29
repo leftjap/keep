@@ -448,16 +448,43 @@ function permanentDeleteItem(source, id) {
   var items = L(key) || [];
   var newItems = items.filter(function(item) { return item.id !== id; });
   S(key, newItems);
+
+  // 영구 삭제된 id를 별도 저장 → saveDatabase에서 _deletedIds에 병합
+  var keyMap = {doc:'docs', book:'books', quote:'quotes', memo:'memos', expense:'expenses'};
+  var cat = keyMap[source];
+  var purged = JSON.parse(localStorage.getItem('gb_purgedIds') || '{}');
+  if (!purged[cat]) purged[cat] = [];
+  if (purged[cat].indexOf(String(id)) === -1) purged[cat].push(String(id));
+  localStorage.setItem('gb_purgedIds', JSON.stringify(purged));
+
   SYNC.scheduleDatabaseSave();
 }
 
 function emptyAllTrash() {
-  var keys = [K.docs, K.books, K.quotes, K.memos, K.expenses];
-  for (var k = 0; k < keys.length; k++) {
-    var items = L(keys[k]) || [];
-    var newItems = items.filter(function(item) { return !item._deleted; });
-    S(keys[k], newItems);
+  var keyMap = [
+    { key: K.docs, cat: 'docs' },
+    { key: K.books, cat: 'books' },
+    { key: K.quotes, cat: 'quotes' },
+    { key: K.memos, cat: 'memos' },
+    { key: K.expenses, cat: 'expenses' }
+  ];
+  var purged = JSON.parse(localStorage.getItem('gb_purgedIds') || '{}');
+  for (var k = 0; k < keyMap.length; k++) {
+    var items = L(keyMap[k].key) || [];
+    if (!purged[keyMap[k].cat]) purged[keyMap[k].cat] = [];
+    var newItems = [];
+    for (var i = 0; i < items.length; i++) {
+      if (items[i]._deleted) {
+        if (purged[keyMap[k].cat].indexOf(String(items[i].id)) === -1) {
+          purged[keyMap[k].cat].push(String(items[i].id));
+        }
+      } else {
+        newItems.push(items[i]);
+      }
+    }
+    S(keyMap[k].key, newItems);
   }
+  localStorage.setItem('gb_purgedIds', JSON.stringify(purged));
   SYNC.scheduleDatabaseSave();
 }
 
