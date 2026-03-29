@@ -89,64 +89,64 @@ const SYNC = {
       if (res && res.dbData && Object.keys(res.dbData).length > 0) {
         const db = res.dbData;
 
-        // ── 항목별 merge (로컬에만 있는 신규 항목 보존) ──
-        var arrayKeys = [K.docs, K.books, K.quotes, K.memos];
-        for (var ki = 0; ki < arrayKeys.length; ki++) {
-          var key = arrayKeys[ki];
-          var serverItems = db[key];
+        // ── merge 대상: docs, books, quotes, memos ──
+        // 항목별 id + updated 비교. 로컬에만 있는 항목(미 push 신규)을 보존한다.
+        var mergeKeys = [
+          { key: K.docs,   getter: function() { return L(K.docs)   || []; }, saver: function(v) { S(K.docs, v);   } },
+          { key: K.books,  getter: function() { return L(K.books)  || []; }, saver: function(v) { S(K.books, v);  } },
+          { key: K.quotes, getter: function() { return L(K.quotes) || []; }, saver: function(v) { S(K.quotes, v); } },
+          { key: K.memos,  getter: function() { return L(K.memos)  || []; }, saver: function(v) { S(K.memos, v);  } }
+        ];
+
+        for (var mi = 0; mi < mergeKeys.length; mi++) {
+          var mk = mergeKeys[mi];
+          var serverItems = db[mk.key];
           if (!serverItems || !Array.isArray(serverItems)) continue;
 
-          var localItems = L(key) || [];
-          if (!localItems.length) {
-            // 로컬이 비어있으면 서버 데이터 그대로 적용 (첫 설치)
-            S(key, serverItems);
+          var localItems = mk.getter();
+          if (!localItems || !Array.isArray(localItems) || localItems.length === 0) {
+            // 로컬이 비어있으면 서버 데이터를 그대로 적용 (첫 설치)
+            mk.saver(serverItems);
             continue;
           }
 
-          // 서버 항목을 id로 맵핑
-          var serverMap = {};
-          for (var si = 0; si < serverItems.length; si++) {
-            serverMap[serverItems[si].id] = serverItems[si];
-          }
-
-          // 로컬 항목을 id로 맵핑
           var localMap = {};
           for (var li = 0; li < localItems.length; li++) {
             localMap[localItems[li].id] = localItems[li];
           }
 
-          var merged = [];
-
-          // 1. 서버 항목 순회: 로컬에도 있으면 최신 것 사용, 로컬에 없으면 서버 것 추가
-          for (var sj = 0; sj < serverItems.length; sj++) {
-            var sd = serverItems[sj];
-            var ld = localMap[sd.id];
-            if (ld) {
-              var sTime = sd.updated || sd.date || sd.created || '';
-              var lTime = ld.updated || ld.date || ld.created || '';
-              merged.push(sTime >= lTime ? sd : ld);
+          var merged = false;
+          // 서버 항목 순회: 로컬에 같은 id가 있으면 updated 비교, 없으면 추가
+          for (var si = 0; si < serverItems.length; si++) {
+            var sv = serverItems[si];
+            var lv = localMap[sv.id];
+            if (lv) {
+              var svTime = sv.updated || sv.created || sv.date || '';
+              var lvTime = lv.updated || lv.created || lv.date || '';
+              if (svTime && lvTime && svTime > lvTime) {
+                Object.assign(lv, sv);
+                merged = true;
+              }
             } else {
-              merged.push(sd);
+              // 서버에만 있는 항목 (다른 기기에서 작성) → 로컬에 추가
+              localItems.push(sv);
+              localMap[sv.id] = sv;
+              merged = true;
             }
           }
 
-          // 2. 로컬에만 있는 항목 보존 (서버에 아직 push 안 된 신규 항목)
-          for (var lj = 0; lj < localItems.length; lj++) {
-            if (!serverMap[localItems[lj].id]) {
-              merged.push(localItems[lj]);
-            }
-          }
-
-          S(key, merged);
+          // 로컬에만 있는 항목은 localItems에 이미 남아 있으므로 별도 처리 불요
+          mk.saver(localItems);
         }
 
-        // ── 비배열 데이터: 서버 데이터로 교체 (checks, expenses, icons 등) ──
-        if (db[K.checks])  S(K.checks,  db[K.checks]);
-        if (db[K.expenses]) S(K.expenses, db[K.expenses]);
-        if (db[K.merchantIcons]) S(K.merchantIcons, db[K.merchantIcons]);
-        if (db[K.merchantAliases]) S(K.merchantAliases, db[K.merchantAliases]);
-        if (db[K.brandIcons]) S(K.brandIcons, db[K.brandIcons]);
-        if (db[K.brandOverrides]) S(K.brandOverrides, db[K.brandOverrides]);
+        // ── 교체 대상: checks, expenses, icons ──
+        // 항목별 id가 없거나 merge 불필요한 데이터는 기존대로 서버 데이터로 교체
+        if (db[K.checks])           S(K.checks,           db[K.checks]);
+        if (db[K.expenses])         S(K.expenses,         db[K.expenses]);
+        if (db[K.merchantIcons])    S(K.merchantIcons,    db[K.merchantIcons]);
+        if (db[K.merchantAliases])  S(K.merchantAliases,  db[K.merchantAliases]);
+        if (db[K.brandIcons])       S(K.brandIcons,       db[K.brandIcons]);
+        if (db[K.brandOverrides])   S(K.brandOverrides,   db[K.brandOverrides]);
 
         this.isDbLoaded = true;
         this.setSyncStatus('동기화 완료', 'ok');
@@ -160,7 +160,7 @@ const SYNC = {
       if (e.message === 'Unauthorized') {
         throw e;
       }
-      this.isDbLoaded = true;
+      this.isDbLoading = true;
       if (e.message === 'LocalMode') this.setSyncStatus('로컬 전용', 'error');
       else this.setSyncStatus('불러오기 실패', 'error');
       console.warn('loadDatabase 실패:', e.message);

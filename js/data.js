@@ -358,6 +358,7 @@ function _softDelete(items, id) {
     if (items[i].id === id) {
       items[i]._deleted = true;
       items[i]._deletedAt = new Date().toISOString();
+      items[i].updated = new Date().toISOString();
       break;
     }
   }
