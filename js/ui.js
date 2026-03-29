@@ -197,6 +197,10 @@ function enterTrashMode() {
   document.getElementById('pane-expense-dashboard').style.display = 'none';
   document.getElementById('pane-expense-detail').style.display = 'none';
 
+  // 자동저장 타이머 취소 + dirty 플래그 리셋 (플레이스홀더가 문서로 저장되는 것을 방지)
+  clearTimeout(_at);
+  window._editorDirty = false;
+
   // 에디터 비우기
   document.getElementById('editorText').style.display = 'flex';
   document.getElementById('editorBook').style.display = 'none';
@@ -208,7 +212,7 @@ function enterTrashMode() {
   var fullDb = document.getElementById('expenseFullDashboard');
   if (fullDb) fullDb.style.display = 'none';
   document.getElementById('edTitle').value = '';
-  document.getElementById('edBody').innerHTML = '<div style="text-align:center;padding:80px 20px;color:var(--tx-hint);font-size:14px;">항목을 선택하면 내용을 미리 볼 수 있습니다</div>';
+  document.getElementById('edBody').innerHTML = '';
 
   renderListPanel();
 }
@@ -229,6 +233,12 @@ function exitTrashMode() {
   if (newBtn) newBtn.style.display = '';
   if (moreBtn) moreBtn.style.display = '';
   if (aaBtn) aaBtn.style.display = '';
+
+  // 에디터를 비우고 switchTab의 saveCurDoc을 1회 건너뜀
+  // (휴지통 모드 중 비워진 edBody가 문서 content로 저장되는 것을 방지)
+  document.getElementById('edTitle').value = '';
+  document.getElementById('edBody').innerHTML = '';
+  window._skipNextSave = true;
 
   switchTab(activeTab, true);
 }
@@ -305,6 +315,10 @@ function switchTab(t, keepLayout) {
   hideComments();
   if (_trashMode) _trashMode = false;
 
+  // 휴지통 모드에서 복귀 시 saveCurDoc 1회 건너뜀 (빈 edBody가 문서에 덮어쓰이는 것 방지)
+  var skipSave = window._skipNextSave;
+  window._skipNextSave = false;
+
   // 파트너 모드: 저장 없이 탭만 전환하고 상대방 데이터 렌더
   if (_partnerMode) {
     if (t === 'expense') {
@@ -330,7 +344,7 @@ function switchTab(t, keepLayout) {
     }
   }
 
-  if (textTypes.includes(activeTab)) saveCurDoc(activeTab);
+  if (!skipSave && textTypes.includes(activeTab)) saveCurDoc(activeTab);
   // 태블릿: topbar-fixed 버튼은 body에 유지
   activeTab = t;
   _saveActiveTab();
