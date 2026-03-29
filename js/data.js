@@ -349,8 +349,47 @@ function cleanMerchantName(merchant) {
   return m;
 }
 
+// ═══ Soft Delete 공통 ═══
+// 삭제된 항목은 _deleted: true, _deletedAt: ISO timestamp로 표시하고 30일 후 자동 정리
+// saveDatabase 시 서버가 누락 id를 정상 삭제로 인식할 수 있도록 _deletedIds를 전달
+
+function _softDelete(items, id) {
+  for (var i = 0; i < items.length; i++) {
+    if (items[i].id === id) {
+      items[i]._deleted = true;
+      items[i]._deletedAt = new Date().toISOString();
+      break;
+    }
+  }
+  return items;
+}
+
+function _filterDeleted(items) {
+  return items.filter(function(item) { return !item._deleted; });
+}
+
+function _purgeExpired(items, days) {
+  if (!days) days = 30;
+  var cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - days);
+  var cutoffISO = cutoff.toISOString();
+  return items.filter(function(item) {
+    if (!item._deleted) return true;
+    if (!item._deletedAt) return false;
+    return item._deletedAt > cutoffISO;
+  });
+}
+
+function _getDeletedIds(items) {
+  var ids = [];
+  for (var i = 0; i < items.length; i++) {
+    if (items[i]._deleted) ids.push(items[i].id);
+  }
+  return ids;
+}
+
 // ═══ Documents ═══
-function allDocs()        { return L(K.docs) || []; }
+function allDocs()        { return _filterDeleted(L(K.docs) || []); }
 function getDocs(type)    { return allDocs().filter(d => d.type === type); }
 function saveDocs(docs)   { S(K.docs, docs); }
 
@@ -416,13 +455,15 @@ function saveCurDoc(type) {
 function delDoc(type, id, e) {
   e.stopPropagation();
   if (!confirm('삭제할까요?')) return;
-  saveDocs(allDocs().filter(d => d.id !== id));
+  var docs = L(K.docs) || [];
+  _softDelete(docs, id);
+  saveDocs(docs);
   if (curIds[type] === id) { curIds[type] = null; currentLoadedDoc = { type: null, id: null }; }
   renderListPanel();
   SYNC.scheduleDatabaseSave();
-  const docs = getDocs(type);
-  if (docs.length) loadDoc(type, docs[0].id, true);
-  else { const nd = newDoc(type); loadDoc(type, nd.id, true); }
+  var visibleDocs = getDocs(type);
+  if (visibleDocs.length) loadDoc(type, visibleDocs[0].id, true);
+  else { var nd = newDoc(type); loadDoc(type, nd.id, true); }
 }
 
 function updateWC() {
@@ -430,7 +471,7 @@ function updateWC() {
 }
 
 // ═══ Books ═══
-function getBooks()       { return L(K.books) || []; }
+function getBooks()       { return _filterDeleted(L(K.books) || []); }
 function saveBooks(b)     { S(K.books, b); }
 
 function newBook() {
@@ -495,7 +536,9 @@ function loadBook(id, force = false) {
 function delBook(id, e) {
   e.stopPropagation();
   if (!confirm('삭제할까요?')) return;
-  saveBooks(getBooks().filter(b => b.id !== id));
+  var books = L(K.books) || [];
+  _softDelete(books, id);
+  saveBooks(books);
   if (curBookId === id) { curBookId = null; currentLoadedDoc = { type: null, id: null }; }
   renderListPanel();
   updateBookStats();
@@ -517,7 +560,7 @@ function updateBookStats() {
 }
 
 // ═══ Quotes ═══
-function getQuotes()      { return L(K.quotes) || []; }
+function getQuotes()      { return _filterDeleted(L(K.quotes) || []); }
 function saveQuotes(q)    { S(K.quotes, q); }
 
 function saveQuote() {
@@ -562,7 +605,9 @@ function loadQuote(id, force = false) {
 function delQuote(id, e) {
   e.stopPropagation();
   if (!confirm('삭제할까요?')) return;
-  saveQuotes(getQuotes().filter(q => q.id !== id));
+  var quotes = L(K.quotes) || [];
+  _softDelete(quotes, id);
+  saveQuotes(quotes);
   if (curQuoteId === id) { curQuoteId = null; currentLoadedDoc = { type: null, id: null }; }
   renderListPanel();
   showRandomQuote();
@@ -584,7 +629,7 @@ function showRandomQuote() {
 }
 
 // ═══ Memos ═══
-function getMemos()       { return L(K.memos) || []; }
+function getMemos()       { return _filterDeleted(L(K.memos) || []); }
 function saveMemos(m)     { S(K.memos, m); }
 
 function saveMemo() {
@@ -644,7 +689,9 @@ function newMemoForm() {
 function delMemo(id, e) {
   e.stopPropagation();
   if (!confirm('삭제할까요?')) return;
-  saveMemos(getMemos().filter(m => m.id !== id));
+  var memos = L(K.memos) || [];
+  _softDelete(memos, id);
+  saveMemos(memos);
   if (curMemoId === id) { curMemoId = null; currentLoadedDoc = { type: null, id: null }; }
   renderListPanel();
   SYNC.scheduleDatabaseSave();
@@ -699,9 +746,9 @@ function togglePin(type, id, e) {
 // ═══════════════════════════════════════
 function getExpenses() {
   if (_partnerMode && _partnerData && _partnerData.dbData) {
-    return _partnerData.dbData[K.expenses] || [];
+    return _filterDeleted(_partnerData.dbData[K.expenses] || []);
   }
-  return L(K.expenses) || [];
+  return _filterDeleted(L(K.expenses) || []);
 }
 
 function saveExpenses(arr) {
@@ -769,7 +816,9 @@ function updateExpense(id, data) {
 }
 
 function delExpense(id) {
-  saveExpenses(getExpenses().filter(e => e.id !== id));
+  var expenses = L(K.expenses) || [];
+  _softDelete(expenses, id);
+  saveExpenses(expenses);
 }
 
 // ═══════════════════════════════════════

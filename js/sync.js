@@ -161,7 +161,14 @@ const SYNC = {
         [K.merchantIcons]:   L(K.merchantIcons)   || [],
         [K.merchantAliases]: L(K.merchantAliases) || [],
         [K.brandIcons]:      L(K.brandIcons)      || {},
-        [K.brandOverrides]:  L(K.brandOverrides)  || {}
+        [K.brandOverrides]:  L(K.brandOverrides)  || {},
+        _deletedIds: {
+          docs:     _getDeletedIds(L(K.docs)     || []),
+          books:    _getDeletedIds(L(K.books)    || []),
+          memos:    _getDeletedIds(L(K.memos)    || []),
+          quotes:   _getDeletedIds(L(K.quotes)   || []),
+          expenses: _getDeletedIds(L(K.expenses) || [])
+        }
       };
       await this._post({ action: 'save_db', dbData: dbData });
       this.setSyncStatus('완료됨', 'ok');
@@ -198,7 +205,14 @@ const SYNC = {
         [K.merchantIcons]:   L(K.merchantIcons)   || [],
         [K.merchantAliases]: L(K.merchantAliases) || [],
         [K.brandIcons]:      L(K.brandIcons)      || {},
-        [K.brandOverrides]:  L(K.brandOverrides)  || {}
+        [K.brandOverrides]:  L(K.brandOverrides)  || {},
+        _deletedIds: {
+          docs:     _getDeletedIds(L(K.docs)     || []),
+          books:    _getDeletedIds(L(K.books)    || []),
+          memos:    _getDeletedIds(L(K.memos)    || []),
+          quotes:   _getDeletedIds(L(K.quotes)   || []),
+          expenses: _getDeletedIds(L(K.expenses) || [])
+        }
       };
       self._post({ action: 'save_db', dbData: dbData }).then(function() {
         self._dbRetryCount = 0;

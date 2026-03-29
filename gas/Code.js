@@ -1350,9 +1350,9 @@ function _backupDatabaseIfNeeded(config) {
       folder.createFile(backupName, content, MimeType.PLAIN_TEXT);
     }
 
-    // 7일 이전 백업 삭제
+    // 30일 이전 백업 삭제
     var cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.getDate() - 7);
+    cutoffDate.setDate(cutoffDate.getDate() - 30);
     var cutoffStr = Utilities.formatDate(cutoffDate, 'Asia/Seoul', 'yyyy-MM-dd');
 
     var allFiles = folder.getFiles();
@@ -1440,6 +1440,48 @@ function saveDatabase(dbData, config) {
       return { status: 'error', message: 'Integrity check failed: quotes count drop (' + curQuotes.length + ' → ' + newQuotes.length + ')' };
     }
 
+    // ── 검증 4.5: 개별 항목 소실 감지 (soft delete 연동) ──
+    var deletedIds = dbData._deletedIds || {};
+    var collections = [
+      { key: 'gb_docs',   label: 'docs',     delIds: deletedIds.docs     || [] },
+      { key: 'gb_books',  label: 'books',    delIds: deletedIds.books    || [] },
+      { key: 'gb_memos',  label: 'memos',    delIds: deletedIds.memos   || [] },
+      { key: 'gb_quotes', label: 'quotes',   delIds: deletedIds.quotes  || [] }
+    ];
+    for (var ci = 0; ci < collections.length; ci++) {
+      var col = collections[ci];
+      var curItems = currentDb[col.key] || [];
+      var newItems = dbData[col.key] || [];
+      // 기존 DB에서 _deleted가 아닌 항목의 id 집합
+      var curActiveIds = {};
+      for (var ai = 0; ai < curItems.length; ai++) {
+        if (!curItems[ai]._deleted) curActiveIds[curItems[ai].id] = true;
+      }
+      // 새 DB에서 모든 항목의 id 집합 (_deleted 포함)
+      var newAllIds = {};
+      for (var ni = 0; ni < newItems.length; ni++) {
+        newAllIds[newItems[ni].id] = true;
+      }
+      // soft delete로 삭제된 id 집합
+      var delIdSet = {};
+      for (var di = 0; di < col.delIds.length; di++) {
+        delIdSet[col.delIds[di]] = true;
+      }
+      // 기존 활성 id 중 새 DB에도 없고 deletedIds에도 없는 것 = 비정상 소실
+      var missingIds = [];
+      var activeIdKeys = Object.keys(curActiveIds);
+      for (var mi = 0; mi < activeIdKeys.length; mi++) {
+        var checkId = activeIdKeys[mi];
+        if (!newAllIds[checkId] && !delIdSet[checkId]) {
+          missingIds.push(checkId);
+        }
+      }
+      if (missingIds.length > 0) {
+        console.error('⚠️ saveDatabase 차단: ' + col.label + ' 개별 항목 소실 감지 (' + email + '). 누락 id: ' + missingIds.join(', '));
+        return { status: 'error', message: 'Integrity check failed: ' + col.label + ' item(s) missing (' + missingIds.length + ' ids: ' + missingIds.slice(0, 3).join(',') + ')' };
+      }
+    }
+
     // ── 검증 5: 카드 교차 오염 감지 ──
     if (newExpenses.length > 0) {
       var OWNER_CARDS = {
@@ -1478,6 +1520,29 @@ function saveDatabase(dbData, config) {
 
     // ★ 검증 통과 — 백업 후 저장
     _backupDatabaseIfNeeded(config);
+
+    // _deletedIds는 검증용이므로 저장 데이터에서 제거
+    delete dbData._deletedIds;
+
+    // 30일 지난 soft delete 항목 정리
+    var purgeCutoff = new Date();
+    purgeCutoff.setDate(purgeCutoff.getDate() - 30);
+    var purgeCutoffISO = purgeCutoff.toISOString();
+    var purgeKeys = ['gb_docs', 'gb_books', 'gb_memos', 'gb_quotes', 'gb_expenses'];
+    for (var pk = 0; pk < purgeKeys.length; pk++) {
+      var pKey = purgeKeys[pk];
+      if (dbData[pKey] && Array.isArray(dbData[pKey])) {
+        var beforeLen = dbData[pKey].length;
+        dbData[pKey] = dbData[pKey].filter(function(item) {
+          if (!item._deleted) return true;
+          if (!item._deletedAt) return false;
+          return item._deletedAt > purgeCutoffISO;
+        });
+        var purged = beforeLen - dbData[pKey].length;
+        if (purged > 0) console.log(pKey + ': ' + purged + '건 만료 삭제 정리');
+      }
+    }
+
     file.setContent(JSON.stringify(dbData));
 
     // 캐시 갱신
