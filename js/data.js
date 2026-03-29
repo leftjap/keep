@@ -500,7 +500,7 @@ function newDoc(type) {
     lat: null, lng: null,
     created: new Date().toISOString(), updated: new Date().toISOString(), pinned: false
   };
-  const docs = allDocs();
+  const docs = L(K.docs) || [];
   docs.unshift(doc);
   saveDocs(docs);
   return doc;
@@ -599,9 +599,9 @@ function saveBook() {
     updated:   new Date().toISOString(),
     pinned:    false
   };
-  const books = getBooks();
+  const books = L(K.books) || [];
   if (curBookId) {
-    const idx = books.findIndex(x => x.id === curBookId);
+    const idx = books.findIndex(x => x.id === curBookId && !x._deleted);
     if (idx !== -1) { b.pinned = books[idx].pinned; b.driveId = books[idx].driveId; books[idx] = b; }
   } else {
     books.unshift(b);
@@ -667,9 +667,9 @@ function saveQuote() {
   const text = document.getElementById('quote-body').innerText.trim();
   if (!text) return;
   const by     = document.getElementById('quote-by').value.trim();
-  const quotes = getQuotes();
+  const quotes = L(K.quotes) || [];
   if (curQuoteId) {
-    const idx = quotes.findIndex(q => q.id === curQuoteId);
+    const idx = quotes.findIndex(q => q.id === curQuoteId && !q._deleted);
     if (idx !== -1) { quotes[idx].text = text; quotes[idx].by = by; quotes[idx].updated = new Date().toISOString(); }
   } else {
     const q = { id: Date.now().toString(), text, by, created: new Date().toISOString(), updated: new Date().toISOString(), pinned: false };
@@ -736,9 +736,9 @@ function saveMemo() {
   const title = document.getElementById('memo-title').value.trim();
   const body  = document.getElementById('memo-body').innerHTML;
   if (!title && !stripHtml(body).trim()) return;
-  const memos = getMemos();
+  const memos = L(K.memos) || [];
   if (curMemoId) {
-    const idx = memos.findIndex(m => m.id === curMemoId);
+    const idx = memos.findIndex(m => m.id === curMemoId && !m._deleted);
     if (idx !== -1) {
       memos[idx].title   = title;
       memos[idx].tags    = '';
@@ -830,8 +830,8 @@ function togglePin(type, id, e) {
   let items = type === 'memo'  ? (L(K.memos)  || [])
             : type === 'book'  ? (L(K.books)  || [])
             : type === 'quote' ? (L(K.quotes) || [])
-            : allDocs();
-  const idx = items.findIndex(x => x.id === id);
+            : (L(K.docs) || []);
+  const idx = items.findIndex(x => x.id === id && !x._deleted);
   if (idx !== -1) items[idx].pinned = !items[idx].pinned;
   if (type === 'memo')       S(K.memos,  items);
   else if (type === 'book')  S(K.books,  items);
