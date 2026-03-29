@@ -6078,3 +6078,179 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 .expense-date-value.expense-date-editable:active {
   color: #E55643;
 }
+
+/* ═══ 휴지통 ═══ */
+.trash-section {
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: background .15s;
+}
+.trash-section:hover {
+  background: rgba(0,0,0,.04);
+}
+.trash-compact {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.trash-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: var(--tx-hint);
+}
+.trash-label {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--tx-m);
+}
+.trash-badge {
+  margin-left: auto;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: var(--tx-hint);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: 'Pretendard', -apple-system, sans-serif;
+  line-height: 20px;
+  text-align: center;
+}
+
+/* 다크 사이드바 — 휴지통 */
+@media (max-width: 768px) {
+  .side .trash-section { padding: 12px 20px; }
+  .side .trash-section:hover { background: rgba(255,255,255,.06); }
+  .side .trash-icon { color: rgba(255,255,255,.4); }
+  .side .trash-label { color: rgba(255,255,255,.5); font-size: 16px; }
+  .side .trash-badge { background: rgba(255,255,255,.2); }
+}
+@media (min-width: 769px) and (max-width: 1400px) {
+  .side .trash-section { padding: 12px 16px; }
+  .side .trash-section:hover { background: rgba(255,255,255,.06); }
+  .side .trash-icon { color: rgba(255,255,255,.4); }
+  .side .trash-label { color: rgba(255,255,255,.5); font-size: 16px; }
+  .side .trash-badge { background: rgba(255,255,255,.2); }
+}
+@media (min-width: 1401px) {
+  .side .trash-section { padding: 12px 16px !important; }
+  .side .trash-section:hover { background: rgba(255,255,255,.06) !important; }
+  .side .trash-icon { color: rgba(255,255,255,.4) !important; }
+  .side .trash-label { color: rgba(255,255,255,.5) !important; font-size: 16px !important; }
+  .side .trash-badge { background: rgba(255,255,255,.2) !important; }
+}
+
+/* 휴지통 리스트 항목 */
+.trash-item {
+  display: flex;
+  flex-direction: column;
+  padding: 14px 16px 12px;
+  gap: 4px;
+  border-bottom: 1px solid var(--border-l);
+  background: var(--bg-white);
+}
+.trash-item-title {
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--tx);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.trash-item-meta {
+  font-size: 12px;
+  color: var(--tx-hint);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.trash-item-type {
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(0,0,0,.05);
+  color: var(--tx-m);
+  font-weight: 500;
+}
+.trash-item-days {
+  color: var(--red);
+  font-weight: 500;
+}
+.trash-item-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+.trash-restore-btn,
+.trash-perma-del-btn {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: none;
+  font-size: 13px;
+  font-family: 'Pretendard', sans-serif;
+  cursor: pointer;
+  transition: .12s;
+}
+.trash-restore-btn {
+  color: var(--tab-color);
+  border-color: var(--tab-color);
+}
+.trash-restore-btn:hover {
+  background: color-mix(in srgb, var(--tab-color) 8%, transparent);
+}
+.trash-perma-del-btn {
+  color: var(--tx-hint);
+}
+.trash-perma-del-btn:hover {
+  color: var(--red);
+  border-color: var(--red);
+}
+.trash-empty-all-wrap {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-l);
+  display: flex;
+  justify-content: flex-end;
+}
+.trash-empty-all-btn {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: none;
+  font-size: 13px;
+  color: var(--tx-hint);
+  cursor: pointer;
+  font-family: 'Pretendard', sans-serif;
+  transition: .12s;
+}
+.trash-empty-all-btn:hover {
+  color: var(--red);
+  border-color: var(--red);
+}
+.trash-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  height: 34px;
+  min-height: 34px;
+  position: sticky;
+  top: 0;
+  background: var(--bg-white);
+  z-index: 5;
+  border-bottom: 1px solid var(--border-l);
+  flex-shrink: 0;
+}
+.trash-header-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tx-hint);
+  letter-spacing: .3px;
+}
+@media (max-width: 768px) {
+  .trash-item { padding: 14px 20px 12px; }
+  .trash-empty-all-wrap { padding: 12px 20px; }
+  .trash-header { padding: 0 20px; }
+}

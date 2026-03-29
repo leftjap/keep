@@ -10,6 +10,8 @@ const TAB_COLORS = {
   book: '#7E9CF4', quote: '#C49ADE',   memo: '#B0B0B8'
 };
 
+let _trashMode = false;
+
 function applyTabColor(tabId) {
   document.documentElement.style.setProperty('--tab-color', '#E55643');
 }
@@ -137,11 +139,159 @@ function renderWritingGrid() {
       <svg class="side-arrow" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
     </div>`;
   }).join('');
+  updateTrashBadge();
 }
 
 function updateEdTabLabel() {
   const label = document.getElementById('edTabLabel');
   if (label) label.textContent = TAB_META[activeTab] || '';
+}
+
+function enterTrashMode() {
+  if (_partnerMode) return;
+  _trashMode = true;
+
+  // 사이드바 닫기 (모바일)
+  var w = window.innerWidth;
+  if (w <= 768) {
+    var app = document.getElementById('mainApp');
+    app.classList.remove('view-side');
+    app.classList.add('view-list');
+  } else if (w >= 769 && w <= 1400) {
+    document.getElementById('mainApp').classList.remove('tablet-side-open');
+  }
+
+  // 사이드바 메뉴 활성 해제
+  document.querySelectorAll('.side-menu').forEach(function(m) { m.classList.remove('on'); });
+  var expCompact = document.querySelector('.expense-compact');
+  if (expCompact) expCompact.classList.remove('on');
+
+  // 뷰 스위처 숨기기
+  var vs = document.getElementById('viewSwitcher');
+  if (vs) vs.style.display = 'none';
+  var searchBtn = document.querySelector('.lp-search-btn');
+  if (searchBtn) searchBtn.style.display = 'none';
+
+  // FAB 숨기기
+  var fab = document.querySelector('.fab-btn');
+  if (fab) fab.style.display = 'none';
+
+  // 에디터 새글/더보기/Aa 숨기기
+  var newBtn = document.querySelector('.ed-new-btn');
+  var moreBtn = document.querySelector('.ed-more-btn');
+  var aaBtn = document.querySelector('.ed-aa-btn');
+  if (newBtn) newBtn.style.display = 'none';
+  if (moreBtn) moreBtn.style.display = 'none';
+  if (aaBtn) aaBtn.style.display = 'none';
+
+  // 탭 라벨
+  var tabLabel = document.getElementById('edTabLabel');
+  if (tabLabel) tabLabel.textContent = '휴지통';
+
+  // pane 전환
+  document.getElementById('pane-list').style.display = 'flex';
+  document.getElementById('pane-photo').style.display = 'none';
+  document.getElementById('pane-calendar').style.display = 'none';
+  var routinePane = document.getElementById('pane-routine');
+  if (routinePane) routinePane.style.display = 'none';
+  document.getElementById('pane-expense-dashboard').style.display = 'none';
+  document.getElementById('pane-expense-detail').style.display = 'none';
+
+  // 에디터 비우기
+  document.getElementById('editorText').style.display = 'flex';
+  document.getElementById('editorBook').style.display = 'none';
+  document.getElementById('editorQuote').style.display = 'none';
+  document.getElementById('editorMemo').style.display = 'none';
+  document.getElementById('editorExpense').style.display = 'none';
+  var dayList = document.getElementById('editorDayList');
+  if (dayList) dayList.style.display = 'none';
+  var fullDb = document.getElementById('expenseFullDashboard');
+  if (fullDb) fullDb.style.display = 'none';
+  document.getElementById('edTitle').value = '';
+  document.getElementById('edBody').innerHTML = '<div style="text-align:center;padding:80px 20px;color:var(--tx-hint);font-size:14px;">항목을 선택하면 내용을 미리 볼 수 있습니다</div>';
+
+  renderListPanel();
+}
+
+function exitTrashMode() {
+  _trashMode = false;
+
+  // UI 복원
+  var vs = document.getElementById('viewSwitcher');
+  if (vs) vs.style.display = 'flex';
+  var searchBtn = document.querySelector('.lp-search-btn');
+  if (searchBtn) searchBtn.style.display = '';
+  var fab = document.querySelector('.fab-btn');
+  if (fab) fab.style.display = '';
+  var newBtn = document.querySelector('.ed-new-btn');
+  var moreBtn = document.querySelector('.ed-more-btn');
+  var aaBtn = document.querySelector('.ed-aa-btn');
+  if (newBtn) newBtn.style.display = '';
+  if (moreBtn) moreBtn.style.display = '';
+  if (aaBtn) aaBtn.style.display = '';
+
+  switchTab(activeTab, true);
+}
+
+function renderTrashList() {
+  var el = document.getElementById('pane-list');
+  var items = _getAllDeletedItems();
+
+  if (!items.length) {
+    el.innerHTML = '<div style="text-align:center;padding:80px 20px;color:var(--tx-hint);font-size:15px">휴지통이 비어 있습니다</div>';
+    return;
+  }
+
+  var html = '<div class="trash-header"><span class="trash-header-title">삭제된 항목 · ' + items.length + '건</span></div>';
+  html += '<div class="trash-empty-all-wrap"><button class="trash-empty-all-btn" onclick="if(confirm(\'휴지통을 비울까요? 복원할 수 없습니다.\')){emptyAllTrash();renderListPanel();}">모두 비우기</button></div>';
+
+  for (var i = 0; i < items.length; i++) {
+    var entry = items[i];
+    var item = entry.item;
+    var source = entry._source;
+    var typeLabel = TAB_META[entry._sourceType] || entry._sourceType;
+    var title = item.title || item.text || item.merchant || '제목 없음';
+    if (title.length > 40) title = title.slice(0, 40) + '…';
+
+    var daysLeft = 30;
+    if (item._deletedAt) {
+      var deletedDate = new Date(item._deletedAt);
+      var now = new Date();
+      var elapsed = Math.floor((now - deletedDate) / (1000 * 60 * 60 * 24));
+      daysLeft = Math.max(0, 30 - elapsed);
+    }
+
+    var deletedTimeStr = item._deletedAt ? getRelativeTime(item._deletedAt) : '';
+
+    html += '<div class="trash-item">';
+    html += '<div class="trash-item-title">' + escapeHtml(title) + '</div>';
+    html += '<div class="trash-item-meta">';
+    html += '<span class="trash-item-type">' + escapeHtml(typeLabel) + '</span>';
+    html += '<span>' + deletedTimeStr + ' 삭제</span>';
+    if (daysLeft <= 7) {
+      html += '<span class="trash-item-days">' + daysLeft + '일 후 자동 삭제</span>';
+    }
+    html += '</div>';
+    html += '<div class="trash-item-actions">';
+    html += '<button class="trash-restore-btn" onclick="event.stopPropagation();restoreDeletedItem(\'' + source + '\',\'' + item.id + '\');renderListPanel();updateTrashBadge();">복원</button>';
+    html += '<button class="trash-perma-del-btn" onclick="event.stopPropagation();if(confirm(\'영구 삭제할까요?\')){permanentDeleteItem(\'' + source + '\',\'' + item.id + '\');renderListPanel();updateTrashBadge();}">영구 삭제</button>';
+    html += '</div>';
+    html += '</div>';
+  }
+
+  el.innerHTML = html;
+}
+
+function updateTrashBadge() {
+  var badge = document.getElementById('trashBadge');
+  if (!badge) return;
+  var count = _getAllDeletedItems().length;
+  if (count > 0) {
+    badge.textContent = count > 99 ? '99+' : String(count);
+    badge.style.display = '';
+  } else {
+    badge.style.display = 'none';
+  }
 }
 
 window.addEventListener('resize', () => {
@@ -153,6 +303,7 @@ window.addEventListener('resize', () => {
 function switchTab(t, keepLayout) {
   // 댓글 섹션 숨기기
   hideComments();
+  if (_trashMode) _trashMode = false;
 
   // 파트너 모드: 저장 없이 탭만 전환하고 상대방 데이터 렌더
   if (_partnerMode) {
@@ -775,6 +926,7 @@ function _patchRoutineOnclick(itemHtml, item) {
 // ═══ 리스트 패널 메인 렌더링 ═══
 function renderListPanel() {
   renderWritingGrid();
+  if (_trashMode) { renderTrashList(); return; }
   const t  = activeTab;
   const el = document.getElementById('pane-list');
   const emptyState = '<div style="text-align:center;padding:80px 20px;color:var(--tx-hint);font-size:15px">기록이 없습니다</div>';
@@ -1180,7 +1332,10 @@ function handleNew() {
 }
 
 function handleBackBtn() {
-  // 현재 탭을 유지한 채 에디터 → 리스트 뷰로 전환
+  if (_trashMode) {
+    exitTrashMode();
+    return;
+  }
   setMobileView('list');
 }
 

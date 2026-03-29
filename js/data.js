@@ -388,6 +388,78 @@ function _getDeletedIds(items) {
   return ids;
 }
 
+function _getAllDeletedItems() {
+  var result = [];
+  var docs = L(K.docs) || [];
+  for (var i = 0; i < docs.length; i++) {
+    if (docs[i]._deleted) result.push({ _source: 'doc', _sourceType: docs[i].type || 'navi', item: docs[i] });
+  }
+  var books = L(K.books) || [];
+  for (var i = 0; i < books.length; i++) {
+    if (books[i]._deleted) result.push({ _source: 'book', _sourceType: 'book', item: books[i] });
+  }
+  var quotes = L(K.quotes) || [];
+  for (var i = 0; i < quotes.length; i++) {
+    if (quotes[i]._deleted) result.push({ _source: 'quote', _sourceType: 'quote', item: quotes[i] });
+  }
+  var memos = L(K.memos) || [];
+  for (var i = 0; i < memos.length; i++) {
+    if (memos[i]._deleted) result.push({ _source: 'memo', _sourceType: 'memo', item: memos[i] });
+  }
+  var expenses = L(K.expenses) || [];
+  for (var i = 0; i < expenses.length; i++) {
+    if (expenses[i]._deleted) result.push({ _source: 'expense', _sourceType: 'expense', item: expenses[i] });
+  }
+  result.sort(function(a, b) {
+    return (b.item._deletedAt || '').localeCompare(a.item._deletedAt || '');
+  });
+  return result;
+}
+
+function restoreDeletedItem(source, id) {
+  var key;
+  if (source === 'doc') key = K.docs;
+  else if (source === 'book') key = K.books;
+  else if (source === 'quote') key = K.quotes;
+  else if (source === 'memo') key = K.memos;
+  else if (source === 'expense') key = K.expenses;
+  else return;
+  var items = L(key) || [];
+  for (var i = 0; i < items.length; i++) {
+    if (items[i].id === id) {
+      delete items[i]._deleted;
+      delete items[i]._deletedAt;
+      break;
+    }
+  }
+  S(key, items);
+  SYNC.scheduleDatabaseSave();
+}
+
+function permanentDeleteItem(source, id) {
+  var key;
+  if (source === 'doc') key = K.docs;
+  else if (source === 'book') key = K.books;
+  else if (source === 'quote') key = K.quotes;
+  else if (source === 'memo') key = K.memos;
+  else if (source === 'expense') key = K.expenses;
+  else return;
+  var items = L(key) || [];
+  var newItems = items.filter(function(item) { return item.id !== id; });
+  S(key, newItems);
+  SYNC.scheduleDatabaseSave();
+}
+
+function emptyAllTrash() {
+  var keys = [K.docs, K.books, K.quotes, K.memos, K.expenses];
+  for (var k = 0; k < keys.length; k++) {
+    var items = L(keys[k]) || [];
+    var newItems = items.filter(function(item) { return !item._deleted; });
+    S(keys[k], newItems);
+  }
+  SYNC.scheduleDatabaseSave();
+}
+
 // ═══ Documents ═══
 function allDocs()        { return _filterDeleted(L(K.docs) || []); }
 function getDocs(type)    { return allDocs().filter(d => d.type === type); }
