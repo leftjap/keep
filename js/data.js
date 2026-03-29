@@ -534,9 +534,22 @@ function saveCurDoc(type) {
   if (typeof _partnerMode !== 'undefined' && _partnerMode) return;
   if (!currentLoadedDoc || !currentLoadedDoc.id) return;
 
+  // ── 가드 1: DB 로딩 중 저장 차단 ──
+  if (typeof SYNC !== 'undefined' && SYNC._dbLoading) {
+    console.warn('[saveCurDoc] DB 로딩 중 — 저장 건너뜀');
+    return;
+  }
+
   if (!curIds[type]) return;
   const title   = document.getElementById('edTitle').value.trim();
   const content = document.getElementById('edBody').innerHTML;
+
+  // ── 가드 2: 빈 에디터로 기존 문서 덮어쓰기 방지 ──
+  if (!title && (!content || content === '<br>')) {
+    console.warn('[saveCurDoc] 빈 내용 저장 차단:', type, curIds[type]);
+    return;
+  }
+
   const docs    = L(K.docs) || [];
   const idx     = docs.findIndex(d => d.id === curIds[type] && !d._deleted);
   if (idx !== -1) {
