@@ -106,7 +106,12 @@ const SYNC = {
           var localItems = mk.getter();
           if (!localItems || !Array.isArray(localItems) || localItems.length === 0) {
             // 로컬이 비어있으면 서버 데이터를 그대로 적용 (첫 설치)
-            mk.saver(serverItems);
+            // 단, 서버에서 삭제된 항목은 제외
+            var filtered = [];
+            for (var fi = 0; fi < serverItems.length; fi++) {
+              if (!serverItems[fi]._deleted) filtered.push(serverItems[fi]);
+            }
+            mk.saver(filtered);
             continue;
           }
 
@@ -121,6 +126,8 @@ const SYNC = {
             var sv = serverItems[si];
             var lv = localMap[sv.id];
             if (lv) {
+              // ★ 로컬에서 삭제된 항목은 서버 데이터로 복원하지 않음
+              if (lv._deleted) continue;
               var svTime = sv.updated || sv.created || sv.date || '';
               var lvTime = lv.updated || lv.created || lv.date || '';
               if (svTime && lvTime && svTime > lvTime) {
@@ -128,7 +135,8 @@ const SYNC = {
                 merged = true;
               }
             } else {
-              // 서버에만 있는 항목 (다른 기기에서 작성) → 로컬에 추가
+              // ★ 서버에만 있는 항목도 삭제 상태면 추가하지 않음
+              if (sv._deleted) continue;
               localItems.push(sv);
               localMap[sv.id] = sv;
               merged = true;
@@ -500,10 +508,10 @@ const SYNC = {
 
     var changed = false;
 
-    // docs 병합
+    // docs 병합 — raw 배열 사용 (삭제 항목 포함)
     var serverDocs = dbData[K.docs];
     if (serverDocs && Array.isArray(serverDocs)) {
-      var localDocs = allDocs();
+      var localDocs = L(K.docs) || [];
       var localMap = {};
       for (var i = 0; i < localDocs.length; i++) localMap[localDocs[i].id] = localDocs[i];
       var docsChanged = false;
@@ -511,22 +519,24 @@ const SYNC = {
         var sd = serverDocs[j];
         var ld = localMap[sd.id];
         if (ld) {
+          if (ld._deleted) continue;
           if (sd.updated && ld.updated && sd.updated > ld.updated) {
             Object.assign(ld, sd);
             docsChanged = true;
           }
         } else {
+          if (sd._deleted) continue;
           localDocs.unshift(sd);
           docsChanged = true;
         }
       }
-      if (docsChanged) { saveDocs(localDocs); changed = true; }
+      if (docsChanged) { S(K.docs, localDocs); changed = true; }
     }
 
-    // books 병합
+    // books 병합 — raw 배열 사용
     var serverBooks = dbData[K.books];
     if (serverBooks && Array.isArray(serverBooks)) {
-      var localBooks = getBooks();
+      var localBooks = L(K.books) || [];
       var bookMap = {};
       for (var i = 0; i < localBooks.length; i++) bookMap[localBooks[i].id] = localBooks[i];
       var booksChanged = false;
@@ -534,6 +544,7 @@ const SYNC = {
         var sb = serverBooks[j];
         var lb = bookMap[sb.id];
         if (lb) {
+          if (lb._deleted) continue;
           var sbTime = sb.updated || sb.date || '';
           var lbTime = lb.updated || lb.date || '';
           if (sbTime && lbTime && sbTime > lbTime) {
@@ -541,17 +552,18 @@ const SYNC = {
             booksChanged = true;
           }
         } else {
+          if (sb._deleted) continue;
           localBooks.unshift(sb);
           booksChanged = true;
         }
       }
-      if (booksChanged) { saveBooks(localBooks); changed = true; }
+      if (booksChanged) { S(K.books, localBooks); changed = true; }
     }
 
-    // memos 병합
+    // memos 병합 — raw 배열 사용
     var serverMemos = dbData[K.memos];
     if (serverMemos && Array.isArray(serverMemos)) {
-      var localMemos = getMemos();
+      var localMemos = L(K.memos) || [];
       var memoMap = {};
       for (var i = 0; i < localMemos.length; i++) memoMap[localMemos[i].id] = localMemos[i];
       var memosChanged = false;
@@ -559,22 +571,24 @@ const SYNC = {
         var sm = serverMemos[j];
         var lm = memoMap[sm.id];
         if (lm) {
+          if (lm._deleted) continue;
           if (sm.updated && lm.updated && sm.updated > lm.updated) {
             Object.assign(lm, sm);
             memosChanged = true;
           }
         } else {
+          if (sm._deleted) continue;
           localMemos.unshift(sm);
           memosChanged = true;
         }
       }
-      if (memosChanged) { saveMemos(localMemos); changed = true; }
+      if (memosChanged) { S(K.memos, localMemos); changed = true; }
     }
 
-    // quotes 병합
+    // quotes 병합 — raw 배열 사용
     var serverQuotes = dbData[K.quotes];
     if (serverQuotes && Array.isArray(serverQuotes)) {
-      var localQuotes = getQuotes();
+      var localQuotes = L(K.quotes) || [];
       var quoteMap = {};
       for (var i = 0; i < localQuotes.length; i++) quoteMap[localQuotes[i].id] = localQuotes[i];
       var quotesChanged = false;
@@ -582,6 +596,7 @@ const SYNC = {
         var sq = serverQuotes[j];
         var lq = quoteMap[sq.id];
         if (lq) {
+          if (lq._deleted) continue;
           var sqTime = sq.updated || sq.created || '';
           var lqTime = lq.updated || lq.created || '';
           if (sqTime && lqTime && sqTime > lqTime) {
@@ -589,11 +604,12 @@ const SYNC = {
             quotesChanged = true;
           }
         } else {
+          if (sq._deleted) continue;
           localQuotes.unshift(sq);
           quotesChanged = true;
         }
       }
-      if (quotesChanged) { saveQuotes(localQuotes); changed = true; }
+      if (quotesChanged) { S(K.quotes, localQuotes); changed = true; }
     }
 
     // 변경이 있으면 현재 열린 문서 리프레시
