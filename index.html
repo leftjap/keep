@@ -182,7 +182,7 @@
     </div>
 
     <!-- 기록 통계 -->
-    <div class="sec" style="padding-bottom:40px;">
+    <div class="sec" style="padding-bottom:16px;">
       <div class="sec-t" style="display:flex; justify-content:space-between; align-items:center;">기록</div>
       <div class="stats-wrap">
         <div class="stat-col">
@@ -195,6 +195,18 @@
           <div class="stat-big" id="bToday">0</div>
           <div class="stat-sub" id="bMonthSub">월간 0p / 누적 0p</div>
         </div>
+      </div>
+    </div>
+
+    <!-- 휴지통 -->
+    <div class="sec trash-section" onclick="enterTrashMode()">
+      <div class="trash-compact">
+        <svg class="trash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+        </svg>
+        <span class="trash-label">휴지통</span>
+        <span class="trash-badge" id="trashBadge" style="display:none">0</span>
       </div>
     </div>
   </div>
@@ -251,18 +263,6 @@
     <div class="routine-monthly" id="routineMonthly"></div>
     <div class="routine-more-wrap">
       <button class="routine-more-btn" onclick="showRoutineCalendarView()">통계 더보기 →</button>
-    </div>
-
-    <!-- 휴지통 -->
-    <div class="sec trash-section" onclick="enterTrashMode()">
-      <div class="trash-compact">
-        <svg class="trash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="3 6 5 6 21 6"/>
-          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-        </svg>
-        <span class="trash-label">휴지통</span>
-        <span class="trash-badge" id="trashBadge" style="display:none">0</span>
-      </div>
     </div>
   </div>
 
