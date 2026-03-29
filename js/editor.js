@@ -555,10 +555,10 @@ async function imgCtxAction(action) {
 // ═══ 자동 저장 ═══
 let _at = null;
 function setupAutoSave() {
-  // 에디터 dirty 플래그 — 마지막 저장 이후 사용자 입력이 있었는지
   window._editorDirty = false;
   window._unsyncedLocal = false;
   var _lastSyncTime = 0;
+  var _lastDbSaveSuccess = Date.now();
 
   const showSaving  = () => { if (document.getElementById('edSaveStatus')) document.getElementById('edSaveStatus').textContent = '저장 중...'; };
   const showSaved   = () => { if (document.getElementById('edSaveStatus')) document.getElementById('edSaveStatus').textContent = '저장됨'; };
@@ -571,6 +571,7 @@ function setupAutoSave() {
   const doSaveAndSync = () => {
     saveLocalOnly();
     window._editorDirty = false;
+    _lastDbSaveSuccess = Date.now();
     SYNC.scheduleDatabaseSave();
     if (textTypes.includes(activeTab)) SYNC.scheduleDocSave(activeTab);
     else if (activeTab === 'memo') SYNC.scheduleDocSave('memo');
@@ -589,13 +590,11 @@ function setupAutoSave() {
       clearTimeout(_at);
       saveLocalOnly();
       window._editorDirty = false;
-      // 서버에 현재 문서보다 최신 버전이 있는지 확인 후 동기화
       SYNC.syncAllSafe().catch(function(e) { console.warn('syncAllSafe:', e.message); });
     } else if (document.visibilityState === 'visible') {
       var now = Date.now();
       if (now - _lastSyncTime > 30000) {
         _lastSyncTime = now;
-        // 미동기화 로컬 변경이 있으면 먼저 서버에 올린 뒤 병합
         if (window._unsyncedLocal) {
           SYNC.mergeServerAll().then(function() {
             window._unsyncedLocal = false;
@@ -604,12 +603,29 @@ function setupAutoSave() {
         } else if (!window._editorDirty) {
           SYNC.mergeServerAll().catch(function(e) { console.warn('mergeServerAll:', e.message); });
         } else {
-          // dirty 상태: expenses만 병합 (문서는 건드리지 않음)
           SYNC.mergeServerExpenses().catch(function(e) { console.warn('mergeExpenses:', e.message); });
         }
       }
     }
   });
+
+  // ── Heartbeat Push: 30초마다 미동기화 변경분 서버 push ──
+  // iOS에서 앱 스위처 kill 시 visibilitychange/pagehide가 발화하지 않으므로,
+  // foreground 상태에서 주기적으로 서버 push를 보장한다.
+  setInterval(function() {
+    if (document.visibilityState !== 'visible') return;
+    if (!SYNC.isDbLoaded || SYNC._dbLoading || SYNC._dbSaveQueued) return;
+    var elapsed = Date.now() - _lastDbSaveSuccess;
+    if (elapsed < 30000) return;
+    if (!window._editorDirty && !window._unsyncedLocal) return;
+    console.log('[heartbeat] 30초 경과, 서버 push 실행');
+    saveLocalOnly();
+    window._editorDirty = false;
+    _lastDbSaveSuccess = Date.now();
+    SYNC.saveDatabase().catch(function(e) {
+      console.warn('[heartbeat] saveDatabase 실패:', e.message);
+    });
+  }, 10000);
 }
 
 // hideResizeHandle — 이미지 리사이즈 핸들이 없으면 빈 함수

@@ -122,9 +122,16 @@ async function showApp() {
     });
 
   } else {
-    // ── 첫 설치: 서버 대기 후 UI 표시 ──
+    // ── 첫 설치 또는 로컬 데이터 소실: 서버 대기 후 UI 표시 ──
+    var _restoredFromServer = false;
     try {
       serverConfig = await SYNC.loadDatabase();
+      // 서버에서 데이터를 받아왔으면 복원 알림 대상
+      var _checkDocs = L(K.docs);
+      var _checkExp  = L(K.expenses);
+      if ((_checkDocs && _checkDocs.length > 0) || (_checkExp && _checkExp.length > 0)) {
+        _restoredFromServer = true;
+      }
     } catch (e) {
       if (e && e.message === 'Unauthorized') {
         localStorage.removeItem(_LS_PREFIX + 'gb_auth');
@@ -137,7 +144,55 @@ async function showApp() {
       console.warn('[showApp] loadDatabase 실패:', e);
     }
     _initAndShow(loading, serverConfig);
+    if (_restoredFromServer) {
+      var _dbForToast = {};
+      _dbForToast['gb_docs'] = L(K.docs) || [];
+      _dbForToast['gb_books'] = L(K.books) || [];
+      _dbForToast['gb_memos'] = L(K.memos) || [];
+      _dbForToast['gb_quotes'] = L(K.quotes) || [];
+      _dbForToast['gb_expenses'] = L(K.expenses) || [];
+      _showRestoreToast(_dbForToast);
+    }
   }
+}
+
+function _showRestoreToast(dbData) {
+  // 서버 DB에서 가장 최근 updated 타임스탬프를 추출
+  var latest = '';
+  var keys = ['gb_docs', 'gb_books', 'gb_memos', 'gb_quotes', 'gb_expenses'];
+  for (var k = 0; k < keys.length; k++) {
+    var items = dbData[keys[k]];
+    if (!items || !Array.isArray(items)) continue;
+    for (var i = 0; i < items.length; i++) {
+      var t = items[i].updated || items[i].created || items[i].date || '';
+      if (t > latest) latest = t;
+    }
+  }
+  var timeStr = '';
+  if (latest) {
+    try {
+      var d = new Date(latest);
+      var mm = d.getMonth() + 1;
+      var dd = d.getDate();
+      var hh = d.getHours();
+      var mi = String(d.getMinutes()).padStart(2, '0');
+      var ampm = hh >= 12 ? '오후' : '오전';
+      hh = hh % 12 || 12;
+      timeStr = mm + '월 ' + dd + '일 ' + ampm + ' ' + hh + ':' + mi;
+    } catch (e) { timeStr = ''; }
+  }
+  var msg = '서버에서 데이터를 복원했습니다.';
+  if (timeStr) msg += ' (마지막 동기화: ' + timeStr + ')';
+
+  var toast = document.createElement('div');
+  toast.textContent = msg;
+  toast.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);background:var(--ac);color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;z-index:9999;opacity:0;transition:opacity 0.3s;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis;';
+  document.body.appendChild(toast);
+  requestAnimationFrame(function() { toast.style.opacity = '1'; });
+  setTimeout(function() {
+    toast.style.opacity = '0';
+    setTimeout(function() { toast.remove(); }, 300);
+  }, 4000);
 }
 
 function _initAndShow(loading, serverConfig) {

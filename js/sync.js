@@ -650,12 +650,10 @@ const SYNC = {
   // ═══ 서버 expenses 병합 (SMS 자동 반영) ═══
   async mergeServerExpenses(dbData) {
     if (!this.isDbLoaded) return;
-    // 미동기화 로컬 변경이 있으면 서버로 덮어쓰지 않음
     if (window._unsyncedLocal) {
       console.log('mergeServerExpenses: 미동기화 로컬 변경이 있어 서버 병합 건너뜀');
       return;
     }
-    // dbData가 없으면 직접 로드 (단독 호출 대비)
     if (!dbData) {
       try {
         var res = await this._post({ action: 'load_db' });
@@ -669,17 +667,59 @@ const SYNC = {
     var serverExpenses = dbData[K.expenses];
     if (!serverExpenses || !Array.isArray(serverExpenses)) return;
 
-    // LWW: 서버 데이터로 교체
-    var localExpenses = getExpenses();
-    var localStr = JSON.stringify(localExpenses.map(function(e) { return e.id; }).sort());
-    var serverStr = JSON.stringify(serverExpenses.map(function(e) { return e.id; }).sort());
-    if (localStr === serverStr) return; // 동일하면 리렌더 불필요
+    // ── 항목별 id 비교 병합 (docs와 동일 패턴) ──
+    var localExpenses = L(K.expenses) || [];
+    if (!localExpenses.length) {
+      // 로컬 비어있음 → 서버 데이터 적용 (삭제 항목 제외)
+      var filtered = [];
+      for (var fi = 0; fi < serverExpenses.length; fi++) {
+        if (!serverExpenses[fi]._deleted) filtered.push(serverExpenses[fi]);
+      }
+      saveExpenses(filtered);
+      updateExpenseCompact();
+      if (activeTab === 'expense') {
+        var platform = window.innerWidth > 768 ? 'pc' : 'mobile';
+        renderExpenseDashboard(platform);
+      }
+      return;
+    }
 
-    saveExpenses(serverExpenses);
-    updateExpenseCompact();
-    if (activeTab === 'expense') {
-      var platform = window.innerWidth > 768 ? 'pc' : 'mobile';
-      renderExpenseDashboard(platform);
+    var localMap = {};
+    for (var i = 0; i < localExpenses.length; i++) {
+      localMap[localExpenses[i].id] = localExpenses[i];
+    }
+
+    var changed = false;
+    for (var j = 0; j < serverExpenses.length; j++) {
+      var se = serverExpenses[j];
+      var le = localMap[se.id];
+      if (le) {
+        // 로컬에서 삭제된 항목은 서버 데이터로 복원하지 않음
+        if (le._deleted) continue;
+        // created 비교 (expenses는 updated가 없고 created 사용)
+        var seTime = se.created || se.date || '';
+        var leTime = le.created || le.date || '';
+        if (seTime && leTime && seTime > leTime) {
+          Object.assign(le, se);
+          changed = true;
+        }
+      } else {
+        // 서버에만 있는 항목: 삭제 상태가 아니면 로컬에 추가
+        if (se._deleted) continue;
+        localExpenses.push(se);
+        localMap[se.id] = se;
+        changed = true;
+      }
+    }
+    // 로컬에만 있는 항목은 localExpenses에 이미 남아 있으므로 보존됨
+
+    if (changed) {
+      S(K.expenses, localExpenses);
+      updateExpenseCompact();
+      if (activeTab === 'expense') {
+        var platform = window.innerWidth > 768 ? 'pc' : 'mobile';
+        renderExpenseDashboard(platform);
+      }
     }
   },
 
