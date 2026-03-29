@@ -37,24 +37,6 @@ window.onload = function() {
   }
 };
 
-// ═══ DB 데이터를 LocalStorage에 적용 ═══
-function _applyLoadedDb(dbData) {
-  if (!dbData || typeof dbData !== 'object') return;
-  if (dbData[K.docs]   && dbData[K.docs].length >= 0) S(K.docs,   dbData[K.docs]);
-  if (dbData[K.books])   S(K.books,   dbData[K.books]);
-  if (dbData[K.quotes])  S(K.quotes,  dbData[K.quotes]);
-  if (dbData[K.memos])   S(K.memos,   dbData[K.memos]);
-  if (dbData[K.checks])  S(K.checks,  dbData[K.checks]);
-  if (dbData[K.expenses]) {
-    // LWW: 서버 데이터를 그대로 적용 (삭제 항목 부활 방지)
-    S(K.expenses, dbData[K.expenses]);
-  }
-  if (dbData[K.merchantIcons]) S(K.merchantIcons, dbData[K.merchantIcons]);
-  if (dbData[K.merchantAliases]) S(K.merchantAliases, dbData[K.merchantAliases]);
-  if (dbData[K.brandIcons]) S(K.brandIcons, dbData[K.brandIcons]);
-  if (dbData[K.brandOverrides]) S(K.brandOverrides, dbData[K.brandOverrides]);
-}
-
 async function showApp() {
   // iOS Safari 저장공간 보호 요청
   if (navigator.storage && navigator.storage.persist) {
@@ -208,6 +190,16 @@ function _initAndShow(loading, serverConfig) {
         checkAndUpdateNotifBadge();
         SYNC.mergeServerAll();
       }
+    });
+
+    // ── 페이지 이탈 시 긴급 저장 ──
+    document.addEventListener('visibilitychange', function() {
+      if (document.visibilityState === 'hidden') {
+        SYNC._flushBeforeUnload();
+      }
+    });
+    window.addEventListener('pagehide', function() {
+      SYNC._flushBeforeUnload();
     });
 
     // 리사이즈 시 topbar-fixed 토글

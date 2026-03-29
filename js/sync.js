@@ -88,14 +88,61 @@ const SYNC = {
       const res = await this._post({ action: 'load_db' });
       if (res && res.dbData && Object.keys(res.dbData).length > 0) {
         const db = res.dbData;
-        if (db[K.docs]   && db[K.docs].length >= 0) S(K.docs,   db[K.docs]);
-        if (db[K.books])   S(K.books,   db[K.books]);
-        if (db[K.quotes])  S(K.quotes,  db[K.quotes]);
-        if (db[K.memos])   S(K.memos,   db[K.memos]);
-        if (db[K.checks])  S(K.checks,  db[K.checks]);
-        if (db[K.expenses]) {
-          S(K.expenses, db[K.expenses]);
+
+        // ── 항목별 merge (로컬에만 있는 신규 항목 보존) ──
+        var arrayKeys = [K.docs, K.books, K.quotes, K.memos];
+        for (var ki = 0; ki < arrayKeys.length; ki++) {
+          var key = arrayKeys[ki];
+          var serverItems = db[key];
+          if (!serverItems || !Array.isArray(serverItems)) continue;
+
+          var localItems = L(key) || [];
+          if (!localItems.length) {
+            // 로컬이 비어있으면 서버 데이터 그대로 적용 (첫 설치)
+            S(key, serverItems);
+            continue;
+          }
+
+          // 서버 항목을 id로 맵핑
+          var serverMap = {};
+          for (var si = 0; si < serverItems.length; si++) {
+            serverMap[serverItems[si].id] = serverItems[si];
+          }
+
+          // 로컬 항목을 id로 맵핑
+          var localMap = {};
+          for (var li = 0; li < localItems.length; li++) {
+            localMap[localItems[li].id] = localItems[li];
+          }
+
+          var merged = [];
+
+          // 1. 서버 항목 순회: 로컬에도 있으면 최신 것 사용, 로컬에 없으면 서버 것 추가
+          for (var sj = 0; sj < serverItems.length; sj++) {
+            var sd = serverItems[sj];
+            var ld = localMap[sd.id];
+            if (ld) {
+              var sTime = sd.updated || sd.date || sd.created || '';
+              var lTime = ld.updated || ld.date || ld.created || '';
+              merged.push(sTime >= lTime ? sd : ld);
+            } else {
+              merged.push(sd);
+            }
+          }
+
+          // 2. 로컬에만 있는 항목 보존 (서버에 아직 push 안 된 신규 항목)
+          for (var lj = 0; lj < localItems.length; lj++) {
+            if (!serverMap[localItems[lj].id]) {
+              merged.push(localItems[lj]);
+            }
+          }
+
+          S(key, merged);
         }
+
+        // ── 비배열 데이터: 서버 데이터로 교체 (checks, expenses, icons 등) ──
+        if (db[K.checks])  S(K.checks,  db[K.checks]);
+        if (db[K.expenses]) S(K.expenses, db[K.expenses]);
         if (db[K.merchantIcons]) S(K.merchantIcons, db[K.merchantIcons]);
         if (db[K.merchantAliases]) S(K.merchantAliases, db[K.merchantAliases]);
         if (db[K.brandIcons]) S(K.brandIcons, db[K.brandIcons]);
@@ -238,6 +285,65 @@ const SYNC = {
       catch (e) { console.warn('scheduleDatabaseSave 실패:', e.message); }
       finally   { this._dbSaveQueued = false; }
     }, 3000);
+  },
+
+  // ═══ 페이지 이탈 시 긴급 저장 ═══
+  _flushBeforeUnload() {
+    // 1. 현재 편집 중인 문서를 LocalStorage에 즉시 저장
+    try {
+      if (typeof activeTab !== 'undefined' && typeof saveCurDoc === 'function') {
+        if (typeof textTypes !== 'undefined' && textTypes.includes(activeTab)) {
+          saveCurDoc(activeTab);
+        }
+      }
+      if (typeof activeTab !== 'undefined' && activeTab === 'book' && typeof saveBook === 'function') {
+        saveBook();
+      }
+      if (typeof activeTab !== 'undefined' && activeTab === 'memo' && typeof saveMemo === 'function') {
+        saveMemo();
+      }
+      if (typeof activeTab !== 'undefined' && activeTab === 'quote' && typeof saveQuote === 'function') {
+        saveQuote();
+      }
+    } catch (e) {
+      console.warn('_flushBeforeUnload: 로컬 저장 실패', e);
+    }
+
+    // 2. 예약된 DB 타이머가 있으면 즉시 서버 push 시도 (fire-and-forget)
+    if (this._dbSaveQueued || this.dbTimer) {
+      clearTimeout(this.dbTimer);
+      this._dbSaveQueued = false;
+      // sendBeacon으로 최소한의 dirty 신호 전송 (서버가 처리 못해도 로컬은 이미 저장됨)
+      try {
+        var token = localStorage.getItem(_LS_PREFIX + 'gb_id_token');
+        if (token && this.isDbLoaded && !this._dbLoading) {
+          var dbData = {
+            [K.docs]:            L(K.docs)            || [],
+            [K.books]:           L(K.books)           || [],
+            [K.memos]:           L(K.memos)           || [],
+            [K.quotes]:          L(K.quotes)          || [],
+            [K.checks]:          L(K.checks)          || {},
+            [K.expenses]:        L(K.expenses)        || [],
+            [K.merchantIcons]:   L(K.merchantIcons)   || [],
+            [K.merchantAliases]: L(K.merchantAliases) || [],
+            [K.brandIcons]:      L(K.brandIcons)      || {},
+            [K.brandOverrides]:  L(K.brandOverrides)  || {}
+          };
+          var payload = JSON.stringify({
+            action: 'save_db',
+            token: APP_TOKEN,
+            idToken: token,
+            dbData: dbData
+          });
+          // sendBeacon 64KB 제한: 초과하면 실패하지만 로컬은 이미 저장됨
+          if (payload.length <= 65536) {
+            navigator.sendBeacon(GAS_URL, payload);
+          }
+        }
+      } catch (e2) {
+        // 실패해도 로컬 저장은 완료됨 — 다음 세션에서 push됨
+      }
+    }
   },
 
   // ═══ 이미지 업로드 ═══
