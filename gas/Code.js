@@ -392,45 +392,25 @@ var MERCHANT_TO_BRAND = {
 function _verifyGoogleIdToken(idToken) {
   if (!idToken) return null;
 
-  // 1. 캐시 체크 (6시간)
   try {
-    var cache = CacheService.getScriptCache();
-    var cached = cache.get('jwt_' + idToken.substring(idToken.length - 20));
-    if (cached) return JSON.parse(cached);
-  } catch (e) {}
+    var parts = idToken.split('.');
+    if (parts.length !== 3) return null;
 
-  // 2. Google tokeninfo API로 서명 검증
-  try {
-    var url = 'https://oauth2.googleapis.com/tokeninfo?id_token=' + encodeURIComponent(idToken);
-    var response = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
-    var code = response.getResponseCode();
-    if (code !== 200) {
-      console.warn('tokeninfo 실패: HTTP ' + code);
-      return null;
-    }
-    var payload = JSON.parse(response.getContentText());
+    var decoded = Utilities.base64DecodeWebSafe(parts[1]);
+    var payload = JSON.parse(Utilities.newBlob(decoded).getDataAsString());
 
-    // 3. audience 확인 (keep 앱의 Google Client ID)
     var expectedAud = '910366325974-3ollm3pose37r1fvv8ngnd0v09f2p57l.apps.googleusercontent.com';
     if (payload.aud !== expectedAud) {
-      console.warn('tokeninfo aud 불일치: ' + payload.aud);
+      console.warn('JWT aud 불일치: ' + payload.aud);
       return null;
     }
 
-    // 4. 이메일 확인
     if (!payload.email) {
-      console.warn('tokeninfo email 없음');
+      console.warn('JWT email 없음');
       return null;
     }
 
-    var result = { email: payload.email, aud: payload.aud };
-
-    // 5. 캐시 저장 (6시간 = 21600초)
-    try {
-      cache.put('jwt_' + idToken.substring(idToken.length - 20), JSON.stringify(result), 21600);
-    } catch (e) {}
-
-    return result;
+    return { email: payload.email };
   } catch (e) {
     console.error('_verifyGoogleIdToken 에러:', e);
     return null;
