@@ -13,6 +13,7 @@ const SYNC = {
   bookTimer:      null,
   quoteTimer:     null,
   isDbLoaded:     false,
+  _serverLoaded:  false,
   savingDocs:     {},
   dirtyDocs:      {},
   quoteSyncHistory: {},
@@ -157,10 +158,12 @@ const SYNC = {
         if (db[K.brandOverrides])   S(K.brandOverrides,   db[K.brandOverrides]);
 
         this.isDbLoaded = true;
+        this._serverLoaded = true;
         this.setSyncStatus('동기화 완료', 'ok');
         return res.config || null;
       } else {
         this.isDbLoaded = true;
+        this._serverLoaded = true;
         this.setSyncStatus('신규 상태', 'ok');
         return null;
       }
