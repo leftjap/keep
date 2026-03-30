@@ -4369,6 +4369,8 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   margin: 0;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .exp-tl-item:active {
