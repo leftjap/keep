@@ -563,10 +563,27 @@ function setupAutoSave() {
   const showSaving  = () => { if (document.getElementById('edSaveStatus')) document.getElementById('edSaveStatus').textContent = '저장 중...'; };
   const showSaved   = () => { if (document.getElementById('edSaveStatus')) document.getElementById('edSaveStatus').textContent = '저장됨'; };
   const saveLocalOnly = () => {
-    if (textTypes.includes(activeTab))  { saveCurDoc(activeTab); showSaved(); }
-    else if (activeTab === 'memo')  { saveMemo();  showSaved(); }
-    else if (activeTab === 'book')  { saveBook();  showSaved(); }
-    else if (activeTab === 'quote') { saveQuote(); showSaved(); }
+    if (textTypes.includes(activeTab))  { saveCurDoc(activeTab); }
+    else if (activeTab === 'memo')  { saveMemo(); }
+    else if (activeTab === 'book')  { saveBook(); }
+    else if (activeTab === 'quote') { saveQuote(); }
+    showSaved();
+    // ── 리스트 항목 제목 경량 갱신 ──
+    if (textTypes.includes(activeTab) || activeTab === 'memo') {
+      var titleEl = activeTab === 'memo' ? document.getElementById('memo-title') : document.getElementById('edTitle');
+      var titleVal = titleEl ? titleEl.value.trim() : '';
+      var onItem = document.querySelector('.lp-item.on .lp-item-title');
+      if (onItem) {
+        onItem.textContent = titleVal || '제목 없음';
+      }
+    } else if (activeTab === 'book') {
+      var bookTitleEl = document.getElementById('book-title');
+      var bookTitleVal = bookTitleEl ? bookTitleEl.value.trim() : '';
+      var onItem = document.querySelector('.lp-item.on .lp-item-title');
+      if (onItem) {
+        onItem.textContent = bookTitleVal || '제목 없음';
+      }
+    }
   };
   const doSaveAndSync = () => {
     saveLocalOnly();
