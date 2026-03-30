@@ -152,4 +152,4 @@ iOS 단축어 → GAS POST (action: save_expense_sms, token: nametag2026, smsTex
 | 배포 URL | https://leftjap.github.io/keep/ |
 | GitHub raw base | https://raw.githubusercontent.com/leftjap/keep/main/ |
 
-크롤링 제외 (항상 업로드): style.css (~3,000줄), gas/Code.js (~1,600줄), js/ui.js (크롤러 잘림 확인 2026-03-28), js/data.js (크롤러 잘림 확인 2026-03-28)
+크롤링 제외 (항상 업로드): style.css (~3,000줄), gas/Code.js (~1,600줄), js/ui.js (크롤러 잘림 확인 2026-03-28), js/data.js (크롤러 잘림 확인 2026-03-28), js/ui-expense.js (크롤러 잘림 확인 2026-03-30), js/gesture.js (크롤러 잘림 확인 2026-03-30)
