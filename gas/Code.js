@@ -88,12 +88,6 @@ var USER_CONFIG = {
   }
 };
 
-// ═══ Google Custom Search API (매출처 로고 검색용) ═══
-var GOOGLE_CSE_API_KEY = 'AIzaSyDPk7SnWPLx6bYQoYfBvRuoZbW54rfjNPw';
-var GOOGLE_CSE_CX = '01294ec874f1c440a';
-
-// ═══ Gemini API (매출처 자동 분류용) ═══
-var GEMINI_API_KEY = 'AIzaSyDaA99kBr7jnUfXcX-a29-nb_b2bKz12YQ';
 
 // ═══ 브랜드 → 카테고리 자동 매핑 (BRAND-MAPPING.md 기준) ═══
 var BRAND_CATEGORY_MAP = {
@@ -433,34 +427,6 @@ function doGet(e) {
   try {
     var action = (e.parameter && e.parameter.action) ? e.parameter.action : '';
     var token = (e.parameter && e.parameter.token) ? e.parameter.token : '';
-
-    if (action === 'searchMerchant') {
-      var query = e.parameter.query || '';
-      if (!query) {
-        return _jsonResponse({ items: [], error: 'No query' });
-      }
-
-      var apiUrl = 'https://www.googleapis.com/customsearch/v1'
-        + '?key=' + GOOGLE_CSE_API_KEY
-        + '&cx=' + GOOGLE_CSE_CX
-        + '&q=' + encodeURIComponent(query + ' 로고')
-        + '&searchType=image'
-        + '&imgType=clipart'
-        + '&num=3';
-
-      var response = UrlFetchApp.fetch(apiUrl, {
-        muteHttpExceptions: true
-      });
-
-      var result = JSON.parse(response.getContentText());
-
-      if (result && result.items && result.items.length > 0) {
-        var imageUrl = result.items[0].link || '';
-        return _jsonResponse({ items: [{ imageUrl: imageUrl }] });
-      }
-
-      return _jsonResponse({ items: [] });
-    }
 
     if (action === 'load_partner_db') {
       if (token !== 'claude-feedback') {
@@ -1687,23 +1653,16 @@ function saveExpenseFromSMS(smsText, config) {
 
   console.log('parsed: ' + JSON.stringify(parsed));
 
-  // ═══ 해외 결제: Gemini + Google Search로 실시간 환율 환산 ═══
+  // ═══ 해외 결제: 고정 환율 환산 ═══
   if (parsed && parsed.foreignAmount && parsed.currency) {
-    var convertedAmount = _convertCurrencyWithGemini(parsed.foreignAmount, parsed.currency);
-    if (convertedAmount > 0) {
-      parsed.amount = convertedAmount;
-      console.log('환율 환산 성공: ' + parsed.foreignAmount + ' ' + parsed.currency + ' → ' + convertedAmount + '원');
-    } else {
-      // Gemini 실패 — 고정 환율 폴백
-      var FX_FALLBACK = {
-        'USD': 1350, 'EUR': 1450, 'JPY': 9, 'GBP': 1700,
-        'CNY': 190, 'THB': 40, 'VND': 0.055, 'PHP': 25,
-        'HUF': 4, 'KHR': 0.33, 'SGD': 1000, 'KRW': 1
-      };
-      var fallbackRate = FX_FALLBACK[parsed.currency] || 1;
-      parsed.amount = Math.round(parsed.foreignAmount * fallbackRate);
-      console.log('환율 환산 폴백: ' + parsed.foreignAmount + ' ' + parsed.currency + ' → ' + parsed.amount + '원 (고정환율 ' + fallbackRate + ')');
-    }
+    var FX_RATES = {
+      'USD': 1350, 'EUR': 1450, 'JPY': 9, 'GBP': 1700,
+      'CNY': 190, 'THB': 40, 'VND': 0.055, 'PHP': 25,
+      'HUF': 4, 'KHR': 0.33, 'SGD': 1000, 'KRW': 1
+    };
+    var rate = FX_RATES[parsed.currency] || 1;
+    parsed.amount = Math.round(parsed.foreignAmount * rate);
+    console.log('해외 결제 환산: ' + parsed.foreignAmount + ' ' + parsed.currency + ' → ' + parsed.amount + '원 (고정환율 ' + rate + ')');
   }
 
   if (!parsed) {
@@ -1711,10 +1670,10 @@ function saveExpenseFromSMS(smsText, config) {
     return { status: 'error', message: 'Parse failed' };
   }
 
-  // Gemini로 카테고리 + 브랜드 분류 (사용자별 카테고리 기반)
-  var geminiResult = classifyMerchantWithGemini(parsed.merchant, parsed.card, config);
-  var category = geminiResult.category || parsed.category;
-  var brand = geminiResult.brand || preBrand || null;
+  // 카테고리: 룰 기반 분류
+  var category = parsed.category;
+  // 브랜드: MERCHANT_TO_BRAND 매핑
+  var brand = preBrand || null;
 
   // brandOverrides 체크 — Gemini/폴백 결과와 무관하게 최종 brand 결정
   var file = getDatabaseFile(config);
@@ -2068,181 +2027,6 @@ function parseSMSServer(text, config) {
   result.category = autoMatchCategoryServer(result.merchant, config);
 
   return result;
-}
-
-// ═══ Gemini + Google Search grounding 실시간 환율 환산 ═══
-function _convertCurrencyWithGemini(foreignAmount, currency) {
-  if (!GEMINI_API_KEY || !foreignAmount || !currency) return 0;
-
-  try {
-    var url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + GEMINI_API_KEY;
-
-    var prompt = '현재 환율 기준으로 ' + foreignAmount + ' ' + currency + '는 한국 원화(KRW)로 얼마인지 숫자만 답해. 소수점 이하 반올림한 정수만. 다른 말은 하지 마.';
-
-    var payload = {
-      contents: [{ parts: [{ text: prompt }] }],
-      tools: [{ google_search: {} }],
-      generationConfig: {
-        temperature: 0,
-        maxOutputTokens: 256,
-        thinkingConfig: { thinkingBudget: 0 }
-      }
-    };
-
-    var options = {
-      method: 'post',
-      contentType: 'application/json',
-      payload: JSON.stringify(payload),
-      muteHttpExceptions: true
-    };
-
-    var res = UrlFetchApp.fetch(url, options);
-    if (res.getResponseCode() !== 200) {
-      console.warn('환율 환산 Gemini HTTP 에러: ' + res.getResponseCode());
-      return 0;
-    }
-
-    var json = JSON.parse(res.getContentText());
-    if (!json.candidates || !json.candidates[0] || !json.candidates[0].content
-        || !json.candidates[0].content.parts || !json.candidates[0].content.parts[0]) {
-      console.warn('환율 환산 Gemini 응답 구조 이상');
-      return 0;
-    }
-
-    var text = json.candidates[0].content.parts[0].text.trim();
-    // 숫자만 추출 (콤마, 공백 제거)
-    var numStr = text.replace(/[^0-9.]/g, '');
-    var result = Math.round(parseFloat(numStr));
-
-    if (isNaN(result) || result <= 0) {
-      console.warn('환율 환산 파싱 실패: "' + text + '"');
-      return 0;
-    }
-
-    console.log('Gemini 환율 환산: ' + foreignAmount + ' ' + currency + ' → ' + result + '원 (원문: "' + text + '")');
-    return result;
-
-  } catch (e) {
-    console.warn('환율 환산 에러: ' + e.toString());
-    return 0;
-  }
-}
-
-// ═══ Gemini API 매출처 자동 분류 + 브랜드 인식 ═══
-function classifyMerchantWithGemini(merchant, card, config) {
-  if (!merchant || !GEMINI_API_KEY) return { category: autoMatchCategoryServer(merchant, config), brand: null };
-
-  try {
-    var url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + GEMINI_API_KEY;
-
-    // 사용자별 카테고리로 프롬프트 동적 생성
-    var categoryLines = '';
-    var validIds = [];
-    for (var i = 0; i < config.expenseCategories.length; i++) {
-      var cat = config.expenseCategories[i];
-      categoryLines += cat.id + ' = ' + cat.name + '\n';
-      validIds.push(cat.id);
-    }
-
-    var prompt = '한국 카드결제 매출처명을 보고 카테고리와 브랜드를 판단해. 반드시 JSON만 답하고 다른 말은 하지 마.\n\n'
-      + '매출처: ' + merchant + '\n'
-      + (card ? '카드: ' + card + '\n' : '')
-      + '\n카테고리 목록:\n' + categoryLines
-      + '\n응답 형식 (JSON만, 다른 텍스트 없이):\n'
-      + '{"category": "카테고리ID", "brand": "브랜드명 또는 null"}\n'
-      + '\n## 브랜드 인식 기준\n'
-      + '- 브랜드로 인식: 전국적 프랜차이즈(CU, 스타벅스, 올리브영), 널리 알려진 상표(나이키, 애플), 체인점(김밥천국, 이삭토스트), 배달앱(배달의민족, 쿠팡이츠, 요기요), 온라인 플랫폼(쿠팡, 네이버, 카카오)\n'
-      + '- 브랜드가 아닌 것: 개인 상호(홍대약국, 마포원조최대포집), 지역명+업종명(강남미용실, 역삼세탁소)\n'
-      + '- 판단이 어려우면 brand를 null로\n'
-      + '\n## 브랜드명 정규화\n'
-      + '- 같은 브랜드의 다른 표기는 가장 널리 알려진 공식 명칭 하나로 통일 (CU/씨유 → "CU", 스타벅스/STARBUCKS → "스타벅스", GS25/지에스25 → "GS25")\n'
-      + '- 한국에서 더 널리 쓰이는 표기 우선. 영문 브랜드는 원어 표기 유지 (CU, GS25, ZARA)\n'
-      + '\n## 법인명이 아닌 소비자 브랜드명을 반환\n'
-      + '- 법인/사업자 등록명이 아닌, 소비자가 아는 브랜드명을 반환한다\n'
-      + '- 예시: CJ올리브영/씨제이올리브영 → "올리브영", 코리아세븐 → "세븐일레븐", 우아한형제들/주식회사우아한형제 → "배달의민족", 비알코리아 → "던킨도너츠", 앤트러사이트커피 → "앤트러사이트", 베즐리베이커리 → "베즐리", 코오롱인더스트리/코오롱인더스 → "코오롱", 동원F&B/동원에프앤비 → "동원", 블루보틀커피 → "블루보틀", 에스케이텔레콤/SK텔레콤 → "SK텔레콤", 에스케이플래닛/SK플래닛 → "SK텔레콤", 에스케이네트웍스/SK네트웍스 → "SK네트웍스"\n'
-      + '\n## 유사 서비스 통합\n'
-      + '- 네이버파이낸셜, 네이버플러스 → "네이버페이"\n'
-      + '- 티머니, 티머니개인택시, 티머니택시 → "티머니택시"\n'
-      + '- 디즈니플러스/DisneyPlus → "디즈니플러스"\n'
-      + '\n## brand를 null로 해야 하는 것\n'
-      + '- PG사/결제대행: KCP, NHN KCP, 토스페이먼츠, 웰컴페이먼츠, 발트페이, 발트페이먼츠 → brand: null (카테고리만 분류)\n'
-      + '- 공공기관: 교통안전공단, 우정사업본부, 법원행정처, 구청, 세무서 → brand: null\n'
-      + '- 동네 약국: "○○약국" 패턴(광명약국, 대학약국, 올리브약국, 이지약국 등)은 프랜차이즈가 아니므로 → brand: null. 단 올리브영 등 알려진 체인은 브랜드로 인식\n'
-      + '- 동네 병원/의원: "○○의원", "○○이비인후과" 등 개인 의원은 → brand: null. 단 대형 병원(세브란스, 서울성모병원, 삼성서울병원 등)은 브랜드로 인식\n'
-      + '\n## 배달앱 규칙\n'
-      + '- "배민1 홍대치킨", "쿠팡이츠 OO점" 등 배달앱 경유 결제 → 배달앱 자체를 브랜드로 ("배달의민족", "쿠팡이츠", "요기요")\n'
-      + '\n## 백화점 규칙\n'
-      + '- 매출처명에 백화점 키워드가 있고 식품 키워드(과일, 정육, 수산, 야채, 반찬, 베이커리, 돈육, 청과, 수박, 참외, 포도, 계란, 연체류, 갑각류 등)도 있으면 → 브랜드: "현대백화점 식품관" 등, 카테고리: 식비 계열\n'
-      + '- 매출처명이 식품 품목명 자체(과일, 돈육, 청과 등)이고 카드가 백화점카드이면 → 백화점 식품관 브랜드로 분류\n'
-      + '- 매출처명에서 입점 브랜드를 인식할 수 있으면 → 해당 브랜드로 분류\n'
-      + '- 카드 정보는 참고용 힌트로만. "현대백화점카드 = 현대백화점에서 결제"라는 추론 금지\n'
-      + '\n## 해외 매출처\n'
-      + '- 통화 표시 무시하고 브랜드명 판단. 해외 프랜차이즈/드럭스토어/마트/백화점도 브랜드로 인식\n';
-
-    var payload = {
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: {
-        temperature: 0,
-        maxOutputTokens: 1024,
-        thinkingConfig: { thinkingBudget: 0 }
-      }
-    };
-
-    var options = {
-      method: 'post',
-      contentType: 'application/json',
-      payload: JSON.stringify(payload),
-      muteHttpExceptions: true
-    };
-
-    var res = UrlFetchApp.fetch(url, options);
-    var resCode = res.getResponseCode();
-    if (resCode !== 200) {
-      console.warn('Gemini API error: HTTP ' + resCode);
-      return { category: autoMatchCategoryServer(merchant, config), brand: null };
-    }
-
-    var json = JSON.parse(res.getContentText());
-    if (!json.candidates || !json.candidates[0] || !json.candidates[0].content
-        || !json.candidates[0].content.parts || !json.candidates[0].content.parts[0]) {
-      return { category: autoMatchCategoryServer(merchant, config), brand: null };
-    }
-
-    var text = json.candidates[0].content.parts[0].text.trim();
-
-    // JSON 파싱 시도
-    try {
-      // Gemini가 ```json ... ``` 블록으로 감쌀 수 있으므로 추출
-      var jsonStr = text;
-      var jsonBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
-      if (jsonBlockMatch) jsonStr = jsonBlockMatch[1].trim();
-
-      var parsed = JSON.parse(jsonStr);
-      var resultCategory = (parsed.category || '').toLowerCase();
-      var resultBrand = parsed.brand || null;
-
-      // category 유효성 검증
-      if (validIds.indexOf(resultCategory) === -1) {
-        resultCategory = autoMatchCategoryServer(merchant, config);
-      }
-
-      // brand가 빈 문자열이면 null로 정규화
-      if (resultBrand === '' || resultBrand === 'null') resultBrand = null;
-
-      return { category: resultCategory, brand: resultBrand };
-    } catch (parseErr) {
-      // JSON 파싱 실패 — 기존처럼 텍스트에서 카테고리 ID 문자열 매칭, brand는 null
-      console.warn('Gemini JSON 파싱 실패, 텍스트 매칭 폴백: ' + text);
-      var lowerText = text.toLowerCase();
-      for (var j = 0; j < validIds.length; j++) {
-        if (lowerText.indexOf(validIds[j]) !== -1) return { category: validIds[j], brand: null };
-      }
-      return { category: autoMatchCategoryServer(merchant, config), brand: null };
-    }
-  } catch (e) {
-    console.warn('Gemini classify error: ' + e.toString());
-    return { category: autoMatchCategoryServer(merchant, config), brand: null };
-  }
 }
 
 function autoMatchCategoryServer(merchant, config) {
@@ -2646,108 +2430,6 @@ function clearAllExpenses(email) {
   console.log('=== 가계부 초기화 완료 (' + config.rootFolder + ') ===');
   console.log('삭제된 항목: ' + before + '건');
   console.log('현재 항목: 0건');
-}
-
-// ═══ 기존 가계부 데이터 일괄 재분류 (GAS 편집기에서 수동 실행) ═══
-function reclassifyAllExpenses(email) {
-  var config = _getConfigForEmail(email);
-  var file = getDatabaseFile(config);
-  var content = file.getBlob().getDataAsString();
-  var db = JSON.parse(content || '{}');
-  var expenses = db['gb_expenses'] || [];
-
-  if (expenses.length === 0) {
-    console.log('가계부 데이터가 없습니다.');
-    return;
-  }
-
-  // brandOverrides 로드 — 사용자가 수동 지정한 매출처는 건너뛴다
-  var overrides = db['gb_brand_overrides'] || {};
-  var overrideSkipped = 0;
-
-  var props = PropertiesService.getScriptProperties();
-  var cacheKey = 'reclassify_cache_' + (email || 'default');
-  var indexKey = 'reclassify_index_' + (email || 'default');
-
-  // 캐시 구조: { merchant: { category: '...', brand: '...' } }
-  var cache = {};
-  try {
-    var cacheStr = props.getProperty(cacheKey);
-    if (cacheStr) cache = JSON.parse(cacheStr);
-  } catch (e) {
-    cache = {};
-  }
-
-  var startIndex = parseInt(props.getProperty(indexKey) || '0');
-  if (startIndex >= expenses.length) startIndex = 0;
-
-  console.log('=== 재분류 시작 (' + config.rootFolder + ') ===');
-  console.log('전체 항목: ' + expenses.length + '건, 시작 인덱스: ' + startIndex);
-  console.log('캐시된 매출처: ' + Object.keys(cache).length + '개');
-  console.log('brandOverrides: ' + Object.keys(overrides).length + '개');
-
-  var geminiCalls = 0;
-  var cacheHits = 0;
-  var changed = 0;
-  var startTime = new Date().getTime();
-  var TIME_LIMIT = 5 * 60 * 1000;
-
-  for (var i = startIndex; i < expenses.length; i++) {
-    if (new Date().getTime() - startTime > TIME_LIMIT) {
-      console.log('5분 경과 — 중간 저장. 다음 시작 인덱스: ' + i);
-      props.setProperty(indexKey, String(i));
-      props.setProperty(cacheKey, JSON.stringify(cache));
-      db['gb_expenses'] = expenses;
-      file.setContent(JSON.stringify(db));
-      console.log('Gemini 호출: ' + geminiCalls + ', 캐시: ' + cacheHits + ', 변경: ' + changed + ', 오버라이드 건너뜀: ' + overrideSkipped);
-      return;
-    }
-
-    var merchant = (expenses[i].merchant || '').trim();
-    if (!merchant) continue;
-
-    // brandOverrides에 있는 매출처명은 건너뛴다
-    if (overrides.hasOwnProperty(merchant)) {
-      overrideSkipped++;
-      continue;
-    }
-
-    var result;
-    if (cache.hasOwnProperty(merchant)) {
-      result = cache[merchant];
-      cacheHits++;
-    } else {
-      result = classifyMerchantWithGemini(merchant, '', config);
-      cache[merchant] = result;
-      geminiCalls++;
-      Utilities.sleep(1500);
-    }
-
-    var catChanged = false;
-    var brandChanged = false;
-
-    if (result.category && result.category !== expenses[i].category) {
-      expenses[i].category = result.category;
-      catChanged = true;
-    }
-
-    // brand 필드 설정 (기존 데이터에 brand가 없으면 추가)
-    var newBrand = result.brand || null;
-    if (expenses[i].brand !== newBrand) {
-      expenses[i].brand = newBrand;
-      brandChanged = true;
-    }
-
-    if (catChanged || brandChanged) changed++;
-  }
-
-  db['gb_expenses'] = expenses;
-  file.setContent(JSON.stringify(db));
-  props.deleteProperty(indexKey);
-  props.deleteProperty(cacheKey);
-
-  console.log('=== 재분류 완료 (' + config.rootFolder + ') ===');
-  console.log('전체: ' + expenses.length + ', Gemini: ' + geminiCalls + ', 캐시: ' + cacheHits + ', 변경: ' + changed + ', 오버라이드 건너뜀: ' + overrideSkipped);
 }
 
 // ═══ 미래 날짜 가계부 항목 보정 (GAS 편집기에서 수동 실행) ═══
