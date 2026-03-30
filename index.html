@@ -248,7 +248,7 @@
     </div>
 
     <!-- 디버그 로그 복사 -->
-    <div class="sec debug-section" style="padding:8px 16px 16px;border-top:1px solid var(--border);">
+    <div class="sec debug-section" id="debugSection" style="display:none;padding:8px 16px 16px;border-top:1px solid var(--border);">
       <button onclick="(async function(){var ok=await DebugLog.copy();alert(ok?'로그가 클립보드에 복사되었습니다':'복사 실패 — 브라우저에서 허용해주세요')})()" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text-secondary);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
         디버그 로그 복사
@@ -788,6 +788,9 @@
 <script src="js/gesture.js?v=65"></script>   <!-- 6. 제스처 (모바일/태블릿/PC) -->
 <script src="js/sync.js?v=69"></script>      <!-- 7. GAS 동기화 -->
 <script src="js/app.js?v=67"></script>       <!-- 8. 인증, init, 진입점 -->
+<script>
+if(location.search.includes('debug=true')){var ds=document.getElementById('debugSection');if(ds)ds.style.display='';}
+</script>
 
 </body>
 </html>
