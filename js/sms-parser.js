@@ -267,6 +267,14 @@ function parseSMS(text) {
 
 function autoMatchCategory(merchant) {
   if (!merchant) return 'etc';
+
+  // ── 1순위: 사용자 학습 맵 ──
+  if (typeof getMerchantCategoryOverride === 'function') {
+    var userCat = getMerchantCategoryOverride(merchant);
+    if (userCat) return userCat;
+  }
+
+  // ── 2순위: 하드코딩 규칙 (기존 로직 그대로) ──
   const m = merchant.toLowerCase();
 
   const rules = {

@@ -7,16 +7,17 @@
 // ═══ 앱 상수 ═══
 const APP_TOKEN = '';
 const K = {
-  docs:             'gb_docs',
-  checks:           'gb_chk',
-  books:            'gb_books',
-  quotes:           'gb_quotes',
-  memos:            'gb_memos',
-  expenses:         'gb_expenses',
-  merchantIcons:    'gb_merchant_icons',
-  merchantAliases:  'gb_merchant_aliases',
-  brandIcons:       'gb_brand_icons',
-  brandOverrides:   'gb_brand_overrides'
+  docs:               'gb_docs',
+  checks:             'gb_chk',
+  books:              'gb_books',
+  quotes:             'gb_quotes',
+  memos:              'gb_memos',
+  expenses:           'gb_expenses',
+  merchantIcons:      'gb_merchant_icons',
+  merchantAliases:    'gb_merchant_aliases',
+  brandIcons:         'gb_brand_icons',
+  brandOverrides:     'gb_brand_overrides',
+  merchantCategories: 'gb_merchant_categories'
 };
 
 // ═══ LocalStorage 키 접두사 (멀티유저 격리) ═══

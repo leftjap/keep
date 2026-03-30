@@ -1453,6 +1453,35 @@ function setBrandOverride(merchant, brand) {
 }
 
 // ═══════════════════════════════════════
+// 매출처-카테고리 사용자 학습 맵 (K.merchantCategories)
+// ═══════════════════════════════════════
+function getMerchantCategoryMap() {
+  if (_partnerMode && _partnerData && _partnerData.dbData) {
+    return _partnerData.dbData[K.merchantCategories] || {};
+  }
+  return L(K.merchantCategories) || {};
+}
+
+function saveMerchantCategoryMap(obj) {
+  S(K.merchantCategories, obj);
+}
+
+function getMerchantCategoryOverride(merchant) {
+  if (!merchant) return null;
+  var cleaned = cleanMerchantName(merchant);
+  var map = getMerchantCategoryMap();
+  return map[cleaned] || null;
+}
+
+function setMerchantCategoryOverride(merchant, category) {
+  if (!merchant || !category) return;
+  var cleaned = cleanMerchantName(merchant);
+  var map = getMerchantCategoryMap();
+  map[cleaned] = category;
+  saveMerchantCategoryMap(map);
+}
+
+// ═══════════════════════════════════════
 // 서버 config 동적 적용
 // ═══════════════════════════════════════
 function applyServerConfig(config) {

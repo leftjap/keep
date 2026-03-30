@@ -1669,6 +1669,11 @@ function saveExpenseForm(mode = 'normal') {
     newExpense({ amount, category, merchant, card, memo, date, time, source: 'manual' });
   }
 
+  // ── 매출처-카테고리 학습 ──
+  if (merchant && category) {
+    setMerchantCategoryOverride(merchant, category);
+  }
+
   // 매출처 아이콘 매핑 저장 (브랜드/비브랜드 분기)
   var iconUrl = (document.getElementById('expenseIconUrl' + suffix) || {}).value || '';
   iconUrl = iconUrl.trim();
