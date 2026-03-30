@@ -445,7 +445,6 @@ function getUserConfig(idToken, fallbackToken) {
     if (verified && verified.email && USER_CONFIG[verified.email]) {
       return USER_CONFIG[verified.email];
     }
-    // 서명 검증 실패 시 폴백 토큰 경로로 진행 (서비스 토큰 전용)
   }
 
   // 2. 서비스 토큰 (Script Properties에서 읽기)
@@ -453,10 +452,14 @@ function getUserConfig(idToken, fallbackToken) {
     try {
       var props = PropertiesService.getScriptProperties();
       var smsToken = props.getProperty('SMS_SERVICE_TOKEN');
+      var smsTokenSoyoun = props.getProperty('SMS_SERVICE_TOKEN_SOYOUN');
       var claudeToken = props.getProperty('CLAUDE_SERVICE_TOKEN');
 
       if (smsToken && fallbackToken === smsToken) {
         return USER_CONFIG['leftjap@gmail.com'] || null;
+      }
+      if (smsTokenSoyoun && fallbackToken === smsTokenSoyoun) {
+        return USER_CONFIG['soyoun312@gmail.com'] || null;
       }
       if (claudeToken && fallbackToken === claudeToken) {
         return USER_CONFIG['leftjap@gmail.com'] || null;
