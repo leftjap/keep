@@ -31,6 +31,25 @@ function setupEnterKey() {
       }
     });
   });
+
+  // ── iOS PWA: 제목→본문 전환 시 스크롤 보정 ──
+  // iOS에서 <input> → contenteditable 포커스 전환 시
+  // 키보드 닫힘/재오픈으로 editor-scroll-area가 과도 스크롤되는 문제 방지
+  var edBody = document.getElementById('edBody');
+  if (edBody) {
+    edBody.addEventListener('focus', function() {
+      requestAnimationFrame(function() {
+        var scrollArea = document.querySelector('.editor-scroll-area');
+        if (scrollArea && scrollArea.scrollTop > 0) {
+          scrollArea.scrollTop = 0;
+        }
+        // iOS가 position:fixed 에디터를 밀어올린 경우 window 스크롤도 복원
+        if (window.scrollY > 0) {
+          window.scrollTo(0, 0);
+        }
+      });
+    });
+  }
 }
 
 // ═══ Aa 서식 메뉴 ═══
