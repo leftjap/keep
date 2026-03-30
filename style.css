@@ -519,7 +519,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 .ft-btn.highlight-btn:hover .hl-inner{background:rgba(251,191,36,.8)}
 
 .editor-scroll-area{flex:1;overflow-y:auto;display:flex;flex-direction:column;align-items:center}
-.editor-content-wrap{width:100%;max-width:720px;padding:32px 40px 100px;display:flex;flex-direction:column;flex:1}
+.editor-content-wrap{width:100%;max-width:720px;padding:32px 40px 100px;display:flex;flex-direction:column;flex:1;min-height:100%}
 .ed-title{width:100%;background:none;border:none;border-bottom:1px solid var(--border-l);font-family:'Pretendard',sans-serif;font-size:24px;font-weight:700;color:var(--tx);outline:none;letter-spacing:-.02em;margin-bottom:24px;padding-bottom:16px;line-height:1.35}
 .ed-title::placeholder{color:#c7c7cc}
 .ed-body{width:100%;min-height:100%;outline:none;font-family:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;font-size:16px;line-height:2.0;letter-spacing:0;color:var(--tx);flex:1;word-break:keep-all;font-weight:400;font-feature-settings:'kern' 1}
@@ -1462,7 +1462,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   .editor-menu{top:90px!important}
   .aa-menu{top:90px!important}
   .swipe-edge{top:90px!important}
-  .ed-body{font-size:16px;line-height:1.9;min-height:60vh}
+  .ed-body{font-size:16px;line-height:1.9}
   .ed-title{font-size:26px}
   .lp-item-title{font-size:16px}
   .lp-item-preview{font-size:15px}
@@ -1843,7 +1843,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   .comment-section{padding:0 20px 20px}
   .comment-section::before{margin:0 -20px 12px}
   .ed-title{font-size:20px;margin-bottom:16px}
-  .ed-body{font-size:17px;line-height:1.9;min-height:60vh}
+  .ed-body{font-size:17px;line-height:1.9}
 
   .lp-item{padding:12px 16px 10px;gap:6px;background:var(--bg-white);border-radius:0;margin:0;border-bottom:none;position:relative;box-shadow:none;overflow:visible;flex-direction:column;height:auto;min-height:auto}
   .lp-item::after{content:'';position:absolute;bottom:0;left:16px;right:16px;height:1px;background:var(--border-l);pointer-events:none}
