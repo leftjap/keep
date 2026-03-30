@@ -5,7 +5,7 @@
 // ═══════════════════════════════════════
 
 // ═══ 앱 상수 ═══
-const APP_TOKEN = 'nametag2026';
+const APP_TOKEN = '';
 const K = {
   docs:             'gb_docs',
   checks:           'gb_chk',

@@ -388,35 +388,82 @@ var MERCHANT_TO_BRAND = {
   '화장지': '현대백화점 식품관'
 };
 
+// ═══ Google ID Token 서명 검증 ═══
+function _verifyGoogleIdToken(idToken) {
+  if (!idToken) return null;
+
+  // 1. 캐시 체크 (6시간)
+  try {
+    var cache = CacheService.getScriptCache();
+    var cached = cache.get('jwt_' + idToken.substring(idToken.length - 20));
+    if (cached) return JSON.parse(cached);
+  } catch (e) {}
+
+  // 2. Google tokeninfo API로 서명 검증
+  try {
+    var url = 'https://oauth2.googleapis.com/tokeninfo?id_token=' + encodeURIComponent(idToken);
+    var response = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+    var code = response.getResponseCode();
+    if (code !== 200) {
+      console.warn('tokeninfo 실패: HTTP ' + code);
+      return null;
+    }
+    var payload = JSON.parse(response.getContentText());
+
+    // 3. audience 확인 (keep 앱의 Google Client ID)
+    var expectedAud = '910366325974-3ollm3pose37r1fvv8ngnd0v09f2p57l.apps.googleusercontent.com';
+    if (payload.aud !== expectedAud) {
+      console.warn('tokeninfo aud 불일치: ' + payload.aud);
+      return null;
+    }
+
+    // 4. 이메일 확인
+    if (!payload.email) {
+      console.warn('tokeninfo email 없음');
+      return null;
+    }
+
+    var result = { email: payload.email, aud: payload.aud };
+
+    // 5. 캐시 저장 (6시간 = 21600초)
+    try {
+      cache.put('jwt_' + idToken.substring(idToken.length - 20), JSON.stringify(result), 21600);
+    } catch (e) {}
+
+    return result;
+  } catch (e) {
+    console.error('_verifyGoogleIdToken 에러:', e);
+    return null;
+  }
+}
+
 // ═══ 인증 ═══
 function getUserConfig(idToken, fallbackToken) {
-  // 1. idToken이 있으면 먼저 시도
+  // 1. idToken이 있으면 Google tokeninfo로 서명 검증
   if (idToken) {
-    try {
-      var parts = idToken.split('.');
-      if (parts.length === 3) {
-        var decoded = Utilities.base64DecodeWebSafe(parts[1]);
-        var payload = JSON.parse(Utilities.newBlob(decoded).getDataAsString());
-        var email = payload.email;
-        if (email && USER_CONFIG[email]) {
-          return USER_CONFIG[email];
-        }
-      }
-    } catch (e) {
-      console.warn("idToken 파싱 실패, fallback 시도:", e);
+    var verified = _verifyGoogleIdToken(idToken);
+    if (verified && verified.email && USER_CONFIG[verified.email]) {
+      return USER_CONFIG[verified.email];
     }
+    // 서명 검증 실패 시 폴백 토큰 경로로 진행 (서비스 토큰 전용)
   }
 
-  // 2. idToken이 없거나 파싱 실패 시 레거시 토큰 폴백
-  if (fallbackToken === 'nametag2026') {
-    return USER_CONFIG['leftjap@gmail.com'] || null;
-  }
-  if (fallbackToken === 'nametag2026-soyoun') {
-    return USER_CONFIG['soyoun312@gmail.com'] || null;
-  }
-  // 클로드 AI 피드백 댓글용 고정 토큰 (JWT 만료 없음)
-  if (fallbackToken === 'claude-feedback') {
-    return USER_CONFIG['leftjap@gmail.com'] || null;
+  // 2. 서비스 토큰 (Script Properties에서 읽기)
+  if (fallbackToken) {
+    try {
+      var props = PropertiesService.getScriptProperties();
+      var smsToken = props.getProperty('SMS_SERVICE_TOKEN');
+      var claudeToken = props.getProperty('CLAUDE_SERVICE_TOKEN');
+
+      if (smsToken && fallbackToken === smsToken) {
+        return USER_CONFIG['leftjap@gmail.com'] || null;
+      }
+      if (claudeToken && fallbackToken === claudeToken) {
+        return USER_CONFIG['leftjap@gmail.com'] || null;
+      }
+    } catch (e) {
+      console.warn('Script Properties 읽기 실패:', e);
+    }
   }
 
   return null;
@@ -429,23 +476,20 @@ function doGet(e) {
     var token = (e.parameter && e.parameter.token) ? e.parameter.token : '';
 
     if (action === 'load_partner_db') {
-      if (token !== 'claude-feedback') {
-        return _jsonResponse({ status: 'error', message: 'Unauthorized' });
-      }
       var config = getUserConfig(null, token);
       if (!config) {
-        return _jsonResponse({ status: 'error', message: 'Config not found' });
+        return _jsonResponse({ status: 'error', message: 'Unauthorized' });
       }
       return _jsonResponse(loadPartnerDb(config));
     }
 
     // ═══ 어구록 검색 (GET) ═══
     if (action === 'load_quotes') {
-      if (token !== 'claude-feedback') {
+      var config = getUserConfig(null, token);
+      if (!config) {
         return _jsonResponse({ status: 'error', message: 'Unauthorized' });
       }
-      var config = getUserConfig(null, token);
-      if (!config || !config.quoteSheetId) {
+      if (!config.quoteSheetId) {
         return _jsonResponse({ status: 'error', message: 'Quote sheet not configured' });
       }
       var keyword = e.parameter.keyword || '';
@@ -493,12 +537,9 @@ function doGet(e) {
 
     // ═══ 서재(책) 목록 조회 (GET) ═══
     if (action === 'list_books') {
-      if (token !== 'claude-feedback') {
-        return _jsonResponse({ status: 'error', message: 'Unauthorized' });
-      }
       var config = getUserConfig(null, token);
       if (!config) {
-        return _jsonResponse({ status: 'error', message: 'Config not found' });
+        return _jsonResponse({ status: 'error', message: 'Unauthorized' });
       }
 
       var file = getDatabaseFile(config);
@@ -508,7 +549,6 @@ function doGet(e) {
       var books = [];
       var totalQuotes = 0;
 
-      // gb_docs에서 type이 book인 문서의 quote 필드 수집
       var docs = db['gb_docs'] || [];
       for (var i = 0; i < docs.length; i++) {
         if (docs[i].type === 'book') {
@@ -522,7 +562,6 @@ function doGet(e) {
         }
       }
 
-      // 구 구조 (gb_books) 폴백
       var legacyBooks = db['gb_books'] || [];
       var migratedCount = 0;
       for (var j = 0; j < legacyBooks.length; j++) {
@@ -1184,17 +1223,23 @@ function deleteComment(commentId, config, fallbackToken) {
     var myEmail = _getEmailFromConfig(config);
     var found = false;
     var newComments = [];
+
+    // Claude 서비스 토큰 확인 (Script Properties)
+    var claudeToken = '';
+    try {
+      claudeToken = PropertiesService.getScriptProperties().getProperty('CLAUDE_SERVICE_TOKEN') || '';
+    } catch (e) {}
+
     for (var i = 0; i < social.comments.length; i++) {
       var c = social.comments[i];
       if (c.id === commentId) {
         var isOwner = (c.author === myEmail);
-        var isClaudioAdmin = (fallbackToken === 'claude-feedback' && c.author === 'claude@ai');
+        var isClaudioAdmin = (claudeToken && fallbackToken === claudeToken && c.author === 'claude@ai');
         if (!isOwner && !isClaudioAdmin) {
           lock.releaseLock();
           return { status: 'error', message: 'Not your comment' };
         }
         found = true;
-        // 이 댓글을 건너뜀 (삭제)
       } else {
         newComments.push(c);
       }
@@ -1206,7 +1251,6 @@ function deleteComment(commentId, config, fallbackToken) {
     social.comments = newComments;
     saveSocialData(social);
 
-    // 소셜 캐시 무효화
     try {
       var cache = CacheService.getScriptCache();
       cache.remove('social_' + myEmail);
