@@ -1462,7 +1462,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   .editor-menu{top:90px!important}
   .aa-menu{top:90px!important}
   .swipe-edge{top:90px!important}
-  .ed-body{font-size:16px;line-height:1.9}
+  .ed-body{font-size:16px;line-height:1.9;min-height:60vh}
   .ed-title{font-size:26px}
   .lp-item-title{font-size:16px}
   .lp-item-preview{font-size:15px}
@@ -1843,7 +1843,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   .comment-section{padding:0 20px 20px}
   .comment-section::before{margin:0 -20px 12px}
   .ed-title{font-size:20px;margin-bottom:16px}
-  .ed-body{font-size:17px;line-height:1.9}
+  .ed-body{font-size:17px;line-height:1.9;min-height:60vh}
 
   .lp-item{padding:12px 16px 10px;gap:6px;background:var(--bg-white);border-radius:0;margin:0;border-bottom:none;position:relative;box-shadow:none;overflow:visible;flex-direction:column;height:auto;min-height:auto}
   .lp-item::after{content:'';position:absolute;bottom:0;left:16px;right:16px;height:1px;background:var(--border-l);pointer-events:none}
