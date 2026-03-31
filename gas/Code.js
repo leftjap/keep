@@ -91,109 +91,117 @@ var USER_CONFIG = {
 
 // ═══ 브랜드 → 카테고리 자동 매핑 (BRAND-MAPPING.md 기준) ═══
 var BRAND_CATEGORY_MAP = {
-  // 편의점
-  'CU': 'convenience', 'GS25': 'convenience', '세븐일레븐': 'convenience',
-  '이마트24': 'convenience', '미니스톱': 'convenience',
-  // 카페
-  '공차': 'cafe', '던킨도너츠': 'cafe', '뚜레쥬르': 'cafe',
+  // overseas (해외)
+  'AIRALO': 'overseas', 'BART': 'overseas', 'DOUBLETREE': 'overseas',
+  'Dusit Thani': 'overseas', 'KIX DUTY FREE': 'overseas', 'KKday': 'overseas',
+  'LA RINASCENTE': 'overseas', 'Pullman': 'overseas', 'Sokha Hotels': 'overseas',
+  'THE WESTIN': 'overseas', '대한항공': 'overseas', '롯데면세점': 'overseas',
+  '마이리얼트립': 'overseas', '신세계면세점': 'overseas',
+  '인터컨티넨탈호텔': 'overseas', '인터파크': 'overseas',
+
+  // subscribe (통신/구독)
+  'Anthropic': 'subscribe',
+
+  // fashion (패션/뷰티)
+  'COS': 'fashion', 'H&M': 'fashion', 'HDC아이파크몰': 'fashion',
+  'KITH': 'fashion', 'LF': 'fashion', 'STUSSY': 'fashion',
+  'SUPREME': 'fashion', '나이키': 'fashion', '네이버페이': 'fashion',
+  '더현대닷컴': 'fashion', '롯데백화점': 'fashion', '무신사': 'fashion',
+  '비너스': 'fashion', '삼성물산': 'fashion', '신세계인터내셔날': 'fashion',
+  '아모레퍼시픽': 'fashion', '올리브영': 'fashion', '유니클로': 'fashion',
+  '이니스프리': 'fashion', '이솝': 'fashion', '이케아': 'fashion',
+  '인스턴트펑크': 'fashion', '커스텀멜로우': 'fashion', '코오롱': 'fashion',
+  '크린토피아': 'fashion', '트라이본즈': 'fashion', '현대홈쇼핑': 'fashion',
+  '베네피트': 'fashion', '무인양품': 'fashion',
+
+  // food (식품/마트)
+  'CJ': 'food', 'SSG.COM': 'food', '금옥당': 'food', '뚜레쥬르': 'food',
+  '띵굴': 'food', '롯데온': 'food', '베즐리': 'food', '사러가': 'food',
+  '신세계': 'food', '오아시스': 'food', '온브릭스': 'food', '이마트': 'food',
+  '쿠팡': 'food', '컬리': 'food', '태극당': 'food', '파리바게뜨': 'food',
+  '파리크라상': 'food', '풀무원': 'food', '하나로마트': 'food',
+  '한화커넥트': 'food', '현대그린푸드': 'food', '현대백화점 식품관': 'food',
+  '고디바': 'food',
+
+  // dining (외식)
+  'KFC': 'dining', '계륵장군': 'dining', '구스토타코': 'dining',
+  '도미노피자': 'dining', '등촌동샤브샤브': 'dining', '또보겠지': 'dining',
+  '롯데리아': 'dining', '만석닭강정': 'dining', '명동교자': 'dining',
+  '미분당': 'dining', '배달의민족': 'dining', '뱃고동': 'dining',
+  '버거리': 'dining', '버거킹': 'dining', '봉피양': 'dining',
+  '새마을식당': 'dining', '송계옥': 'dining', '신차이': 'dining',
+  '아오이토리': 'dining', '아워당N인더박스': 'dining', '아워홈': 'dining',
+  '연타발': 'dining', '육전국밥': 'dining', '인앤아웃': 'dining',
+  '진진': 'dining', '천하의 문타로': 'dining', '탐탐오향족발': 'dining',
+  '한솥도시락': 'dining', '황생가': 'dining', '피크니크': 'dining',
+
+  // cafe (카페)
+  'T카페나폴레옹': 'cafe', '공차': 'cafe', '논탄토': 'cafe',
   '매머드커피': 'cafe', '메가MGC커피': 'cafe', '모모스': 'cafe',
-  '블루보틀': 'cafe', '아우어베이커리': 'cafe', '앤트러사이트': 'cafe',
-  '엔제리너스': 'cafe', '이디야커피': 'cafe', '잠바주스': 'cafe',
-  '카멜커피': 'cafe', '크렘드마롱': 'cafe', '팀홀튼': 'cafe',
-  '파리크라상': 'cafe', '폴바셋': 'cafe', '할리스': 'cafe',
-  'T카페나폴레옹': 'cafe', '논탄토': 'cafe', '고디바': 'cafe',
-  // 외식
-  '롯데리아': 'dining', 'KFC': 'dining', '도미노피자': 'dining',
-  '버거킹': 'dining', '새마을식당': 'dining', '명동교자': 'dining',
-  '봉피양': 'dining', '송계옥': 'dining', '신차이': 'dining',
-  '등촌동샤브샤브': 'dining', '미분당': 'dining', '구스토타코': 'dining',
-  '계륵장군': 'dining', '만석닭강정': 'dining', '또보겠지떡볶이': 'dining',
-  '한솥도시락': 'dining', '진진': 'dining', '연타발': 'dining',
-  '천하의 문타로': 'dining', '아오이토리': 'dining', '황생가': 'dining',
-  '뱃고동': 'dining', '버거리': 'dining', '탐탐오향족발': 'dining',
-  '육전국밥': 'dining', '인앤아웃': 'dining',
-  '아워당N인더박스': 'dining', '아워홈': 'dining', '퀴즈노스': 'dining',
-  '배달의민족': 'dining',
-  // 마트/식료품
-  '이마트': 'food', '컬리': 'food', '온브릭스': 'food',
-  '하나로마트': 'food', '풀무원': 'food', 'CJ': 'food',
-  '현대그린푸드': 'food', '사러가': 'food', '금옥당': 'food',
-  '태극당': 'food', '파리바게뜨': 'food', '베즐리': 'food',
-  '현대백화점 식품관': 'food', 'SSG.COM': 'food', '롯데온': 'food',
-  // 쇼핑/온라인
-  '쿠팡': 'shopping', '무신사': 'shopping',
-  // 패션/뷰티
-  '나이키': 'fashion', '유니클로': 'fashion', 'H&M': 'fashion',
-  'COS': 'fashion', 'KITH': 'fashion', 'STUSSY': 'fashion',
-  'SUPREME': 'fashion', '커스텀멜로우': 'fashion', '인스턴트펑크': 'fashion',
-  '트라이본즈': 'fashion', '코오롱': 'fashion', '삼성물산': 'fashion',
-  'LF': 'fashion', '비너스': 'fashion', '미니골드': 'fashion',
-  '신세계인터내셔날': 'fashion', '이솝': 'fashion', '이니스프리': 'fashion',
-  '아모레퍼시픽': 'fashion', '올리브영': 'fashion', '베네피트': 'fashion',
-  '모닝글로리': 'fashion', '무인양품': 'fashion', '이케아': 'fashion',
-  'HDC아이파크몰': 'fashion', '크린토피아': 'fashion',
-  // 건강
+  '블루보틀': 'cafe', '앤트러사이트': 'cafe', '엔제리너스': 'cafe',
+  '이디야커피': 'cafe', '잠바주스': 'cafe', '카멜커피': 'cafe',
+  '크렘드마롱': 'cafe', '투썸플레이스': 'cafe', '팀홀튼': 'cafe',
+  '폴바셋': 'cafe', '할리스': 'cafe', '아우어베이커리': 'cafe',
+  '던킨도너츠': 'cafe',
+
+  // convenience (편의점)
+  'CU': 'convenience', 'GS25': 'convenience', '미니스톱': 'convenience',
+  '세븐일레븐': 'convenience', '이마트24': 'convenience',
+
+  // culture (문화)
+  'CGV': 'culture', 'YBM': 'culture', 'Apple': 'culture',
+  '교보문고': 'culture', '디즈니플러스': 'culture', '땡스북스': 'culture',
+  '메가박스': 'culture', '모닝글로리': 'culture', '밀리의서재': 'culture',
+  '예스24': 'culture', '롯데시네마': 'culture', '화담숲': 'culture',
+
+  // health (건강)
   '가톨릭대학교서울성모병원': 'health', '신촌세브란스병원': 'health',
-  '연세의료원': 'health', '헬스보이짐': 'health', 'YBM': 'health',
-  '삼성화재': 'health',
-  // 문화
-  'CGV': 'culture', '메가박스': 'culture', '롯데시네마': 'culture',
-  '교보문고': 'culture', '예스24': 'culture', '땡스북스': 'culture',
-  '밀리의서재': 'culture', '디즈니플러스': 'culture', 'Apple': 'culture',
-  '인터파크': 'culture', '화담숲': 'culture',
-  // 교통
-  'BART': 'transport', 'SK네트웍스': 'transport', '티머니': 'transport',
-  '대한항공': 'transport', '한화커넥트': 'transport',
-  // 통신/구독
-  'SK텔레콤': 'subscribe', '네이버페이': 'subscribe', 'Anthropic': 'subscribe',
-  // 해외
-  'AIRALO': 'overseas', 'KKday': 'overseas', '마이리얼트립': 'overseas',
-  'DOUBLETREE': 'overseas', 'Dusit Thani': 'overseas',
-  'Sokha Hotels': 'overseas', 'THE WESTIN': 'overseas',
-  '인터컨티넨탈호텔': 'overseas', 'Pullman': 'overseas',
-  'KIX DUTY FREE': 'overseas', 'LA RINASCENTE': 'overseas',
+  '연세의료원': 'health', '헬스보이짐': 'health',
+
+  // gift (선물)
+  '미니골드': 'gift', '호텔신라': 'gift', '롯데': 'gift',
+
+  // cat (고양이)
   'CUREFIP': 'cat',
-  // 백화점/면세
-  '롯데': 'shopping', '롯데백화점': 'shopping', '롯데면세점': 'shopping',
-  '신세계': 'shopping', '신세계면세점': 'shopping', 'AK플라자': 'shopping',
-  '더현대닷컴': 'shopping', '현대홈쇼핑': 'shopping', '호텔신라': 'shopping'
+
+  // etc (특정 불가)
+  'SK네트웍스': 'etc', 'SK텔레콤': 'etc', '삼성화재': 'etc', '티머니': 'etc'
 };
 
 // ═══ 매출처명 정제 (data.js cleanMerchantName과 동일 로직) ═══
 function cleanMerchantName(merchant) {
   if (!merchant) return merchant;
-  var m = merchant;
+  var m = merchant.trim();
 
-  // 접두어 제거
-  m = m.replace(/^신한온누리\s+/, '');
-  m = m.replace(/^1차\s*민생회복\s+/, '');
+  // 1. 신한온누리 접두어 제거
+  m = m.replace(/^신한온누리\s*/, '');
 
-  // 통화코드 접두어 제거 (해외 결제)
-  m = m.replace(/^(달러|유로|엔화|위안|바트|동|링깃|루피|페소)\s+/i, '');
+  // 2. 민생회복/1차 민생 접두어 제거
+  m = m.replace(/^(1차\s*)?민생(회복)?\s*/, '');
+
+  // 3. 통화코드 접두어 제거 (달러, 엔화, 유로, 위안, 바트, 페소 등 + 숫자)
+  m = m.replace(/^(달러|엔화|유로|위안|바트|페소)\s+/, '');
   // "USD 22.00 CLAUDE" / "HUF 124,000.00 COS" — 통화코드+금액(콤마/점 포함)+공백
   m = m.replace(/^[A-Z]{3}\s+[\d,.]+\s+/, '');
   // "HUF 124 000 COS" — 통화코드+숫자+공백 (콤마/점 없는 경우)
   m = m.replace(/^[A-Z]{3}(\s+[\d\s]+\s+)/, '');
-  // "KRW 533,000 ..." — KRW 전용
-  m = m.replace(/^KRW\s+[\d,.\s]+\s+/i, '');
   // "USD CLAUDE", "EUR LARINASCENTE" — 통화코드+공백+영문 (금액 없이 바로 매출처명)
   m = m.replace(/^(USD|EUR|JPY|GBP|CNY|THB|VND|PHP|HUF|KHR|SGD|KRW|MYR|INR)\s+/i, '');
   // 선행 숫자 제거 ("22.00 CLAUDE", "8100 LAWSON")
   m = m.replace(/^[\d,.]+\s+/, '');
 
-  // 변형 통합
-  if (/^사러가/.test(m)) m = '사러가';
-  if (/^또[보부]겠지/.test(m)) m = '또보겠지떡볶이';
-  if (/^COS\b/.test(m)) m = 'COS';
-  if (/^온브릭스/.test(m)) m = '온브릭스';
-  if (/^씨유홍대3호/.test(m)) m = '씨유홍대3호점';
-  if (/^SP\s+STUSSY/i.test(m)) m = 'STUSSY';
-  if (/^KITH\s+HAWAI/i.test(m)) m = 'KITH';
-  if (/^LARINASCEN/i.test(m)) m = 'LA RINASCENTE';
-  if (/^www\.curefi|^CUREFIP\.CO/i.test(m)) m = 'CUREFIP';
-  if (/^KIX\s*(DFS|DUTY)/i.test(m)) m = 'KIX DUTY FREE';
+  // 4. 매출처명 변형 통합
+  if (m.match(/^사러가/)) m = '사러가';
+  if (m.match(/^또[보부]겠지/)) m = '또보겠지';
+  if (m.match(/^COS\s*HU/i)) m = 'COS';
+  if (m.match(/온브릭스/)) m = '온브릭스';
+  if (m.match(/^SP\s+STUSSY/i)) m = 'STUSSY';
+  if (m.match(/^KITH\s+HAWAI/i)) m = 'KITH';
+  if (m.match(/^LARINASCEN/i)) m = 'LA RINASCENTE';
+  if (m.match(/^www\.curefi|^CUREFIP\.CO/i)) m = 'CUREFIP';
+  if (m.match(/^KIX\s*(DFS|DUTY)/i)) m = 'KIX DUTY FREE';
 
-  return m.trim() || merchant;
+  return m;
 }
 
 function getCategoryByBrand(brand) {

@@ -14,9 +14,13 @@
 - Golden Path 테스트 영역 4: 가계부 입력 — SMS 파싱(국내/자동결제/해외/거절), cleanMerchantName, autoMatchCategory, brand→category 연쇄, 사용자 학습 우선순위, 수동 입력 기본값, updateExpense 카테고리 보존 (B-57)
 - Golden Path 테스트 영역 2: 동기화 병합 — 서버 항목 추가, 최신 우선 갱신, 로컬/서버 삭제 항목 복원 방지(L-05), 빈 로컬 첫 설치, expenses 병합 동일 패턴 (B-57)
 - .claude/settings.json: 파일 수정·일반 명령 권한 자동 허용, 위험 명령(rm -rf, Stop-Process 등) 차단 (B-57)
+- B-57: 영역 5 — SMS 파서 클라이언트↔서버 동기화 테스트 5건 (sms-parity.test.js)
+- B-57: 영역 6 — switchTab 패널 상태 정합성 테스트 6건 (switchtab-state.test.js)
+- B-57: 영역 7 — sendBeacon flush 페이로드 보호 테스트 5건 (flush-payload.test.js)
 
 ### Fixed
 - 가계부 항목 꾹누르기 시 OS 텍스트 선택 겹침 방지 — .exp-tl-item에 user-select: none 적용. (style.css)
+- B-57: gas/Code.js BRAND_CATEGORY_MAP·cleanMerchantName을 data.js 기준으로 동기화 — 20+건 카테고리 불일치 해소
 
 ## 2026-03-30
 
