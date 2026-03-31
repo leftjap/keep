@@ -12,6 +12,8 @@
 - Golden Path 테스트 영역 1: docs CRUD (newDoc, saveDocs, getDocs 타입 필터링, 빈 상태 동작) (B-57)
 - Golden Path 테스트 영역 3: Soft Delete (삭제 플래그, 필터링, 복원, 30일 정리, 영구 삭제 ID 추적) (B-57)
 - Golden Path 테스트 영역 4: 가계부 입력 — SMS 파싱(국내/자동결제/해외/거절), cleanMerchantName, autoMatchCategory, brand→category 연쇄, 사용자 학습 우선순위, 수동 입력 기본값, updateExpense 카테고리 보존 (B-57)
+- Golden Path 테스트 영역 2: 동기화 병합 — 서버 항목 추가, 최신 우선 갱신, 로컬/서버 삭제 항목 복원 방지(L-05), 빈 로컬 첫 설치, expenses 병합 동일 패턴 (B-57)
+- .claude/settings.json: 파일 수정·일반 명령 권한 자동 허용, 위험 명령(rm -rf, Stop-Process 등) 차단 (B-57)
 
 ### Fixed
 - 가계부 항목 꾹누르기 시 OS 텍스트 선택 겹침 방지 — .exp-tl-item에 user-select: none 적용. (style.css)
