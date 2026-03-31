@@ -21,6 +21,7 @@
 ### Fixed
 - 가계부 항목 꾹누르기 시 OS 텍스트 선택 겹침 방지 — .exp-tl-item에 user-select: none 적용. (style.css)
 - B-57: gas/Code.js BRAND_CATEGORY_MAP·cleanMerchantName을 data.js 기준으로 동기화 — 20+건 카테고리 불일치 해소
+- data.js·Code.js MERCHANT_TO_BRAND `또보겠지떡볶이` → `또보겠지` 통일 — BRAND_CATEGORY_MAP 키와 정합성 복원 (data.js, gas/Code.js)
 
 ## 2026-03-30
 
