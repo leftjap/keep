@@ -5,6 +5,14 @@
 ## 2026-03-31
 
 ### Added
+- **B-57 Phase 2**: 코드/문서 수준 보호 장치 추가
+  - style.css: iOS PWA 보호 주석 7개소 삽입 (`B-57 PROTECT` — min-height, position, safe-area-inset-bottom)
+  - AGENTS.md: switchTab 패널 상태, iOS PWA CSS, gesture.js 초기화, SMS 동기화, sendBeacon 보호 체크리스트 추가
+  - common-rules.md: 변경 금지 CSS 속성·상태 변수 목록 등록
+
+## 2026-03-31 (기존)
+
+### Added
 - 매출처-카테고리 사용자 학습 자동 분류 — 사용자가 카테고리를 변경하면 학습 맵(gb_merchant_categories)에 저장, 동일 매출처 재입력 시 자동 적용. 서버 동기화 미포함. (storage.js, data.js, sms-parser.js, ui-expense.js)
 - GAS 배포 자동화 스크립트 deploy.ps1 추가 — clasp push + deploy를 한 줄로 실행. (gas/deploy.ps1) (B-63)
 - GitHub Actions GAS 자동 배포 workflow — git push → clasp push → clasp deploy 자동 실행. (.github/workflows/deploy-gas.yml) (B-63)
