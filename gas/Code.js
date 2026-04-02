@@ -7,7 +7,7 @@
 // ═══ 사용자별 설정 ═══
 var USER_CONFIG = {
   'leftjap@gmail.com': {
-    rootFolder: '글방',
+    rootFolder: 'leftjap',
     routineSheetId: '1JlZRXskoMt1o9nFL3FRbJxfVacOKvjilXFVJutfUKjo',
     quoteSheetId: '1A_i-W25WZHk4Ek0PbcL1CJDeODNfLSaz4revU2DLRM8',
     cardSmsSheetId: '18j69eayfIu8Pu7vBCDyl7bPDj5eBJhuczi1vzZxySXk',
@@ -46,7 +46,7 @@ var USER_CONFIG = {
     ]
   },
   'soyoun312@gmail.com': {
-    rootFolder: '소연의 글방',
+    rootFolder: 'soyoun',
     routineSheetId: '1aISns2onggu0unrPbQu9fyE2VS04F9l1_FTXLEY1GkQ',
     quoteSheetId: null,
     cardSmsSheetId: '1wg7FW2tmHcJQKblOalPhNWV-Dl2febhcds-KnQ1tuNw',
@@ -715,9 +715,16 @@ function getOrCreateFolder(parentFolder, name) {
   return parentFolder.createFolder(name);
 }
 
+// ═══ Drive 경로: apps/keep/ ═══
+function _getKeepRoot() {
+  var apps = getOrCreateFolder(DriveApp.getRootFolder(), 'apps');
+  return getOrCreateFolder(apps, 'keep');
+}
+
 function getSubFolder(name, config) {
-  var root = getOrCreateFolder(DriveApp.getRootFolder(), config.rootFolder);
-  return getOrCreateFolder(root, name);
+  var keepRoot = _getKeepRoot();
+  var userFolder = getOrCreateFolder(keepRoot, config.rootFolder);
+  return getOrCreateFolder(userFolder, name);
 }
 
 // ═══ 문서 저장 ═══
@@ -938,7 +945,8 @@ function uploadImageToDrive(bytes, mimeType, filename, config) {
 
 // ═══ DB 동기화 ═══
 function getDatabaseFile(config) {
-  var folder = getOrCreateFolder(DriveApp.getRootFolder(), config.rootFolder);
+  var keepRoot = _getKeepRoot();
+  var folder = getOrCreateFolder(keepRoot, config.rootFolder);
   var files = folder.getFilesByName('app_database.json');
   if (files.hasNext()) return files.next();
   return folder.createFile('app_database.json', '{}', MimeType.PLAIN_TEXT);
@@ -946,9 +954,10 @@ function getDatabaseFile(config) {
 
 // ═══ 공유 소셜 파일 (알림 + 댓글) ═══
 function getSharedSocialFile() {
-  // 항상 leftjap의 '글방' 폴더에 저장 (양쪽 사용자 공유)
+  // 항상 leftjap의 apps/keep/leftjap/ 폴더에 저장 (양쪽 사용자 공유)
+  var keepRoot = _getKeepRoot();
   var hostConfig = USER_CONFIG['leftjap@gmail.com'];
-  var folder = getOrCreateFolder(DriveApp.getRootFolder(), hostConfig.rootFolder);
+  var folder = getOrCreateFolder(keepRoot, hostConfig.rootFolder);
   var files = folder.getFilesByName('shared_social.json');
   if (files.hasNext()) return files.next();
   var initial = JSON.stringify({ notifications: [], comments: [] });
@@ -2517,7 +2526,8 @@ function fixFutureExpenses(email) {
 // ═══ 백업 목록 조회 (GAS 편집기에서 수동 실행) ═══
 function listBackups(email) {
   var config = _getConfigForEmail(email);
-  var folder = getOrCreateFolder(DriveApp.getRootFolder(), config.rootFolder);
+  var keepRoot = _getKeepRoot();
+  var folder = getOrCreateFolder(keepRoot, config.rootFolder);
   var allFiles = folder.getFiles();
   var backups = [];
   while (allFiles.hasNext()) {
@@ -2545,7 +2555,8 @@ function listBackups(email) {
 // 사용법: restoreFromBackup('leftjap@gmail.com', '2026-03-27')
 function restoreFromBackup(email, dateStr) {
   var config = _getConfigForEmail(email);
-  var folder = getOrCreateFolder(DriveApp.getRootFolder(), config.rootFolder);
+  var keepRoot = _getKeepRoot();
+  var folder = getOrCreateFolder(keepRoot, config.rootFolder);
   var backupName = 'app_database_backup_' + dateStr + '.json';
   var files = folder.getFilesByName(backupName);
   if (!files.hasNext()) {
