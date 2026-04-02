@@ -2,6 +2,11 @@
 
 형식: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
+## 2026-04-02
+
+### Added
+- Guard 등록: mergeServerAll 병합 불변 조건 — AGENTS.md 보호 체크리스트 + tests/merge-integrity.test.js. (AGENTS.md, tests/merge-integrity.test.js)
+
 ## 2026-03-31
 
 ### Added
