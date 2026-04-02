@@ -5,7 +5,8 @@
 ## 2026-04-02
 
 ### Added
-- Guard 등록: mergeServerAll 병합 불변 조건 — AGENTS.md 보호 체크리스트 + tests/merge-integrity.test.js. (AGENTS.md, tests/merge-integrity.test.js)
+- Guard 등록: mergeServerAll 병합 불변 조건 — AGENTS.md 보호 체크리스트 + __tests__/merge-integrity.test.js. (AGENTS.md, __tests__/merge-integrity.test.js)
+- merge-integrity.test.js를 tests/ → __tests__/로 이동 — npm test 경로 통일. (AGENTS.md)
 
 ## 2026-03-31
 
