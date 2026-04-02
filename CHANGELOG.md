@@ -14,6 +14,9 @@
 - Guard 등록: mergeServerAll 병합 불변 조건 — AGENTS.md 보호 체크리스트 + __tests__/merge-integrity.test.js. (AGENTS.md, __tests__/merge-integrity.test.js)
 - merge-integrity.test.js를 tests/ → __tests__/로 이동 — npm test 경로 통일. (AGENTS.md)
 
+### Fixed
+- 백업 파일이 잘못된 경로(내 드라이브/leftjap/)에 생성되던 문제 수정 — apps/keep/leftjap/ 기준으로 통일. restoreFromBackup과 경로 정합. [경로.백업경로] (gas/Code.js)
+
 ## 2026-03-31
 
 ### Added

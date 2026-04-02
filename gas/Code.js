@@ -1341,7 +1341,8 @@ function _backupDatabaseIfNeeded(config) {
     // 오늘 이미 백업했으면 건너뜀
     if (lastBackupDate === todayStr) return;
 
-    var folder = getOrCreateFolder(DriveApp.getRootFolder(), config.rootFolder);
+    var keepRoot = _getKeepRoot();
+    var folder = getOrCreateFolder(keepRoot, config.rootFolder);
 
     // 현재 DB 파일 내용 읽기
     var dbFile = getDatabaseFile(config);
