@@ -569,11 +569,14 @@ function delDoc(type, id, e) {
   e.stopPropagation();
   if (!confirm('삭제할까요?')) return;
   var docs = L(K.docs) || [];
+  var target = docs.find(function(d) { return d.id === id; });
+  var driveId = target ? target.driveId : null;
   _softDelete(docs, id);
   saveDocs(docs);
   if (curIds[type] === id) { curIds[type] = null; currentLoadedDoc = { type: null, id: null }; }
   renderListPanel();
   SYNC.scheduleDatabaseSave();
+  if (driveId) SYNC.trashDocFromDrive(driveId);
   var visibleDocs = getDocs(type);
   if (visibleDocs.length) loadDoc(type, visibleDocs[0].id, true);
   else { var nd = newDoc(type); loadDoc(type, nd.id, true); }
@@ -650,12 +653,15 @@ function delBook(id, e) {
   e.stopPropagation();
   if (!confirm('삭제할까요?')) return;
   var books = L(K.books) || [];
+  var target = books.find(function(b) { return b.id === id; });
+  var driveId = target ? target.driveId : null;
   _softDelete(books, id);
   saveBooks(books);
   if (curBookId === id) { curBookId = null; currentLoadedDoc = { type: null, id: null }; }
   renderListPanel();
   updateBookStats();
   SYNC.scheduleDatabaseSave();
+  if (driveId) SYNC.trashDocFromDrive(driveId);
 }
 
 function updateBookStats() {
@@ -803,11 +809,14 @@ function delMemo(id, e) {
   e.stopPropagation();
   if (!confirm('삭제할까요?')) return;
   var memos = L(K.memos) || [];
+  var target = memos.find(function(m) { return m.id === id; });
+  var driveId = target ? target.driveId : null;
   _softDelete(memos, id);
   saveMemos(memos);
   if (curMemoId === id) { curMemoId = null; currentLoadedDoc = { type: null, id: null }; }
   renderListPanel();
   SYNC.scheduleDatabaseSave();
+  if (driveId) SYNC.trashDocFromDrive(driveId);
 }
 
 // ═══ 통계 ═══

@@ -5,6 +5,7 @@
 ## 2026-04-03
 
 ### Added
+- 앱에서 문서 삭제 시 Drive 구글문서를 휴지통으로 이동 — delDoc/delBook/delMemo에서 driveId가 있으면 GAS trash_doc 호출. 실패 시 앱 삭제는 정상 진행 (gas/Code.js, js/sync.js, js/data.js)
 - GAS 에디터의 디버깅/복구 유틸 함수를 Code.js에 병합 — cleanForeignExpenses, checkBackupExpenses, checkSoyounExpenses 등. GAS ↔ 로컬 동기화 (gas/Code.js)
 
 ### Fixed

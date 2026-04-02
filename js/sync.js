@@ -900,5 +900,16 @@ const SYNC = {
       console.warn('editComment 실패:', e.message);
       return { status: 'error', message: e.message };
     }
+  },
+
+  // ═══ 문서 삭제 시 Drive 구글문서 휴지통 이동 ═══
+  async trashDocFromDrive(driveId) {
+    if (!driveId || !GAS_URL || !this.isDbLoaded) return;
+    if (typeof _partnerMode !== 'undefined' && _partnerMode) return;
+    try {
+      await this._post({ action: 'trash_doc', driveId: driveId });
+    } catch (e) {
+      console.warn('trashDocFromDrive 실패 (무시):', driveId, e.message);
+    }
   }
 };

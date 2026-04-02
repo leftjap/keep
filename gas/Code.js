@@ -656,6 +656,9 @@ function doPost(e) {
         var folderName = config.folderMap[data.type] || data.type;
         result = saveDocument(data.id, data.driveId, folderName, data.title, data.content, config);
         break;
+      case 'trash_doc':
+        result = trashDocument(data.driveId);
+        break;
       case 'save_routine':
         result = saveRoutineToSheet(data.date, data.checks, config);
         break;
@@ -796,6 +799,24 @@ function saveDocument(docId, driveId, folderName, title, content, config) {
     throw new Error("파일 저장 중 에러: " + e.toString());
   } finally {
     lock.releaseLock();
+  }
+}
+
+// ═══ 문서 삭제 시 Drive 구글문서 휴지통 이동 ═══
+function trashDocument(driveId) {
+  if (!driveId) {
+    return { status: 'ok', message: 'No driveId' };
+  }
+  try {
+    var file = DriveApp.getFileById(driveId);
+    if (file && !file.isTrashed()) {
+      file.setTrashed(true);
+      console.log('Drive 문서 휴지통 이동: ' + driveId + ' (' + file.getName() + ')');
+    }
+    return { status: 'ok' };
+  } catch (e) {
+    console.warn('trashDocument 실패 (무시): ' + driveId + ' — ' + e);
+    return { status: 'ok', message: 'File not found or already trashed' };
   }
 }
 
