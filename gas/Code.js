@@ -718,6 +718,13 @@ function getOrCreateFolder(parentFolder, name) {
   return parentFolder.createFolder(name);
 }
 
+function _getBackupFolder(userFolderName) {
+  var root = DriveApp.getRootFolder();
+  var backups = getOrCreateFolder(root, 'backups');
+  var keepBackups = getOrCreateFolder(backups, 'keep');
+  return getOrCreateFolder(keepBackups, userFolderName);
+}
+
 // ═══ Drive 경로: apps/keep/ ═══
 function _getKeepRoot() {
   var apps = getOrCreateFolder(DriveApp.getRootFolder(), 'apps');
@@ -1362,8 +1369,7 @@ function _backupDatabaseIfNeeded(config) {
     // 오늘 이미 백업했으면 건너뜀
     if (lastBackupDate === todayStr) return;
 
-    var keepRoot = _getKeepRoot();
-    var folder = getOrCreateFolder(keepRoot, config.rootFolder);
+    var folder = _getBackupFolder(config.rootFolder);
 
     // 현재 DB 파일 내용 읽기
     var dbFile = getDatabaseFile(config);
