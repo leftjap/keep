@@ -4,6 +4,9 @@
 
 ## 2026-04-03
 
+### Added
+- GAS 에디터의 디버깅/복구 유틸 함수를 Code.js에 병합 — cleanForeignExpenses, checkBackupExpenses, checkSoyounExpenses 등. GAS ↔ 로컬 동기화 (gas/Code.js)
+
 ### Fixed
 - 로컬 백업 스크립트 인증 실패 — `$TOKEN`이 `nametag2026`이나 GAS Script Properties의 `SMS_SERVICE_TOKEN`은 `keep-sms-2026`으로 불일치. 토큰 갱신 + 작업 스케줄러 등록. [설정.토큰불일치] (backup-keep-db.ps1)
 - CSS Guard K-2 테스트 실패 수정 — `#ed-topbar`(ID)를 `.ed-topbar`(클래스)로 변경. style.css는 클래스 셀렉터만 사용. [설정.셀렉터불일치] (__tests__/css-guard.test.js)
