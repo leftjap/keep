@@ -19,6 +19,7 @@
 - loadDatabase의 expenses 교체에도 급감 가드 추가 — docs/books/quotes/memos와 동일한 보호 수준 적용. (js/sync.js)
 - loadDatabase·mergeServerDocs·mergeServerExpenses에 급감 가드 추가 — 서버 데이터가 비정상(0건)일 때 로컬 교체를 차단. (js/sync.js)
 - mergeServerAll에 _dbSaveQueued 가드 추가 — 편집 후 빠른 백그라운드/포그라운드 전환 시 race condition 방지. (js/sync.js)
+- sync.js server-wins 불변 조건 소스 주석(🛡️) 추가 — loadDatabase, mergeServerDocs, mergeServerExpenses, mergeServerAll 4곳. (js/sync.js)
 - GAS 에디터의 디버깅/복구 유틸 함수를 Code.js에 병합 — cleanForeignExpenses, checkBackupExpenses, checkSoyounExpenses 등. GAS ↔ 로컬 동기화 (gas/Code.js)
 
 ### Changed (기존)

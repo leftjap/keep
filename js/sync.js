@@ -90,7 +90,11 @@ const SYNC = {
       if (res && res.dbData && Object.keys(res.dbData).length > 0) {
         var db = res.dbData;
 
-        // ── server-wins: 서버 데이터로 로컬 교체 ──
+        // ── 🛡️ server-wins: 서버 데이터로 로컬 교체 ──
+        // 불변 조건 (AGENTS.md Guard):
+        // 1. 서버가 source of truth — 교체만 허용, 병합(merge) 금지
+        // 2. _deleted 항목은 로컬에 포함하지 않음
+        // 3. 급감 가드: 로컬 > 0 && 서버 = 0이면 교체 차단
         var replaceKeys = [
           { key: K.docs,   saver: function(v) { S(K.docs, v);   } },
           { key: K.books,  saver: function(v) { S(K.books, v);  } },
@@ -118,7 +122,7 @@ const SYNC = {
           rk.saver(filtered);
         }
 
-        // ── 교체 대상: checks, expenses, icons ──
+        // ── 교체 대상: checks, expenses, icons (server-wins, 급감 가드 포함) ──
         if (db[K.checks])           S(K.checks,           db[K.checks]);
         if (db[K.expenses]) {
           var localExp = L(K.expenses) || [];
@@ -509,7 +513,8 @@ const SYNC = {
 
     var changed = false;
 
-    // ── server-wins: docs, books, memos, quotes를 서버 데이터로 교체 ──
+    // ── 🛡️ server-wins: docs, books, memos, quotes를 서버 데이터로 교체 ──
+    // 불변 조건: loadDatabase()와 동일. _unsyncedLocal 가드 위에서 확인됨.
     var replaceKeys = [
       { key: K.docs,   label: 'docs' },
       { key: K.books,  label: 'books' },
@@ -621,7 +626,8 @@ const SYNC = {
       console.log('mergeServerAll: loadDatabase 진행 중 — 건너뜀');
       return;
     }
-    // 저장 예약 중이면 서버 교체하지 않음 (race condition 방지)
+    // 🛡️ 저장 예약 중이면 서버 교체하지 않음 (race condition 방지)
+    // 편집 → 빠른 백그라운드/포그라운드 전환 시 구버전 서버 데이터로 교체 방지
     if (this._dbSaveQueued) {
       console.log('mergeServerAll: 저장 예약 중이므로 건너뜀');
       return;
