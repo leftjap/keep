@@ -1462,22 +1462,28 @@ function saveDatabase(dbData, config) {
       }
     }
 
-    // ── 검증 2: docs 건수 급감 (50% 미만) ──
-    if (curDocs.length >= 10 && newDocs.length < curDocs.length * 0.5) {
-      console.error('⚠️ saveDatabase 차단: docs 급감 감지 (' + email + '). 기존 ' + curDocs.length + '건 → 신규 ' + newDocs.length + '건');
-      return { status: 'error', message: 'Integrity check failed: docs count drop (' + curDocs.length + ' → ' + newDocs.length + ')' };
-    }
-
-    // ── 검증 3: books 건수 급감 (50% 미만) ──
-    if (curBooks.length >= 5 && newBooks.length < curBooks.length * 0.5) {
-      console.error('⚠️ saveDatabase 차단: books 급감 감지 (' + email + '). 기존 ' + curBooks.length + '건 → 신규 ' + newBooks.length + '건');
-      return { status: 'error', message: 'Integrity check failed: books count drop (' + curBooks.length + ' → ' + newBooks.length + ')' };
-    }
-
-    // ── 검증 4: quotes 건수 급감 (50% 미만) ──
-    if (curQuotes.length >= 10 && newQuotes.length < curQuotes.length * 0.5) {
-      console.error('⚠️ saveDatabase 차단: quotes 급감 감지 (' + email + '). 기존 ' + curQuotes.length + '건 → 신규 ' + newQuotes.length + '건');
-      return { status: 'error', message: 'Integrity check failed: quotes count drop (' + curQuotes.length + ' → ' + newQuotes.length + ')' };
+    // ── 검증 2/3/4: docs·books·quotes 건수 급감 (50% 미만) — _deletedIds 고려 ──
+    var deletedIds = dbData._deletedIds || {};
+    var _countChecks = [
+      { key: 'gb_docs',   label: 'docs',   cur: curDocs,   new_: newDocs,   delIds: deletedIds.docs   || [], min: 10 },
+      { key: 'gb_books',  label: 'books',  cur: curBooks,  new_: newBooks,  delIds: deletedIds.books  || [], min: 5  },
+      { key: 'gb_quotes', label: 'quotes', cur: curQuotes, new_: newQuotes, delIds: deletedIds.quotes || [], min: 10 }
+    ];
+    for (var cci = 0; cci < _countChecks.length; cci++) {
+      var cc = _countChecks[cci];
+      if (cc.cur.length < cc.min) continue;
+      // 서버에 실제 존재하는 _deletedIds만 인정
+      var _curIdSet = {};
+      for (var xi = 0; xi < cc.cur.length; xi++) _curIdSet[cc.cur[xi].id] = true;
+      var _verifiedDel = 0;
+      for (var yi = 0; yi < cc.delIds.length; yi++) {
+        if (_curIdSet[cc.delIds[yi]]) _verifiedDel++;
+      }
+      var _accounted = cc.new_.length + _verifiedDel;
+      if (_accounted < cc.cur.length * 0.5) {
+        console.error('⚠️ saveDatabase 차단: ' + cc.label + ' 급감 감지 (' + email + '). 기존 ' + cc.cur.length + '건 → 신규 ' + cc.new_.length + '건 (검증된 삭제 ' + _verifiedDel + '건, 설명 합계 ' + _accounted + '건)');
+        return { status: 'error', message: 'Integrity check failed: ' + cc.label + ' count drop (' + cc.cur.length + ' → ' + cc.new_.length + ', verified deleted: ' + _verifiedDel + ')' };
+      }
     }
 
     // ── 검증 4.5: 개별 항목 소실 감지 (soft delete 연동) ──
