@@ -16,6 +16,7 @@
 - CSS Guard K-2 테스트 실패 수정 — `#ed-topbar`(ID)를 `.ed-topbar`(클래스)로 변경. style.css는 클래스 셀렉터만 사용. [설정.셀렉터불일치] (__tests__/css-guard.test.js)
 
 ### Added
+- loadDatabase의 expenses 교체에도 급감 가드 추가 — docs/books/quotes/memos와 동일한 보호 수준 적용. (js/sync.js)
 - loadDatabase·mergeServerDocs·mergeServerExpenses에 급감 가드 추가 — 서버 데이터가 비정상(0건)일 때 로컬 교체를 차단. (js/sync.js)
 - mergeServerAll에 _dbSaveQueued 가드 추가 — 편집 후 빠른 백그라운드/포그라운드 전환 시 race condition 방지. (js/sync.js)
 - GAS 에디터의 디버깅/복구 유틸 함수를 Code.js에 병합 — cleanForeignExpenses, checkBackupExpenses, checkSoyounExpenses 등. GAS ↔ 로컬 동기화 (gas/Code.js)

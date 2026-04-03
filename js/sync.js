@@ -118,9 +118,17 @@ const SYNC = {
           rk.saver(filtered);
         }
 
-        // ── 교체 대상: checks, expenses, icons (기존과 동일) ──
+        // ── 교체 대상: checks, expenses, icons ──
         if (db[K.checks])           S(K.checks,           db[K.checks]);
-        if (db[K.expenses])         S(K.expenses,         db[K.expenses]);
+        if (db[K.expenses]) {
+          var localExp = L(K.expenses) || [];
+          var serverExp = db[K.expenses];
+          if (localExp.length > 0 && (!Array.isArray(serverExp) || serverExp.length === 0)) {
+            console.warn('loadDatabase 급감 가드: expenses 로컬 ' + localExp.length + '건 → 서버 0건. 교체 차단.');
+          } else {
+            S(K.expenses, serverExp);
+          }
+        }
         if (db[K.merchantIcons])    S(K.merchantIcons,    db[K.merchantIcons]);
         if (db[K.merchantAliases])  S(K.merchantAliases,  db[K.merchantAliases]);
         if (db[K.brandIcons])       S(K.brandIcons,       db[K.brandIcons]);
