@@ -88,68 +88,37 @@ const SYNC = {
     try {
       const res = await this._post({ action: 'load_db' });
       if (res && res.dbData && Object.keys(res.dbData).length > 0) {
-        const db = res.dbData;
+        var db = res.dbData;
 
-        // ── merge 대상: docs, books, quotes, memos ──
-        // 항목별 id + updated 비교. 로컬에만 있는 항목(미 push 신규)을 보존한다.
-        var mergeKeys = [
-          { key: K.docs,   getter: function() { return L(K.docs)   || []; }, saver: function(v) { S(K.docs, v);   } },
-          { key: K.books,  getter: function() { return L(K.books)  || []; }, saver: function(v) { S(K.books, v);  } },
-          { key: K.quotes, getter: function() { return L(K.quotes) || []; }, saver: function(v) { S(K.quotes, v); } },
-          { key: K.memos,  getter: function() { return L(K.memos)  || []; }, saver: function(v) { S(K.memos, v);  } }
+        // ── server-wins: 서버 데이터로 로컬 교체 ──
+        var replaceKeys = [
+          { key: K.docs,   saver: function(v) { S(K.docs, v);   } },
+          { key: K.books,  saver: function(v) { S(K.books, v);  } },
+          { key: K.quotes, saver: function(v) { S(K.quotes, v); } },
+          { key: K.memos,  saver: function(v) { S(K.memos, v);  } }
         ];
 
-        for (var mi = 0; mi < mergeKeys.length; mi++) {
-          var mk = mergeKeys[mi];
-          var serverItems = db[mk.key];
+        for (var ri = 0; ri < replaceKeys.length; ri++) {
+          var rk = replaceKeys[ri];
+          var serverItems = db[rk.key];
           if (!serverItems || !Array.isArray(serverItems)) continue;
 
-          var localItems = mk.getter();
-          if (!localItems || !Array.isArray(localItems) || localItems.length === 0) {
-            // 로컬이 비어있으면 서버 데이터를 그대로 적용 (첫 설치)
-            // 단, 서버에서 삭제된 항목은 제외
-            var filtered = [];
-            for (var fi = 0; fi < serverItems.length; fi++) {
-              if (!serverItems[fi]._deleted) filtered.push(serverItems[fi]);
-            }
-            mk.saver(filtered);
+          // 급감 가드: 로컬에 데이터가 있는데 서버가 비어있으면 교체 차단
+          var localItems = L(rk.key) || [];
+          if (localItems.length > 0 && serverItems.length === 0) {
+            console.warn('loadDatabase 급감 가드: ' + rk.key + ' 로컬 ' + localItems.length + '건 → 서버 0건. 교체 차단.');
             continue;
           }
 
-          var localMap = {};
-          for (var li = 0; li < localItems.length; li++) {
-            localMap[localItems[li].id] = localItems[li];
+          // _deleted 항목 제외 후 교체
+          var filtered = [];
+          for (var fi = 0; fi < serverItems.length; fi++) {
+            if (!serverItems[fi]._deleted) filtered.push(serverItems[fi]);
           }
-
-          var merged = false;
-          // 서버 항목 순회: 로컬에 같은 id가 있으면 updated 비교, 없으면 추가
-          for (var si = 0; si < serverItems.length; si++) {
-            var sv = serverItems[si];
-            var lv = localMap[sv.id];
-            if (lv) {
-              // ★ 로컬에서 삭제된 항목은 서버 데이터로 복원하지 않음
-              if (lv._deleted) continue;
-              var svTime = sv.updated || sv.created || sv.date || '';
-              var lvTime = lv.updated || lv.created || lv.date || '';
-              if (svTime && lvTime && svTime > lvTime) {
-                Object.assign(lv, sv);
-                merged = true;
-              }
-            } else {
-              // ★ 서버에만 있는 항목도 삭제 상태면 추가하지 않음
-              if (sv._deleted) continue;
-              localItems.push(sv);
-              localMap[sv.id] = sv;
-              merged = true;
-            }
-          }
-
-          // 로컬에만 있는 항목은 localItems에 이미 남아 있으므로 별도 처리 불요
-          mk.saver(localItems);
+          rk.saver(filtered);
         }
 
-        // ── 교체 대상: checks, expenses, icons ──
-        // 항목별 id가 없거나 merge 불필요한 데이터는 기존대로 서버 데이터로 교체
+        // ── 교체 대상: checks, expenses, icons (기존과 동일) ──
         if (db[K.checks])           S(K.checks,           db[K.checks]);
         if (db[K.expenses])         S(K.expenses,         db[K.expenses]);
         if (db[K.merchantIcons])    S(K.merchantIcons,    db[K.merchantIcons]);
@@ -250,7 +219,7 @@ const SYNC = {
     var delays = [5000, 15000, 45000];
     if (this._dbRetryCount >= delays.length) {
       console.warn('saveDatabase 재시도 한도 초과 (' + delays.length + '회)');
-      window._unsyncedLocal = false;
+      window._unsyncedLocal = true;
       this.setSyncStatus('저장 실패', 'error');
       return;
     }
@@ -513,7 +482,6 @@ const SYNC = {
   // ═══ 서버 문서 병합 (멀티 디바이스 동기화) ═══
   async mergeServerDocs(dbData) {
     if (!this.isDbLoaded) return;
-    // dbData가 없으면 직접 로드 (단독 호출 대비)
     if (!dbData) {
       try {
         var res = await this._post({ action: 'load_db' });
@@ -525,116 +493,50 @@ const SYNC = {
       }
     }
 
-    // _unsyncedLocal이 true면 로컬에 미저장 변경이 있으므로 서버 덮어쓰기 안 함
+    // 미동기화 로컬 변경이 있으면 서버 교체하지 않음
     if (window._unsyncedLocal) {
-      console.log('mergeServerDocs: 미동기화 로컬 변경이 있어 서버 병합 건너뜀');
+      console.log('mergeServerDocs: 미동기화 로컬 변경이 있어 서버 교체 건너뜀');
       return;
     }
 
     var changed = false;
 
-    // docs 병합 — raw 배열 사용 (삭제 항목 포함)
-    var serverDocs = dbData[K.docs];
-    if (serverDocs && Array.isArray(serverDocs)) {
-      var localDocs = L(K.docs) || [];
-      var localMap = {};
-      for (var i = 0; i < localDocs.length; i++) localMap[localDocs[i].id] = localDocs[i];
-      var docsChanged = false;
-      for (var j = 0; j < serverDocs.length; j++) {
-        var sd = serverDocs[j];
-        var ld = localMap[sd.id];
-        if (ld) {
-          if (ld._deleted) continue;
-          if (sd.updated && ld.updated && sd.updated > ld.updated) {
-            Object.assign(ld, sd);
-            docsChanged = true;
-          }
-        } else {
-          if (sd._deleted) continue;
-          localDocs.unshift(sd);
-          docsChanged = true;
-        }
-      }
-      if (docsChanged) { S(K.docs, localDocs); changed = true; }
-    }
+    // ── server-wins: docs, books, memos, quotes를 서버 데이터로 교체 ──
+    var replaceKeys = [
+      { key: K.docs,   label: 'docs' },
+      { key: K.books,  label: 'books' },
+      { key: K.memos,  label: 'memos' },
+      { key: K.quotes, label: 'quotes' }
+    ];
 
-    // books 병합 — raw 배열 사용
-    var serverBooks = dbData[K.books];
-    if (serverBooks && Array.isArray(serverBooks)) {
-      var localBooks = L(K.books) || [];
-      var bookMap = {};
-      for (var i = 0; i < localBooks.length; i++) bookMap[localBooks[i].id] = localBooks[i];
-      var booksChanged = false;
-      for (var j = 0; j < serverBooks.length; j++) {
-        var sb = serverBooks[j];
-        var lb = bookMap[sb.id];
-        if (lb) {
-          if (lb._deleted) continue;
-          var sbTime = sb.updated || sb.date || '';
-          var lbTime = lb.updated || lb.date || '';
-          if (sbTime && lbTime && sbTime > lbTime) {
-            Object.assign(lb, sb);
-            booksChanged = true;
-          }
-        } else {
-          if (sb._deleted) continue;
-          localBooks.unshift(sb);
-          booksChanged = true;
-        }
-      }
-      if (booksChanged) { S(K.books, localBooks); changed = true; }
-    }
+    for (var ri = 0; ri < replaceKeys.length; ri++) {
+      var rk = replaceKeys[ri];
+      var serverItems = dbData[rk.key];
+      if (!serverItems || !Array.isArray(serverItems)) continue;
 
-    // memos 병합 — raw 배열 사용
-    var serverMemos = dbData[K.memos];
-    if (serverMemos && Array.isArray(serverMemos)) {
-      var localMemos = L(K.memos) || [];
-      var memoMap = {};
-      for (var i = 0; i < localMemos.length; i++) memoMap[localMemos[i].id] = localMemos[i];
-      var memosChanged = false;
-      for (var j = 0; j < serverMemos.length; j++) {
-        var sm = serverMemos[j];
-        var lm = memoMap[sm.id];
-        if (lm) {
-          if (lm._deleted) continue;
-          if (sm.updated && lm.updated && sm.updated > lm.updated) {
-            Object.assign(lm, sm);
-            memosChanged = true;
-          }
-        } else {
-          if (sm._deleted) continue;
-          localMemos.unshift(sm);
-          memosChanged = true;
-        }
+      // 급감 가드
+      var localItems = L(rk.key) || [];
+      if (localItems.length > 0 && serverItems.length === 0) {
+        console.warn('mergeServerDocs 급감 가드: ' + rk.label + ' 로컬 ' + localItems.length + '건 → 서버 0건. 교체 차단.');
+        continue;
       }
-      if (memosChanged) { S(K.memos, localMemos); changed = true; }
-    }
 
-    // quotes 병합 — raw 배열 사용
-    var serverQuotes = dbData[K.quotes];
-    if (serverQuotes && Array.isArray(serverQuotes)) {
-      var localQuotes = L(K.quotes) || [];
-      var quoteMap = {};
-      for (var i = 0; i < localQuotes.length; i++) quoteMap[localQuotes[i].id] = localQuotes[i];
-      var quotesChanged = false;
-      for (var j = 0; j < serverQuotes.length; j++) {
-        var sq = serverQuotes[j];
-        var lq = quoteMap[sq.id];
-        if (lq) {
-          if (lq._deleted) continue;
-          var sqTime = sq.updated || sq.created || '';
-          var lqTime = lq.updated || lq.created || '';
-          if (sqTime && lqTime && sqTime > lqTime) {
-            Object.assign(lq, sq);
-            quotesChanged = true;
-          }
-        } else {
-          if (sq._deleted) continue;
-          localQuotes.unshift(sq);
-          quotesChanged = true;
-        }
+      // _deleted 항목 제외 후 교체
+      var filtered = [];
+      for (var fi = 0; fi < serverItems.length; fi++) {
+        if (!serverItems[fi]._deleted) filtered.push(serverItems[fi]);
       }
-      if (quotesChanged) { S(K.quotes, localQuotes); changed = true; }
+
+      // 변경 감지: 건수가 다르거나 최신 updated가 다르면 변경
+      if (filtered.length !== localItems.length) {
+        changed = true;
+      } else if (filtered.length > 0 && localItems.length > 0) {
+        var serverLatest = filtered[0].updated || filtered[0].created || '';
+        var localLatest = localItems[0].updated || localItems[0].created || '';
+        if (serverLatest !== localLatest) changed = true;
+      }
+
+      S(rk.key, filtered);
     }
 
     // 변경이 있으면 현재 열린 문서 리프레시
@@ -653,12 +555,11 @@ const SYNC = {
   // ═══ 서버 expenses 병합 (SMS 자동 반영) ═══
   async mergeServerExpenses(dbData) {
     if (!this.isDbLoaded) return;
-    // 미동기화 로컬 변경이 있으면 서버로 덮어쓰지 않음
+    // 미동기화 로컬 변경이 있으면 서버 교체하지 않음
     if (window._unsyncedLocal) {
-      console.log('mergeServerExpenses: 미동기화 로컬 변경이 있어 서버 병합 건너뜀');
+      console.log('mergeServerExpenses: 미동기화 로컬 변경이 있어 서버 교체 건너뜀');
       return;
     }
-    // dbData가 없으면 직접 로드 (단독 호출 대비)
     if (!dbData) {
       try {
         var res = await this._post({ action: 'load_db' });
@@ -672,56 +573,30 @@ const SYNC = {
     var serverExpenses = dbData[K.expenses];
     if (!serverExpenses || !Array.isArray(serverExpenses)) return;
 
-    // ── 항목별 id 비교 병합 (docs 병합과 동일 패턴) ──
-    // raw 배열 사용 (_deleted 포함) — getExpenses()는 _filterDeleted를 적용하므로 L() 직접 사용
+    // 급감 가드
     var localExpenses = L(K.expenses) || [];
-
-    if (!localExpenses.length) {
-      // 로컬 비어있음 → 서버 데이터 적용 (삭제 항목 제외)
-      var filtered = [];
-      for (var fi = 0; fi < serverExpenses.length; fi++) {
-        if (!serverExpenses[fi]._deleted) filtered.push(serverExpenses[fi]);
-      }
-      S(K.expenses, filtered);
-      updateExpenseCompact();
-      if (activeTab === 'expense') {
-        var platform = window.innerWidth > 768 ? 'pc' : 'mobile';
-        renderExpenseDashboard(platform);
-      }
+    if (localExpenses.length > 0 && serverExpenses.length === 0) {
+      console.warn('mergeServerExpenses 급감 가드: 로컬 ' + localExpenses.length + '건 → 서버 0건. 교체 차단.');
       return;
     }
 
-    var localMap = {};
-    for (var i = 0; i < localExpenses.length; i++) {
-      localMap[localExpenses[i].id] = localExpenses[i];
+    // _deleted 항목 제외 후 교체
+    var filtered = [];
+    for (var fi = 0; fi < serverExpenses.length; fi++) {
+      if (!serverExpenses[fi]._deleted) filtered.push(serverExpenses[fi]);
     }
 
-    var changed = false;
-    for (var j = 0; j < serverExpenses.length; j++) {
-      var se = serverExpenses[j];
-      var le = localMap[se.id];
-      if (le) {
-        // 로컬에서 삭제된 항목은 서버 데이터로 복원하지 않음
-        if (le._deleted) continue;
-        // created 비교 — expenses는 updated 필드가 없으므로 created 사용
-        var seTime = se.created || se.date || '';
-        var leTime = le.created || le.date || '';
-        if (seTime && leTime && seTime > leTime) {
-          Object.assign(le, se);
-          changed = true;
-        }
-      } else {
-        // 서버에만 있는 항목: 삭제 상태가 아니면 로컬에 추가
-        if (se._deleted) continue;
-        localExpenses.push(se);
-        localMap[se.id] = se;
-        changed = true;
-      }
+    // 변경 감지
+    var changed = (filtered.length !== localExpenses.length);
+    if (!changed && filtered.length > 0 && localExpenses.length > 0) {
+      var serverLatest = filtered[0].created || filtered[0].date || '';
+      var localLatest = localExpenses[0].created || localExpenses[0].date || '';
+      if (serverLatest !== localLatest) changed = true;
     }
-    // 로컬에만 있는 항목은 localExpenses에 이미 남아 있으므로 보존됨
+
+    S(K.expenses, filtered);
 
     if (changed) {
-      S(K.expenses, localExpenses);
       updateExpenseCompact();
       if (activeTab === 'expense') {
         var platform = window.innerWidth > 768 ? 'pc' : 'mobile';
@@ -736,6 +611,11 @@ const SYNC = {
     if (this._merging) return;
     if (this._dbLoading) {
       console.log('mergeServerAll: loadDatabase 진행 중 — 건너뜀');
+      return;
+    }
+    // 저장 예약 중이면 서버 교체하지 않음 (race condition 방지)
+    if (this._dbSaveQueued) {
+      console.log('mergeServerAll: 저장 예약 중이므로 건너뜀');
       return;
     }
     this._merging = true;

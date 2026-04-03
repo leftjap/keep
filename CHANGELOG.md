@@ -4,16 +4,23 @@
 
 ## 2026-04-03
 
-### Added
-- 앱에서 문서 삭제 시 Drive 구글문서를 휴지통으로 이동 — delDoc/delBook/delMemo에서 driveId가 있으면 GAS trash_doc 호출. 실패 시 앱 삭제는 정상 진행 (gas/Code.js, js/sync.js, js/data.js)
-- GAS 에디터의 디버깅/복구 유틸 함수를 Code.js에 병합 — cleanForeignExpenses, checkBackupExpenses, checkSoyounExpenses 등. GAS ↔ 로컬 동기화 (gas/Code.js)
+### Changed
+- 동기화 전략을 merge에서 server-wins(단순 교체)로 전환 — 서버 JSON을 source of truth로 확립. 2인 상시 온라인 환경에서 병합 복잡도가 동기화 문제를 반복 유발하여 제거. (js/sync.js)
 
 ### Fixed
+- PWA에서 삭제한 글이 반영되지 않는 문제 수정 — 기존 병합 로직의 "로컬에만 있는 항목 보존"이 서버 삭제를 무효화함. server-wins로 근본 해결. [상태.병합보존] (js/sync.js)
+- saveDatabase 재시도 한도 초과 시 _unsyncedLocal 플래그가 false로 리셋되어 미동기화 변경이 서버 데이터로 덮어써질 수 있던 문제 수정. [상태.플래그리셋] (js/sync.js)
+- 앱에서 문서 삭제 시 Drive 구글문서를 휴지통으로 이동 — delDoc/delBook/delMemo에서 driveId가 있으면 GAS trash_doc 호출. 실패 시 앱 삭제는 정상 진행 (gas/Code.js, js/sync.js, js/data.js)
 - saveDatabase 검증 2/3/4가 _deletedIds를 고려하지 않아 정당한 삭제 시 서버 저장 차단 — _deletedIds 중 서버에 실존하는 ID를 검증하여 설명 가능한 감소분 허용. [로직.급감오판] (gas/Code.js)
 - 로컬 백업 스크립트 인증 실패 — `$TOKEN`이 `nametag2026`이나 GAS Script Properties의 `SMS_SERVICE_TOKEN`은 `keep-sms-2026`으로 불일치. 토큰 갱신 + 작업 스케줄러 등록. [설정.토큰불일치] (backup-keep-db.ps1)
 - CSS Guard K-2 테스트 실패 수정 — `#ed-topbar`(ID)를 `.ed-topbar`(클래스)로 변경. style.css는 클래스 셀렉터만 사용. [설정.셀렉터불일치] (__tests__/css-guard.test.js)
 
-### Changed
+### Added
+- loadDatabase·mergeServerDocs·mergeServerExpenses에 급감 가드 추가 — 서버 데이터가 비정상(0건)일 때 로컬 교체를 차단. (js/sync.js)
+- mergeServerAll에 _dbSaveQueued 가드 추가 — 편집 후 빠른 백그라운드/포그라운드 전환 시 race condition 방지. (js/sync.js)
+- GAS 에디터의 디버깅/복구 유틸 함수를 Code.js에 병합 — cleanForeignExpenses, checkBackupExpenses, checkSoyounExpenses 등. GAS ↔ 로컬 동기화 (gas/Code.js)
+
+### Changed (기존)
 - 백업 파일 저장 경로를 backups/ 폴더로 분리 — `apps/keep/{user}/` → `backups/keep/{user}/`. 운영 DB 경로는 유지. (gas/Code.js)
 
 ## 2026-04-02 (2)
