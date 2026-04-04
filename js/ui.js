@@ -1401,9 +1401,10 @@ function handleNew() {
   else if (t === 'book')  newBook();
   else if (t === 'quote') newQuoteForm();
   else if (t === 'memo')  newMemoForm();
-  // 새 문서 생성 직후 dirty 플래그 설정 — 서버 동기화(mergeServerAll)가
-  // 아직 서버에 없는 새 문서를 덮어쓰는 것을 방지 (visibilitychange/heartbeat 경로)
-  window._editorDirty = true;
+  // 새 문서 생성 직후 — 서버에 아직 없는 새 문서를 mergeServerDocs가 덮어쓰지 않도록
+  // _unsyncedLocal 설정. saveDatabase 성공 시 자동 해제됨.
+  // (_editorDirty는 doSaveAndSync에서 즉시 리셋되므로 보호 불충분)
+  window._unsyncedLocal = true;
   renderListPanel();
   setMobileView('editor');
 }
