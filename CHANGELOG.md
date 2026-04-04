@@ -5,6 +5,7 @@
 ## 2026-04-04
 
 ### Fixed
+- 가계부 롱프레스 시 플로팅 팝업이 불필요하게 닫히는 문제 수정 — overlay 정상화로 별도 닫기 불필요, showExpensePopup의 closeExpenseFloatingPopup 제거. [UI.팝업잔류] (js/ui-expense.js)
 - 가계부 타임라인 롱프레스/우클릭 메뉴가 즉시 닫히는 버그 수정 — overlay 즉시 open 시 같은 이벤트 시퀀스의 후속 click이 overlay onclick을 발동. showContextMenuAt과 동일하게 setTimeout으로 open 지연. [UI.팝업잔류] (js/ui-expense.js)
 - 파트너 모드 topbar('내 공간으로 돌아가기')가 기존 UI를 밀어내던 문제 수정 — padding-top 제거, position:fixed 오버레이만으로 기존 UI 위에 겹침. [UI.파트너모드] (style.css)
 - 파트너 가계부 진입 후 퇴장 시 UI 혼재 수정 — exitPartnerMode에서 expense-active·list-closed·tablet-list-closed·expense-edit-active 클래스 및 대시보드/상세 패널 display 정리. [UI.파트너모드] (js/ui.js)
