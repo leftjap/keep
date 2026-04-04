@@ -552,6 +552,38 @@ async function imgCtxAction(action) {
   }
 }
 
+// ═══ iOS 캐럿 자동 스크롤 ═══
+function _scrollToCaret(edBodyEl) {
+  if (!edBodyEl) return;
+  var scrollArea = edBodyEl.closest('.editor-scroll-area');
+  if (!scrollArea) return;
+  var sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0 || sel.isCollapsed === false) return;
+  var range = sel.getRangeAt(0);
+  var rect = range.getBoundingClientRect();
+  // 캐럿이 빈 줄이면 rect가 0일 수 있음 — 임시 span 삽입으로 측정
+  if (rect.height === 0) {
+    var span = document.createElement('span');
+    span.textContent = '\u200b'; // zero-width space
+    range.insertNode(span);
+    rect = span.getBoundingClientRect();
+    span.parentNode.removeChild(span);
+    // 삽입으로 인한 selection 복원
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
+  var areaRect = scrollArea.getBoundingClientRect();
+  var margin = 40; // 키보드 위 여유 공간
+  // 캐럿이 스크롤 영역 아래로 나갔을 때
+  if (rect.bottom > areaRect.bottom - margin) {
+    scrollArea.scrollTop += (rect.bottom - areaRect.bottom + margin);
+  }
+  // 캐럿이 스크롤 영역 위로 나갔을 때 (삭제 등으로 위로 이동)
+  if (rect.top < areaRect.top + margin) {
+    scrollArea.scrollTop -= (areaRect.top + margin - rect.top);
+  }
+}
+
 // ═══ 자동 저장 ═══
 let _at = null;
 function setupAutoSave() {
@@ -593,7 +625,7 @@ function setupAutoSave() {
     if (textTypes.includes(activeTab)) SYNC.scheduleDocSave(activeTab);
     else if (activeTab === 'memo') SYNC.scheduleDocSave('memo');
   };
-  const onInput = () => { window._editorDirty = true; showSaving(); clearTimeout(_at); _at = setTimeout(doSaveAndSync, 800); updateWC(); };
+  const onInput = () => { window._editorDirty = true; showSaving(); clearTimeout(_at); _at = setTimeout(doSaveAndSync, 800); updateWC(); var _activeBody = activeTab === 'memo' ? document.getElementById('memo-body') : document.getElementById('edBody'); _scrollToCaret(_activeBody); };
   const ids = ['edBody','edTitle','memo-body','memo-title','book-title','book-author','book-publisher','book-pages','book-body','quote-by','quote-body'];
   ids.forEach(id => {
     const el = document.getElementById(id);
