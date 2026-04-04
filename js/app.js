@@ -58,7 +58,7 @@ async function showApp() {
     // ── 로컬 캐시 있음: 서버 동기화 후 UI 표시 (최대 4초 대기) ──
     var _syncDone = false;
 
-    // 타임아웃: 4초 안에 서버 응답 없으면 로컬 데이터로 표시
+    // 타임아웃: 8초 안에 서버 응답 없으면 로컬 데이터로 표시
     var _syncTimeout = setTimeout(function() {
       if (!_syncDone) {
         _syncDone = true;
@@ -69,7 +69,7 @@ async function showApp() {
         SYNC.setSyncStatus('오프라인', 'error');
         _initAndShow(loading, serverConfig);
       }
-    }, 4000);
+    }, 8000);
 
     SYNC.loadDatabase().then(function(config) {
       if (_syncDone) {
@@ -85,15 +85,8 @@ async function showApp() {
             }
           }
         }
-        // 뒤늦은 서버 데이터로 UI 갱신
+        // 뒤늦은 서버 데이터로 리스트만 갱신 (에디터 content shift 방지)
         renderListPanel();
-        var cl = currentLoadedDoc;
-        if (cl && cl.type && cl.id) {
-          if (textTypes.includes(cl.type)) loadDoc(cl.type, cl.id, true);
-          else if (cl.type === 'book')  loadBook(cl.id, true);
-          else if (cl.type === 'memo')  loadMemo(cl.id, true);
-          else if (cl.type === 'quote') loadQuote(cl.id, true);
-        }
         SYNC.setSyncStatus('완료됨', 'ok');
         return;
       }
