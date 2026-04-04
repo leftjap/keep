@@ -1397,6 +1397,7 @@ function handleNew() {
     }
     return;
   }
+  window._isNewDoc = true;
   if (textTypes.includes(t))  { const nd = newDoc(t); loadDoc(t, nd.id, true); }
   else if (t === 'book')  newBook();
   else if (t === 'quote') newQuoteForm();
@@ -2234,6 +2235,7 @@ function renderComments(docId, ownerEmail) {
 
 function _loadMyCommentsAndRender(docId) {
   if (!docId) return;
+  if (window._isNewDoc) { window._isNewDoc = false; hideComments(); return; }
   // 자기 이메일 가져오기
   var myEmail = '';
   try {

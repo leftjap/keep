@@ -5,7 +5,7 @@
 ## 2026-04-05
 
 ### Fixed
-- 새 글 작성 시 빈 댓글 섹션이 표시되던 문제 수정 — handleNew()에서 hideComments() 호출 추가. [UI.댓글표시조건] (js/ui.js)
+- 새 글 작성 시 빈 댓글 섹션이 표시되던 문제 재수정 — _isNewDoc 플래그로 loadDoc 내 _loadMyCommentsAndRender 차단 + ui.js 버전 갱신. [UI.댓글표시조건] (js/ui.js, index.html)
 
 ## 2026-04-04
 
