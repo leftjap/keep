@@ -345,6 +345,38 @@ function switchTab(t, keepLayout) {
       sms.forEach(function(m) { m.classList.remove('on'); });
       var am = document.querySelector('.side-menu[data-tab="' + t + '"]');
       if (am) am.classList.add('on');
+
+      // ── 가계부 탭에서 나올 때 잔여 상태 정리 ──
+      document.querySelector('.list-panel').classList.remove('expense-active');
+      document.querySelector('.editor').classList.remove('expense-edit-active');
+      var _appEl = document.getElementById('mainApp');
+      if (_appEl) {
+        _appEl.classList.remove('list-closed');
+        _appEl.classList.remove('tablet-list-closed');
+      }
+      document.getElementById('pane-expense-dashboard').style.display = 'none';
+      document.getElementById('pane-expense-detail').style.display = 'none';
+      var _fullDb = document.getElementById('expenseFullDashboard');
+      if (_fullDb) _fullDb.style.display = 'none';
+      var _edExp = document.getElementById('editorExpense');
+      if (_edExp) _edExp.style.display = 'none';
+      document.getElementById('edToolbar').style.display = ['book','quote'].includes(t) ? 'none' : 'flex';
+      document.querySelectorAll('.exp-month-nav-inline').forEach(function(el) { el.remove(); });
+      var _tabLabel = document.getElementById('edTabLabel');
+      if (_tabLabel) _tabLabel.style.display = '';
+      var _vs = document.getElementById('viewSwitcher');
+      if (_vs) _vs.style.display = 'flex';
+      var _searchBtn = document.querySelector('.lp-search-btn');
+      if (_searchBtn) _searchBtn.style.display = '';
+      var _moreBtn = document.querySelector('.ed-more-btn');
+      if (_moreBtn) _moreBtn.style.display = '';
+      var _aaBtn = document.querySelector('.ed-aa-btn');
+      if (_aaBtn) _aaBtn.style.display = '';
+      var _fab = document.querySelector('.fab-btn');
+      if (_fab) _fab.style.display = '';
+      var _expCompact = document.querySelector('.expense-compact');
+      if (_expCompact) _expCompact.classList.remove('on');
+
       // 에디터 패널 리셋
       document.getElementById('editorText').style.display = textTypes.includes(t) ? 'flex' : 'none';
       document.getElementById('editorBook').style.display = t === 'book' ? 'flex' : 'none';
