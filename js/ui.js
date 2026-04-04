@@ -1406,6 +1406,7 @@ function handleNew() {
   // (_editorDirty는 doSaveAndSync에서 즉시 리셋되므로 보호 불충분)
   window._unsyncedLocal = true;
   renderListPanel();
+  hideComments();
   setMobileView('editor');
 }
 

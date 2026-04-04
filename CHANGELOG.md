@@ -2,6 +2,11 @@
 
 형식: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
+## 2026-04-05
+
+### Fixed
+- 새 글 작성 시 빈 댓글 섹션이 표시되던 문제 수정 — handleNew()에서 hideComments() 호출 추가. [UI.댓글표시조건] (js/ui.js)
+
 ## 2026-04-04
 
 ### Removed
