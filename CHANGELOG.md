@@ -5,6 +5,7 @@
 ## 2026-04-04
 
 ### Fixed
+- 가계부 타임라인 롱프레스/우클릭 메뉴가 즉시 닫히는 버그 수정 — overlay 즉시 open 시 같은 이벤트 시퀀스의 후속 click이 overlay onclick을 발동. showContextMenuAt과 동일하게 setTimeout으로 open 지연. [UI.팝업잔류] (js/ui-expense.js)
 - 파트너 모드 topbar('내 공간으로 돌아가기')가 기존 UI를 밀어내던 문제 수정 — padding-top 제거, position:fixed 오버레이만으로 기존 UI 위에 겹침. [UI.파트너모드] (style.css)
 - 파트너 가계부 진입 후 퇴장 시 UI 혼재 수정 — exitPartnerMode에서 expense-active·list-closed·tablet-list-closed·expense-edit-active 클래스 및 대시보드/상세 패널 display 정리. [UI.파트너모드] (js/ui.js)
 - 가계부 지출 내역 꾹누르기 삭제/수정 팝업이 화면 전환 후에도 잔류하던 문제 수정 — setMobileView·switchTab 진입 시 closeLpPopup·closeExpenseFloatingPopup 호출. [UI.팝업잔류] (js/ui.js)

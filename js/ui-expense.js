@@ -1807,8 +1807,10 @@ function showExpensePopup(expenseId, x, y) {
   contextItemId = null;
   contextItemType = null;
 
-  overlay.classList.add('open');
-  requestAnimationFrame(function() { card.classList.add('open'); });
+  // 즉시 open하면 같은 이벤트 시퀀스의 후속 click이 overlay onclick을 발동시켜 즉시 닫힘.
+  // showContextMenuAt(fromTouch=true)와 동일하게 지연하여 회피.
+  setTimeout(function() { overlay.classList.add('open'); }, 50);
+  setTimeout(function() { card.classList.add('open'); }, 150);
 }
 
 function _deleteExpenseFromPopup(expenseId) {
