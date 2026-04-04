@@ -519,7 +519,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 .editor-content-wrap{width:100%;max-width:720px;padding:32px 40px 100px;display:flex;flex-direction:column;flex:1;min-height:100%}
 .ed-title{width:100%;background:none;border:none;border-bottom:1px solid var(--border-l);font-family:'Pretendard',sans-serif;font-size:24px;font-weight:700;color:var(--tx);outline:none;letter-spacing:-.02em;margin-bottom:24px;padding-bottom:16px;line-height:1.35}
 .ed-title::placeholder{color:#c7c7cc}
-.ed-body{width:100%;min-height:100%;outline:none;font-family:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;font-size:16px;line-height:2.0;letter-spacing:0;color:var(--tx);flex:1;word-break:keep-all;font-weight:400;font-feature-settings:'kern' 1}
+.ed-body{width:100%;min-height:50vh;outline:none;font-family:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;font-size:16px;line-height:2.0;letter-spacing:0;color:var(--tx);word-break:keep-all;font-weight:400;font-feature-settings:'kern' 1}
 .ed-body:empty::before{content:attr(data-placeholder);color:#c7c7cc}
 .ed-body blockquote{border-left:3px solid var(--tab-color);padding:6px 14px;margin:12px 0;color:var(--tx-d);font-style:italic;background:color-mix(in srgb, var(--tab-color) 5%, transparent);border-radius:0 6px 6px 0}
 .ed-body *:not(h1):not(h2):not(h3):not(blockquote):not(img):not(ul):not(ol):not(li):not(hr):not(b):not(strong):not(i):not(em):not(u):not(s):not(strike):not(del):not(mark):not(span){font-family:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif!important;font-size:16px!important;line-height:2.0!important;letter-spacing:0!important;font-weight:400!important;color:var(--tx)!important;background:none!important}
