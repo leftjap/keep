@@ -1768,9 +1768,6 @@ var _expLpX = 0;
 var _expLpY = 0;
 
 function showExpensePopup(expenseId, x, y) {
-  // 플로팅 팝업이 열려 있으면 닫기 (z-index 9800이 lpPopupOverlay z-index 998을 가려 dismiss 차단 방지)
-  closeExpenseFloatingPopup();
-
   var expense = getExpenses().find(function(e) { return e.id === expenseId; });
   if (!expense) return;
 
@@ -1781,7 +1778,7 @@ function showExpensePopup(expenseId, x, y) {
 
   var menuEl = document.getElementById('lpPopupMenu');
   menuEl.innerHTML = ''
-    + '<div class="lp-popup-menu-item" onclick="closeLpPopup(); ' + editAction + '"><span>수정</span>'
+    + '<div class="lp-popup-menu-item" onclick="closeLpPopup(); closeExpenseFloatingPopup(); ' + editAction + '"><span>수정</span>'
     + '<svg viewBox="0 0 24 24"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="M15 5l4 4"/></svg></div>'
     + '<div class="lp-popup-sep"></div>'
     + '<div class="lp-popup-menu-item danger" onclick="_deleteExpenseFromPopup(\'' + expenseId + '\')"><span>삭제</span>'
@@ -1807,6 +1804,19 @@ function showExpensePopup(expenseId, x, y) {
   window._liftedClone = null;
   contextItemId = null;
   contextItemType = null;
+
+  // 플로팅 팝업이 열려 있으면 overlay를 투명하게 하여 아래 팝업 가시성 유지
+  // 플로팅 팝업이 없으면 CSS 기본값(반투명 blur) 복원
+  var fpOverlay = document.getElementById('expFloatingPopupOverlay');
+  if (fpOverlay && fpOverlay.classList.contains('open')) {
+    overlay.style.background           = 'transparent';
+    overlay.style.backdropFilter       = 'none';
+    overlay.style.webkitBackdropFilter = 'none';
+  } else {
+    overlay.style.background           = '';
+    overlay.style.backdropFilter       = '';
+    overlay.style.webkitBackdropFilter = '';
+  }
 
   // 즉시 open하면 같은 이벤트 시퀀스의 후속 click이 overlay onclick을 발동시켜 즉시 닫힘.
   // showContextMenuAt(fromTouch=true)와 동일하게 지연하여 회피.

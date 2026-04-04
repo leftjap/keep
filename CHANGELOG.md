@@ -20,7 +20,7 @@
 - 대량 삭제 후 서버 saveDatabase 반복 실패 교착 상태 수정 — loadDatabase가 _deleted 항목을 localStorage에서 제거하여 _deletedIds가 빈 배열로 전송됨. 서버 급감 검증도 _deleted 포함 전체 건수 기준이라 정상 저장 차단. [연동.삭제동기화] (js/sync.js, js/data.js, gas/Code.js)
 - mergeServerExpenses에서 _deleted 항목이 필터링되어 expenses 삭제 후 saveDatabase 교착 가능성 수정 — loadDatabase·mergeServerDocs와 동일하게 _deleted 보존 방식으로 통일. [연동.삭제동기화] (js/sync.js)
 - 가계부 탭 경유 후 휴지통 진입 시 list-panel이 접힌 상태로 남아 휴지통 UI 미표시 수정 — enterTrashMode에서 expense-active·list-closed·tablet-list-closed 클래스 및 edToolbar 상태를 정리. [UI.패널상태] (js/ui.js)
-- 가계부 플로팅 팝업에서 지출 항목 우클릭/꾹누르기 시 수정/삭제 메뉴가 바깥 클릭으로 닫히지 않는 버그 수정 — expFloatingPopupOverlay(z-index 9800)가 lpPopupOverlay(z-index 998)를 가려 dismiss 이벤트 차단. showExpensePopup 시작에서 플로팅 팝업을 닫아 해결 [UI.z-index차단] (js/ui-expense.js)
+- 가계부 수정/삭제 메뉴 dismiss + 플로팅 팝업 유지 수정 — lpPopupOverlay z-index 998→9900으로 변경하여 expFloatingPopupOverlay(9800) 위에 배치. 플로팅 팝업 존재 시 overlay를 투명으로, 없으면 CSS 기본값 복원. closeLpPopup에서 인라인 스타일 초기화 추가 [UI.z-index차단] (style.css, js/ui-expense.js, js/ui.js)
 
 ## 2026-04-03
 

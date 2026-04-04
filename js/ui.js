@@ -1286,10 +1286,22 @@ function closeLpPopup() {
     if (original && original.parentNode) {
       setTimeout(() => { if (original.parentNode) { original.style.transition = 'opacity .2s ease'; original.style.opacity = '1'; } }, 80);
     }
-    setTimeout(() => { if (overlay) overlay.classList.remove('open'); }, 100);
+    setTimeout(() => {
+      if (overlay) {
+        overlay.classList.remove('open');
+        overlay.style.background = '';
+        overlay.style.backdropFilter = '';
+        overlay.style.webkitBackdropFilter = '';
+      }
+    }, 100);
     setTimeout(() => { if (clone.parentNode) clone.remove(); if (original && original.parentNode) { original.style.transition = ''; original.style.opacity = ''; } }, 320);
   } else {
-    if (overlay) overlay.classList.remove('open');
+    if (overlay) {
+      overlay.classList.remove('open');
+      overlay.style.background = '';
+      overlay.style.backdropFilter = '';
+      overlay.style.webkitBackdropFilter = '';
+    }
     if (original && original.parentNode) { original.style.transition = ''; original.style.opacity = ''; }
   }
   contextItemId = null; contextItemType = null;
