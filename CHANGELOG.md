@@ -8,6 +8,7 @@
 - GAS 1회성 디버깅/복구 함수 18개 및 즉시 실행문 제거 — 운영 관리 유틸(listBackups, importCardSmsSheet 등 7개)은 보존. (gas/Code.js)
 
 ### Fixed
+- editor-content-wrap과 edBody의 flex:1(basis:0)이 내용 크기를 무시하여 댓글창 겹침 — flex:1 0 auto(basis:auto)로 변경하여 내용 기반 확장. [UI.flex레이아웃] (style.css)
 - 본문 입력 시 댓글창이 밀려나지 않고 고정되던 문제 수정 — edBody의 flex:1 제거, min-height:50vh로 변경하여 내용 크기에 따라 자연 확장. [UI.flex레이아웃] (style.css)
 - 본문 입력 시 댓글창이 화면 하단에 고정되어 글이 가려지던 문제 수정 — commentSection을 editor-content-wrap 안으로 이동하여 본문과 같은 스크롤 흐름에 배치. [UI.댓글레이아웃] (index.html, style.css)
 - iOS PWA에서 본문 입력 시 커서가 화면 밖으로 나가도 자동 스크롤되지 않던 문제 수정 — input 이벤트에서 캐럿 위치를 감지하여 .editor-scroll-area를 수동 스크롤. [환경.iOS캐럿스크롤] (js/editor.js)
