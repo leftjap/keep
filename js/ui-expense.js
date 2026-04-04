@@ -1768,6 +1768,9 @@ var _expLpX = 0;
 var _expLpY = 0;
 
 function showExpensePopup(expenseId, x, y) {
+  // 플로팅 팝업이 열려 있으면 닫기 (z-index 9800이 lpPopupOverlay z-index 998을 가려 dismiss 차단 방지)
+  closeExpenseFloatingPopup();
+
   var expense = getExpenses().find(function(e) { return e.id === expenseId; });
   if (!expense) return;
 
