@@ -1463,11 +1463,15 @@ function saveDatabase(dbData, config) {
     }
 
     // ── 검증 2/3/4: docs·books·quotes 건수 급감 (50% 미만) — _deletedIds 고려 ──
+    // _deleted를 제외한 활성 항목만 기준으로 급감 검증
+    var curDocsActive = curDocs.filter(function(i) { return !i._deleted; });
+    var curBooksActive = curBooks.filter(function(i) { return !i._deleted; });
+    var curQuotesActive = curQuotes.filter(function(i) { return !i._deleted; });
     var deletedIds = dbData._deletedIds || {};
     var _countChecks = [
-      { key: 'gb_docs',   label: 'docs',   cur: curDocs,   new_: newDocs,   delIds: deletedIds.docs   || [], min: 10 },
-      { key: 'gb_books',  label: 'books',  cur: curBooks,  new_: newBooks,  delIds: deletedIds.books  || [], min: 5  },
-      { key: 'gb_quotes', label: 'quotes', cur: curQuotes, new_: newQuotes, delIds: deletedIds.quotes || [], min: 10 }
+      { key: 'gb_docs',   label: 'docs',   cur: curDocsActive,   new_: newDocs,   delIds: deletedIds.docs   || [], min: 10 },
+      { key: 'gb_books',  label: 'books',  cur: curBooksActive,  new_: newBooks,  delIds: deletedIds.books  || [], min: 5  },
+      { key: 'gb_quotes', label: 'quotes', cur: curQuotesActive, new_: newQuotes, delIds: deletedIds.quotes || [], min: 10 }
     ];
     for (var cci = 0; cci < _countChecks.length; cci++) {
       var cc = _countChecks[cci];

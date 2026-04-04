@@ -822,9 +822,9 @@ function delMemo(id, e) {
 // ═══ 통계 ═══
 function getTabCount(t) {
   if (textTypes.includes(t)) return getDocs(t).length;
-  if (t === 'book')  return (L(K.books)  || []).length;
-  if (t === 'quote') return (L(K.quotes) || []).length;
-  if (t === 'memo')  return (L(K.memos)  || []).length;
+  if (t === 'book')  return getBooks().length;
+  if (t === 'quote') return getQuotes().length;
+  if (t === 'memo')  return getMemos().length;
   return 0;
 }
 

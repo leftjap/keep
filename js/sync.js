@@ -93,7 +93,7 @@ const SYNC = {
         // ── 🛡️ server-wins: 서버 데이터로 로컬 교체 ──
         // 불변 조건 (AGENTS.md Guard):
         // 1. 서버가 source of truth — 교체만 허용, 병합(merge) 금지
-        // 2. _deleted 항목은 로컬에 포함하지 않음
+        // 2. _deleted 항목은 로컬 localStorage에 보존함 (saveDatabase의 _deletedIds 구성에 필요). UI에서는 _filterDeleted()로 숨김.
         // 3. 급감 가드: 로컬 > 0 && 서버 = 0이면 교체 차단
         var replaceKeys = [
           { key: K.docs,   saver: function(v) { S(K.docs, v);   } },
@@ -114,12 +114,9 @@ const SYNC = {
             continue;
           }
 
-          // _deleted 항목 제외 후 교체
-          var filtered = [];
-          for (var fi = 0; fi < serverItems.length; fi++) {
-            if (!serverItems[fi]._deleted) filtered.push(serverItems[fi]);
-          }
-          rk.saver(filtered);
+          // _deleted 항목도 localStorage에 보존 (saveDatabase의 _deletedIds 구성에 필요)
+          // UI에서는 _filterDeleted()로 숨김
+          rk.saver(serverItems);
         }
 
         // ── 교체 대상: checks, expenses, icons (server-wins, 급감 가드 포함) ──
@@ -534,22 +531,23 @@ const SYNC = {
         continue;
       }
 
-      // _deleted 항목 제외 후 교체
-      var filtered = [];
+      // _deleted 항목도 localStorage에 보존 (saveDatabase의 _deletedIds 구성에 필요)
+      // 변경 감지: 활성 항목 기준
+      var activeServer = [];
       for (var fi = 0; fi < serverItems.length; fi++) {
-        if (!serverItems[fi]._deleted) filtered.push(serverItems[fi]);
+        if (!serverItems[fi]._deleted) activeServer.push(serverItems[fi]);
       }
+      var activeLocal = _filterDeleted(localItems);
 
-      // 변경 감지: 건수가 다르거나 최신 updated가 다르면 변경
-      if (filtered.length !== localItems.length) {
+      if (activeServer.length !== activeLocal.length) {
         changed = true;
-      } else if (filtered.length > 0 && localItems.length > 0) {
-        var serverLatest = filtered[0].updated || filtered[0].created || '';
-        var localLatest = localItems[0].updated || localItems[0].created || '';
+      } else if (activeServer.length > 0 && activeLocal.length > 0) {
+        var serverLatest = activeServer[0].updated || activeServer[0].created || '';
+        var localLatest = activeLocal[0].updated || activeLocal[0].created || '';
         if (serverLatest !== localLatest) changed = true;
       }
 
-      S(rk.key, filtered);
+      S(rk.key, serverItems);
     }
 
     // 변경이 있으면 현재 열린 문서 리프레시
