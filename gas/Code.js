@@ -1049,6 +1049,11 @@ function checkNotifications(config, _socialData, _senderDbCache) {
           for (var j = 0; j < docs.length; j++) {
             if (docs[j].id === n.docId) {
               docExists = true;
+              // ★ 알림 시간을 문서의 실제 작성 시간으로 보정
+              // _notifyNaviPost가 created를 덮어쓴 오염 데이터 대응
+              if (docs[j].created) {
+                n.created = docs[j].created;
+              }
               break;
             }
           }

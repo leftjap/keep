@@ -6,6 +6,7 @@
 
 ### Fixed
 - 파트너 모드에서 가계부 탭 경유 후 글쓰기 탭 전환 시 가계부 UI(캘린더·지출 요약) 잔류 수정 — switchTab 파트너 모드 else 블록에서 expense 관련 DOM/클래스 정리 누락 [UI.패널상태] (js/ui.js)
+- 알림 시간이 게시물 작성 시간 대신 마지막 저장 시간으로 표시되던 문제 수정 — checkNotifications에서 new_post 알림의 created를 문서의 실제 created로 보정. [소셜.알림시각] (gas/Code.js)
 - 가계부 롱프레스 시 플로팅 팝업이 불필요하게 닫히는 문제 수정 — overlay 정상화로 별도 닫기 불필요, showExpensePopup의 closeExpenseFloatingPopup 제거. [UI.팝업잔류] (js/ui-expense.js)
 - 가계부 타임라인 롱프레스/우클릭 메뉴가 즉시 닫히는 버그 수정 — overlay 즉시 open 시 같은 이벤트 시퀀스의 후속 click이 overlay onclick을 발동. showContextMenuAt과 동일하게 setTimeout으로 open 지연. [UI.팝업잔류] (js/ui-expense.js)
 - 파트너 모드 topbar('내 공간으로 돌아가기')가 기존 UI를 밀어내던 문제 수정 — padding-top 제거, position:fixed 오버레이만으로 기존 UI 위에 겹침. [UI.파트너모드] (style.css)
