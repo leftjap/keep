@@ -1289,6 +1289,7 @@ function closeLpPopup() {
     setTimeout(() => {
       if (overlay) {
         overlay.classList.remove('open');
+        // ⛔ FREEZE: lpPopup z-index 관계 — 인라인 스타일 초기화 필수. AGENTS.md 참조
         overlay.style.background = '';
         overlay.style.backdropFilter = '';
         overlay.style.webkitBackdropFilter = '';
@@ -1298,6 +1299,7 @@ function closeLpPopup() {
   } else {
     if (overlay) {
       overlay.classList.remove('open');
+      // ⛔ FREEZE: lpPopup z-index 관계 — 인라인 스타일 초기화 필수. AGENTS.md 참조
       overlay.style.background = '';
       overlay.style.backdropFilter = '';
       overlay.style.webkitBackdropFilter = '';

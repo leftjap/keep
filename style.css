@@ -782,6 +782,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 
 /* ═══ 이미지 컨텍스트 메뉴 ═══ */
 /* ═══ 리스트 꾹누르기 팝업 ═══ */
+/* ⛔ FREEZE: z-index 9900 — expFloatingPopupOverlay(9800)보다 위 필수. AGENTS.md 참조 */
 .lp-popup-overlay{
   position:fixed;inset:0;z-index:9900;
   background:rgba(0,0,0,.3);

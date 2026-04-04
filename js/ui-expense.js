@@ -1805,6 +1805,7 @@ function showExpensePopup(expenseId, x, y) {
   contextItemId = null;
   contextItemType = null;
 
+  // ⛔ FREEZE: lpPopup ↔ expFloatingPopup z-index 관계 — AGENTS.md 보호 체크리스트 참조
   // 플로팅 팝업이 열려 있으면 overlay를 투명하게 하여 아래 팝업 가시성 유지
   // 플로팅 팝업이 없으면 CSS 기본값(반투명 blur) 복원
   var fpOverlay = document.getElementById('expFloatingPopupOverlay');
