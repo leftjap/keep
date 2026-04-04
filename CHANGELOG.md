@@ -5,6 +5,10 @@
 ## 2026-04-04
 
 ### Fixed
+- 파트너 모드 topbar('내 공간으로 돌아가기')가 기존 UI를 밀어내던 문제 수정 — padding-top 제거, position:fixed 오버레이만으로 기존 UI 위에 겹침. [UI.파트너모드] (style.css)
+- 파트너 가계부 진입 후 퇴장 시 UI 혼재 수정 — exitPartnerMode에서 expense-active·list-closed·tablet-list-closed·expense-edit-active 클래스 및 대시보드/상세 패널 display 정리. [UI.파트너모드] (js/ui.js)
+- 가계부 지출 내역 꾹누르기 삭제/수정 팝업이 화면 전환 후에도 잔류하던 문제 수정 — setMobileView·switchTab 진입 시 closeLpPopup·closeExpenseFloatingPopup 호출. [UI.팝업잔류] (js/ui.js)
+- 알림 목록 시간 정보가 게시 시각과 불일치하던 문제 수정 — _notifyNaviPost에서 기존 알림 갱신 시 created(최초 게시 시각)를 덮어쓰지 않고 updated 필드로 분리. 정렬 기준도 updated 우선으로 변경. [소셜.알림시각] (gas/Code.js)
 - 로딩 중 콘텐츠가 서버에서 로딩되지 않던 문제 수정 — 서버 동기화 타임아웃 4초→8초(서버 응답 5초 수용). 타임아웃 후 뒤늦은 응답 도착 시 에디터 문서 재로드 제거(content shift 방지). [로직.초기화순서] (app.js)
 - 대량 삭제 후 서버 saveDatabase 반복 실패 교착 상태 수정 — loadDatabase가 _deleted 항목을 localStorage에서 제거하여 _deletedIds가 빈 배열로 전송됨. 서버 급감 검증도 _deleted 포함 전체 건수 기준이라 정상 저장 차단. [연동.삭제동기화] (js/sync.js, js/data.js, gas/Code.js)
 - mergeServerExpenses에서 _deleted 항목이 필터링되어 expenses 삭제 후 saveDatabase 교착 가능성 수정 — loadDatabase·mergeServerDocs와 동일하게 _deleted 보존 방식으로 통일. [연동.삭제동기화] (js/sync.js)

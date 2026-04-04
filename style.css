@@ -105,10 +105,8 @@ body{font-family:'Pretendard',-apple-system,'SF Pro Display',sans-serif;backgrou
   background: rgba(229, 86, 67, 0.2);
 }
 
-/* 파트너 모드일 때 앱 전체를 배너 높이만큼 아래로 */
-body.partner-mode-active #mainApp {
-  padding-top: 48px;
-}
+/* 파트너 모드일 때 앱 레이아웃 변경 없이 topbar 오버레이 */
+/* padding-top 제거 — topbar는 position:fixed로 기존 UI 위에 겹침 */
 body.partner-mode-active .partner-topbar {
   display: flex;
   flex-direction: column;
@@ -118,9 +116,6 @@ body.partner-mode-active .partner-topbar {
 }
 /* iOS safe area 대응 */
 @supports (padding-top: env(safe-area-inset-top)) {
-  body.partner-mode-active #mainApp {
-    padding-top: calc(48px + env(safe-area-inset-top));
-  }
   body.partner-mode-active .partner-topbar {
     height: calc(48px + env(safe-area-inset-top));
   }

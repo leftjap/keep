@@ -44,6 +44,9 @@ function toggleSidebar() {
 }
 
 function setMobileView(view) {
+  // ★ 팝업/오버레이가 열려 있으면 닫기 (화면 전환 시 잔류 방지)
+  closeLpPopup();
+  if (typeof closeExpenseFloatingPopup === 'function') closeExpenseFloatingPopup();
   const app = document.getElementById('mainApp');
   const w   = window.innerWidth;
 
@@ -319,6 +322,9 @@ window.addEventListener('resize', () => {
 });
 
 function switchTab(t, keepLayout) {
+  // ★ 탭 전환 시 열린 팝업 닫기 (잔류 방지)
+  closeLpPopup();
+  if (typeof closeExpenseFloatingPopup === 'function') closeExpenseFloatingPopup();
   // 댓글 섹션 숨기기
   hideComments();
   if (_trashMode) _trashMode = false;
@@ -1814,6 +1820,28 @@ function exitPartnerMode() {
 
   _setReadOnly(false);
   document.getElementById('mainApp').classList.remove('partner-mode');
+
+  // ★ 가계부 탭에서 남은 잔여 상태 정리 (파트너 가계부 진입 후 UI 혼재 방지)
+  var mainApp = document.getElementById('mainApp');
+  if (mainApp) {
+    mainApp.classList.remove('list-closed');
+    mainApp.classList.remove('tablet-list-closed');
+  }
+  var listPanel = document.querySelector('.list-panel');
+  if (listPanel) {
+    listPanel.classList.remove('expense-active');
+    listPanel.classList.remove('expense-edit-active');
+  }
+  var editorEl = document.querySelector('.editor');
+  if (editorEl) editorEl.classList.remove('expense-edit-active');
+  var edToolbar = document.getElementById('edToolbar');
+  if (edToolbar) edToolbar.style.display = '';
+  var expDash = document.getElementById('pane-expense-dashboard');
+  if (expDash) expDash.style.display = 'none';
+  var expDetail = document.getElementById('pane-expense-detail');
+  if (expDetail) expDetail.style.display = 'none';
+  var fab = document.querySelector('.fab-btn');
+  if (fab) fab.style.display = '';
 
   // 화면 갱신
   renderWritingGrid();

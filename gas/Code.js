@@ -863,9 +863,10 @@ function _notifyNaviPost(docId, title, content, folderName, config) {
 
     if (existingIdx !== -1) {
       // 기존 알림 업데이트 — 최신 내용으로 갱신, 미읽음 상태로 복원
+      // ★ created는 최초 게시 시각 유지 (시간 정보 불일치 방지), updated만 갱신
       social.notifications[existingIdx].docTitle = title || '제목 없음';
       social.notifications[existingIdx].preview = preview;
-      social.notifications[existingIdx].created = new Date().toISOString();
+      social.notifications[existingIdx].updated = new Date().toISOString();
       social.notifications[existingIdx].read = false;
     } else {
       // 새 알림 생성
@@ -1085,9 +1086,11 @@ function checkNotifications(config, _socialData, _senderDbCache) {
       }
     }
 
-    // 최신순 정렬
+    // 최신순 정렬 (updated가 있으면 우선, 없으면 created 기준)
     myNotifs.sort(function(a, b) {
-      return new Date(b.created || 0) - new Date(a.created || 0);
+      var aTime = new Date(a.updated || a.created || 0);
+      var bTime = new Date(b.updated || b.created || 0);
+      return bTime - aTime;
     });
 
     // 최근 20개만 반환
