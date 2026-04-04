@@ -555,14 +555,12 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
 /* ═══ 댓글 섹션 ═══ */
 .comment-section{
   display:flex;flex-direction:column;gap:0;
-  padding:0 40px 24px;
+  padding:0 0 24px;
   border-top:none;
   background:var(--bg-white);
-  align-self:stretch;
   width:100%;
-  max-width:720px;
-  margin:0 auto;
   box-sizing:border-box;
+  flex-shrink:0;
 }
 
 /* 본문 ↔ 댓글 섹션 갭 */
@@ -1840,7 +1838,7 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   .tb-sep{height:18px;margin:0 5px}
   .ed-foot{display:none!important}
   .editor-content-wrap{padding:20px 20px 80px}
-  .comment-section{padding:0 20px 20px}
+  .comment-section{padding:0 0 20px}
   .comment-section::before{margin:0 -20px 12px}
   .ed-title{font-size:20px;margin-bottom:16px}
   .ed-body{font-size:17px;line-height:1.9}

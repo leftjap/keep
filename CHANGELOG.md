@@ -8,6 +8,7 @@
 - GAS 1회성 디버깅/복구 함수 18개 및 즉시 실행문 제거 — 운영 관리 유틸(listBackups, importCardSmsSheet 등 7개)은 보존. (gas/Code.js)
 
 ### Fixed
+- 본문 입력 시 댓글창이 화면 하단에 고정되어 글이 가려지던 문제 수정 — commentSection을 editor-content-wrap 안으로 이동하여 본문과 같은 스크롤 흐름에 배치. [UI.댓글레이아웃] (index.html, style.css)
 - iOS PWA에서 본문 입력 시 커서가 화면 밖으로 나가도 자동 스크롤되지 않던 문제 수정 — input 이벤트에서 캐럿 위치를 감지하여 .editor-scroll-area를 수동 스크롤. [환경.iOS캐럿스크롤] (js/editor.js)
 - 파트너 모드에서 가계부 탭 경유 후 글쓰기 탭 전환 시 가계부 UI(캘린더·지출 요약) 잔류 수정 — switchTab 파트너 모드 else 블록에서 expense 관련 DOM/클래스 정리 누락 [UI.패널상태] (js/ui.js)
 - 알림 시간이 게시물 작성 시간 대신 마지막 저장 시간으로 표시되던 문제 수정 — checkNotifications에서 new_post 알림의 created를 문서의 실제 created로 보정. [소셜.알림시각] (gas/Code.js)
