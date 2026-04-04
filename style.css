@@ -561,6 +561,9 @@ mark.highlight{background-color:color-mix(in srgb, var(--tab-color) 15%, transpa
   width:100%;
   box-sizing:border-box;
   flex-shrink:0;
+  position:sticky;
+  bottom:0;
+  z-index:10;
 }
 
 /* 본문 ↔ 댓글 섹션 갭 */

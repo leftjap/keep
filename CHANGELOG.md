@@ -6,6 +6,7 @@
 
 ### Fixed
 - 새 글 작성 시 빈 댓글 섹션이 표시되던 문제 재수정 — _isNewDoc 플래그로 loadDoc 내 _loadMyCommentsAndRender 차단 + ui.js 버전 갱신. [UI.댓글표시조건] (js/ui.js, index.html)
+- 댓글창이 화면 하단에 고정되지 않던 문제 수정 — position:sticky bottom:0 적용 + 댓글 표시 시 editor-content-wrap padding-bottom 제거. [UI.댓글레이아웃] (style.css, js/ui.js)
 
 ## 2026-04-04
 
