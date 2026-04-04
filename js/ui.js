@@ -1401,6 +1401,9 @@ function handleNew() {
   else if (t === 'book')  newBook();
   else if (t === 'quote') newQuoteForm();
   else if (t === 'memo')  newMemoForm();
+  // 새 문서 생성 직후 dirty 플래그 설정 — 서버 동기화(mergeServerAll)가
+  // 아직 서버에 없는 새 문서를 덮어쓰는 것을 방지 (visibilitychange/heartbeat 경로)
+  window._editorDirty = true;
   renderListPanel();
   setMobileView('editor');
 }

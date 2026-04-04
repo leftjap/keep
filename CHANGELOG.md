@@ -21,6 +21,7 @@
 - mergeServerExpenses에서 _deleted 항목이 필터링되어 expenses 삭제 후 saveDatabase 교착 가능성 수정 — loadDatabase·mergeServerDocs와 동일하게 _deleted 보존 방식으로 통일. [연동.삭제동기화] (js/sync.js)
 - 가계부 탭 경유 후 휴지통 진입 시 list-panel이 접힌 상태로 남아 휴지통 UI 미표시 수정 — enterTrashMode에서 expense-active·list-closed·tablet-list-closed 클래스 및 edToolbar 상태를 정리. [UI.패널상태] (js/ui.js)
 - 가계부 수정/삭제 메뉴 dismiss + 플로팅 팝업 유지 수정 — lpPopupOverlay z-index 998→9900으로 변경하여 expFloatingPopupOverlay(9800) 위에 배치. 플로팅 팝업 존재 시 overlay를 투명으로, 없으면 CSS 기본값 복원. closeLpPopup에서 인라인 스타일 초기화 추가 [UI.z-index차단] (style.css, js/ui-expense.js, js/ui.js)
+- 새 글 작성 시 입력 내용이 1~2초 후 사라지는 버그 수정 — handleNew 직후 _editorDirty 미설정으로 mergeServerAll이 서버 데이터로 에디터를 덮어씀. 새 문서 생성 시 dirty 플래그를 즉시 설정하여 서버 교체 방지. [상태.플래그리셋] (js/ui.js)
 
 ## 2026-04-03
 
