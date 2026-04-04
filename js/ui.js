@@ -188,6 +188,14 @@ function enterTrashMode() {
   var tabLabel = document.getElementById('edTabLabel');
   if (tabLabel) tabLabel.textContent = '휴지통';
 
+  // 가계부 탭에서 진입한 경우 남는 상태 정리
+  var app = document.getElementById('mainApp');
+  app.classList.remove('list-closed', 'tablet-list-closed');
+  document.querySelector('.list-panel').classList.remove('expense-active');
+  document.querySelector('.editor').classList.remove('expense-edit-active');
+  var edToolbar = document.getElementById('edToolbar');
+  if (edToolbar) edToolbar.style.display = '';
+
   // pane 전환
   document.getElementById('pane-list').style.display = 'flex';
   document.getElementById('pane-photo').style.display = 'none';
