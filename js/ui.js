@@ -2155,10 +2155,6 @@ function renderComments(docId, ownerEmail) {
   var commentSection = document.getElementById('commentSection');
   if (!commentSection) return;
   commentSection.style.display = 'flex';
-  if (typeof commentSection.closest === 'function') {
-    var _wrap = commentSection.closest('.editor-content-wrap');
-    if (_wrap) _wrap.style.paddingBottom = '0';
-  }
 
   var commentList = document.getElementById('commentList');
   commentList.innerHTML = '';
@@ -2371,10 +2367,6 @@ function hideComments() {
   var commentSection = document.getElementById('commentSection');
   if (commentSection) {
     commentSection.style.display = 'none';
-    if (typeof commentSection.closest === 'function') {
-      var _wrap = commentSection.closest('.editor-content-wrap');
-      if (_wrap) _wrap.style.paddingBottom = '';
-    }
   }
   _commentDocId = null;
   _commentDocOwner = null;
