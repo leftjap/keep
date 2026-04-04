@@ -7,6 +7,7 @@
 ### Fixed
 - 로딩 중 콘텐츠가 서버에서 로딩되지 않던 문제 수정 — 서버 동기화 타임아웃 4초→8초(서버 응답 5초 수용). 타임아웃 후 뒤늦은 응답 도착 시 에디터 문서 재로드 제거(content shift 방지). [로직.초기화순서] (app.js)
 - 대량 삭제 후 서버 saveDatabase 반복 실패 교착 상태 수정 — loadDatabase가 _deleted 항목을 localStorage에서 제거하여 _deletedIds가 빈 배열로 전송됨. 서버 급감 검증도 _deleted 포함 전체 건수 기준이라 정상 저장 차단. [연동.삭제동기화] (js/sync.js, js/data.js, gas/Code.js)
+- mergeServerExpenses에서 _deleted 항목이 필터링되어 expenses 삭제 후 saveDatabase 교착 가능성 수정 — loadDatabase·mergeServerDocs와 동일하게 _deleted 보존 방식으로 통일. [연동.삭제동기화] (js/sync.js)
 
 ## 2026-04-03
 

@@ -591,21 +591,23 @@ const SYNC = {
       return;
     }
 
-    // _deleted 항목 제외 후 교체
-    var filtered = [];
+    // _deleted 항목도 localStorage에 보존 (saveDatabase의 _deletedIds 구성에 필요)
+    // UI에서는 getExpenses() → _filterDeleted()로 숨김
+    // 변경 감지: 활성 항목 기준
+    var activeServer = [];
     for (var fi = 0; fi < serverExpenses.length; fi++) {
-      if (!serverExpenses[fi]._deleted) filtered.push(serverExpenses[fi]);
+      if (!serverExpenses[fi]._deleted) activeServer.push(serverExpenses[fi]);
     }
+    var activeLocal = _filterDeleted(localExpenses);
 
-    // 변경 감지
-    var changed = (filtered.length !== localExpenses.length);
-    if (!changed && filtered.length > 0 && localExpenses.length > 0) {
-      var serverLatest = filtered[0].created || filtered[0].date || '';
-      var localLatest = localExpenses[0].created || localExpenses[0].date || '';
+    var changed = (activeServer.length !== activeLocal.length);
+    if (!changed && activeServer.length > 0 && activeLocal.length > 0) {
+      var serverLatest = activeServer[0].created || activeServer[0].date || '';
+      var localLatest = activeLocal[0].created || activeLocal[0].date || '';
       if (serverLatest !== localLatest) changed = true;
     }
 
-    S(K.expenses, filtered);
+    S(K.expenses, serverExpenses);
 
     if (changed) {
       updateExpenseCompact();
