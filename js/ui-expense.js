@@ -1768,6 +1768,8 @@ var _expLpX = 0;
 var _expLpY = 0;
 
 function showExpensePopup(expenseId, x, y) {
+  // 플로팅 팝업이 열려 있으면 먼저 닫기 (z-index 9800이 lp-popup-overlay 998을 가림 방지)
+  closeExpenseFloatingPopup();
   var expense = getExpenses().find(function(e) { return e.id === expenseId; });
   if (!expense) return;
 
@@ -1811,6 +1813,7 @@ function showExpensePopup(expenseId, x, y) {
 
 function _deleteExpenseFromPopup(expenseId) {
   closeLpPopup();
+  closeExpenseFloatingPopup();
   delExpense(expenseId);
   updateExpenseCompact();
   SYNC.saveDatabase().catch(function(e) { console.warn('_deleteExpenseFromPopup 즉시 동기화 실패:', e.message); });
