@@ -2,6 +2,11 @@
 
 형식: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
+## 2026-04-04
+
+### Fixed
+- 로딩 화면 중 콘텐츠 미준비 + 로딩 후 문서 content shift 수정 — 로컬 데이터로 즉시 UI 초기화, 서버 동기화는 백그라운드 처리. textTypes/TAB_META 캐시 폴백 추가. [로직.초기화순서] (app.js, data.js)
+
 ## 2026-04-03
 
 ### Changed

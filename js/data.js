@@ -6,11 +6,23 @@
 
 // ═══ 상태 변수 ═══
 let activeTab = 'navi';
-let textTypes = ['navi', 'fiction', 'blog'];
-let TAB_META  = {
-  navi: '오늘의 네비', fiction: '단편 습작', blog: '블로그',
-  book: '서재', quote: '어구', memo: '메모', expense: '가계부'
-};
+let textTypes = (function() {
+  var cached = L('gb_textTypes');
+  if (cached && Array.isArray(cached) && cached.length > 0) {
+    return cached;
+  }
+  return ['navi', 'fiction', 'blog'];
+})();
+let TAB_META  = (function() {
+  var cached = L('gb_tabMeta');
+  if (cached && typeof cached === 'object' && Object.keys(cached).length > 0) {
+    return cached;
+  }
+  return {
+    navi: '오늘의 네비', fiction: '단편 습작', blog: '블로그',
+    book: '서재', quote: '어구', memo: '메모', expense: '가계부'
+  };
+})();
 
 function currentLocProfile() {
   return activeTab === 'fiction' ? 'soyeon' : 'gio';
@@ -1499,11 +1511,13 @@ function applyServerConfig(config) {
   // 탭 구성
   if (config.textTypes && Array.isArray(config.textTypes)) {
     textTypes = config.textTypes;
+    try { S('gb_textTypes', textTypes); } catch(e) {}
   }
   if (config.tabNames && typeof config.tabNames === 'object') {
     TAB_META = Object.assign({}, config.tabNames);
     // expense는 tabNames에 없을 수 있으므로 보장
     if (!TAB_META.expense) TAB_META.expense = '가계부';
+    try { S('gb_tabMeta', TAB_META); } catch(e) {}
   }
 
   // 초기 activeTab을 config.tabs의 첫 번째 항목으로 설정

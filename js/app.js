@@ -55,71 +55,48 @@ async function showApp() {
   }
 
   if (hasLocalData) {
-    // ── 로컬 캐시 있음: 서버 동기화 후 UI 표시 (최대 4초 대기) ──
-    var _syncDone = false;
+    // ── 로컬 캐시 있음: 즉시 UI 표시 + 서버 동기화는 백그라운드 ──
 
-    // 타임아웃: 4초 안에 서버 응답 없으면 로컬 데이터로 표시
-    var _syncTimeout = setTimeout(function() {
-      if (!_syncDone) {
-        _syncDone = true;
-        console.warn('[showApp] 서버 동기화 타임아웃 — 로컬 데이터로 표시');
-        // _dbLoading은 유지 — loadDatabase 응답이 도착하면 DB 적용 + _dbLoading 해제
-        // isDbLoaded는 true로 설정하여 UI는 표시하되, saveDatabase는 _dbLoading 가드로 차단
-        SYNC.isDbLoaded = true;
-        SYNC.setSyncStatus('오프라인', 'error');
-        _initAndShow(loading, serverConfig);
-      }
-    }, 4000);
+    // 1. 로컬 데이터로 즉시 UI 초기화 (최소 로딩 시간 보장)
+    var _loadStart = Date.now();
+    SYNC.isDbLoaded = true;
 
-    SYNC.loadDatabase().then(function(config) {
-      if (_syncDone) {
-        // 타임아웃 이후 뒤늦게 도착 — DB 데이터는 이미 loadDatabase 내부에서 로컬에 적용됨
-        // (_dbLoading은 loadDatabase의 finally에서 false로 해제됨 → 대기 중이던 saveDatabase가 최신 로컬로 진행)
+    // _initAndShow 내부의 setTimeout(400) 전에 최소 시간 보장
+    var _minLoading = 800;
+    var _elapsed = Date.now() - _loadStart;
+    var _remainDelay = Math.max(0, _minLoading - _elapsed);
+
+    setTimeout(function() {
+      _initAndShow(loading, null);
+
+      // 2. 로딩 화면 닫힌 후 백그라운드 서버 동기화
+      SYNC.loadDatabase().then(function(config) {
         if (config) {
           applyServerConfig(config);
           renderWritingGrid();
-          if (activeTab === 'expense') {
-            if (typeof renderExpenseCategoryGrid === 'function') renderExpenseCategoryGrid();
-            if (typeof renderExpenseDashboard === 'function') {
-              renderExpenseDashboard(window.innerWidth > 768 ? 'pc' : 'mobile');
-            }
+        }
+        // 리스트/사이드바/가계부 갱신 (content shift 없음)
+        renderListPanel();
+        updateExpenseCompact();
+        if (activeTab === 'expense') {
+          if (typeof renderExpenseCategoryGrid === 'function') renderExpenseCategoryGrid();
+          if (typeof renderExpenseDashboard === 'function') {
+            renderExpenseDashboard(window.innerWidth > 768 ? 'pc' : 'mobile');
           }
         }
-        // 뒤늦은 서버 데이터로 UI 갱신
-        renderListPanel();
-        var cl = currentLoadedDoc;
-        if (cl && cl.type && cl.id) {
-          if (textTypes.includes(cl.type)) loadDoc(cl.type, cl.id, true);
-          else if (cl.type === 'book')  loadBook(cl.id, true);
-          else if (cl.type === 'memo')  loadMemo(cl.id, true);
-          else if (cl.type === 'quote') loadQuote(cl.id, true);
-        }
         SYNC.setSyncStatus('완료됨', 'ok');
-        return;
-      }
-      _syncDone = true;
-      clearTimeout(_syncTimeout);
-      SYNC.isDbLoaded = true;
-      if (config) applyServerConfig(config);
-      _initAndShow(loading, config);
-      SYNC.setSyncStatus('완료됨', 'ok');
-    }).catch(function(e) {
-      if (_syncDone) return;
-      _syncDone = true;
-      clearTimeout(_syncTimeout);
-      if (e && e.message === 'Unauthorized') {
-        loading.classList.add('hidden');
-        localStorage.removeItem(_LS_PREFIX + 'gb_auth');
-        localStorage.removeItem(_LS_PREFIX + 'gb_id_token');
-        document.getElementById('lockScreen').classList.remove('hidden');
-        document.getElementById('lockErr').textContent = '접근 권한이 없는 계정입니다.';
-        return;
-      }
-      console.warn('[showApp] loadDatabase 실패 — 로컬 데이터로 표시:', e);
-      SYNC.isDbLoaded = true;
-      SYNC.setSyncStatus('오프라인', 'error');
-      _initAndShow(loading, serverConfig);
-    });
+      }).catch(function(e) {
+        if (e && e.message === 'Unauthorized') {
+          localStorage.removeItem(_LS_PREFIX + 'gb_auth');
+          localStorage.removeItem(_LS_PREFIX + 'gb_id_token');
+          document.getElementById('lockScreen').classList.remove('hidden');
+          document.getElementById('lockErr').textContent = '접근 권한이 없는 계정입니다.';
+          return;
+        }
+        console.warn('[showApp] loadDatabase 실패 — 로컬 데이터 유지:', e);
+        SYNC.setSyncStatus('오프라인', 'error');
+      });
+    }, _remainDelay);
 
   } else {
     // ── 첫 설치 또는 로컬 데이터 소실: 서버 대기 후 UI 표시 ──
