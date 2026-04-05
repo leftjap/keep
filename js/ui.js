@@ -1407,7 +1407,6 @@ function handleNew() {
   // (_editorDirty는 doSaveAndSync에서 즉시 리셋되므로 보호 불충분)
   window._unsyncedLocal = true;
   renderListPanel();
-  hideComments();
   setMobileView('editor');
 }
 
@@ -2235,7 +2234,6 @@ function renderComments(docId, ownerEmail) {
 
 function _loadMyCommentsAndRender(docId) {
   if (!docId) return;
-  if (window._isNewDoc) { window._isNewDoc = false; hideComments(); return; }
   // 자기 이메일 가져오기
   var myEmail = '';
   try {
