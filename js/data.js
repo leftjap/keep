@@ -562,6 +562,13 @@ function saveCurDoc(type) {
       docs[idx].location = locEl.textContent;
     }
     saveDocs(docs);
+    // 새 글 첫 저장 후 댓글창 표시
+    if (window._isNewDoc) {
+      window._isNewDoc = false;
+      if (typeof _loadMyCommentsAndRender === 'function') {
+        _loadMyCommentsAndRender(curIds[type]);
+      }
+    }
   }
 }
 

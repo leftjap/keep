@@ -9,6 +9,7 @@
 - 댓글창이 화면 하단에 고정되지 않던 문제 수정 — #commentSection을 editor-scroll-area 밖으로 이동하여 flex column 하단에 자연 배치. sticky 제거. [UI.댓글레이아웃] (index.html, style.css, js/ui.js)
 - #commentSection DOM 이동 누락 수정 — editor-content-wrap 밖, editorText 직계 자식으로 이동 완료 [UI.댓글레이아웃] (index.html)
 - 댓글창 화면 하단 고정 해제 — #commentSection을 editor-scroll-area 안, editor-content-wrap 밖으로 이동하여 본문과 함께 스크롤되도록 수정 [UI.댓글레이아웃] (index.html)
+- 새 글 작성 후 자동저장 완료 시 댓글창이 자동 표시되도록 수정 — saveCurDoc 저장 성공 시 _isNewDoc 해제 + _loadMyCommentsAndRender 호출 [상태.초기화누락] (js/data.js)
 
 ## 2026-04-04
 
