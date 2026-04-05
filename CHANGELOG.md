@@ -4,6 +4,9 @@
 
 ## 2026-04-05
 
+### Changed
+- .gitignore에 gas/.clasp.json 추가 — gym 레포와 통일. (.gitignore)
+
 ### Fixed
 - 새 글 작성 시 빈 댓글 섹션이 표시되던 문제 재수정 — _isNewDoc 플래그로 loadDoc 내 _loadMyCommentsAndRender 차단 + ui.js 버전 갱신. [UI.댓글표시조건] (js/ui.js, index.html)
 - 댓글창이 화면 하단에 고정되지 않던 문제 수정 — #commentSection을 editor-scroll-area 밖으로 이동하여 flex column 하단에 자연 배치. sticky 제거. [UI.댓글레이아웃] (index.html, style.css, js/ui.js)
