@@ -4,6 +4,9 @@
 
 ## 2026-04-05
 
+### Fixed
+- gas/.clasp.json 복원 — .gitignore 추가 시 실수로 삭제되어 Deploy GAS CI 실패. [설정.CI누락] (gas/.clasp.json)
+
 ### Changed
 - .gitignore에 gas/.clasp.json 추가 — gym 레포와 통일. (.gitignore)
 
