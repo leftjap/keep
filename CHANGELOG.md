@@ -5,6 +5,7 @@
 ## 2026-04-06
 
 ### Fixed
+- 편집 중 서버 병합 시 제목 커서 소실 수정 — mergeServerDocs에서 _editorDirty 플래그 확인 후 편집 중이면 강제 loadDoc 호출 보류. heartbeat 타이밍에 mergeServerAll이 서버 데이터로 문서를 재로드할 때 input.value 프로그래밍적 할당으로 브라우저가 커서를 리셋하던 문제 해결. 서버 데이터는 이미 localStorage 저장 완료되었으므로 저장 완료 후 자동 반영됨. [UI.병합간섭] (js/sync.js)
 - 제목 입력 IME 조합 중 커서 소실 수정 — setupEnterKey에 IME 가드(e.isComposing/e.keyCode===229) 추가, onInput에서 IME 조합 중 입력 이벤트 무시(_isComposing 플래그), compositionstart/end 리스너로 조합 완료 후 일괄 저장. 캐럿 스크롤은 활성 요소 체크 추가하여 IME 팝업 표시 시 불필요한 스크롤 방지. [UI.IME조합간섭] (js/editor.js)
 
 ## 2026-04-05

@@ -553,12 +553,17 @@ const SYNC = {
     // 변경이 있으면 현재 열린 문서 리프레시
     if (changed) {
       renderListPanel();
-      var cl = currentLoadedDoc;
-      if (cl && cl.type && cl.id) {
-        if (textTypes.includes(cl.type)) loadDoc(cl.type, cl.id, true);
-        else if (cl.type === 'book')  loadBook(cl.id, true);
-        else if (cl.type === 'memo')  loadMemo(cl.id, true);
-        else if (cl.type === 'quote') loadQuote(cl.id, true);
+      // 편집 중이면 강제 reload 보류 (커서 소실 방지 [UI.병합간섭])
+      if (window._editorDirty) {
+        console.log('mergeServerDocs: 편집 중이므로 문서 reload 보류');
+      } else {
+        var cl = currentLoadedDoc;
+        if (cl && cl.type && cl.id) {
+          if (textTypes.includes(cl.type)) loadDoc(cl.type, cl.id, true);
+          else if (cl.type === 'book')  loadBook(cl.id, true);
+          else if (cl.type === 'memo')  loadMemo(cl.id, true);
+          else if (cl.type === 'quote') loadQuote(cl.id, true);
+        }
       }
     }
   },
