@@ -2,6 +2,11 @@
 
 형식: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
+## 2026-04-06
+
+### Fixed
+- 제목 입력 IME 조합 중 커서 소실 수정 — setupEnterKey에 IME 가드(e.isComposing/e.keyCode===229) 추가, onInput에서 IME 조합 중 입력 이벤트 무시(_isComposing 플래그), compositionstart/end 리스너로 조합 완료 후 일괄 저장. 캐럿 스크롤은 활성 요소 체크 추가하여 IME 팝업 표시 시 불필요한 스크롤 방지. [UI.IME조합간섭] (js/editor.js)
+
 ## 2026-04-05
 
 ### Fixed

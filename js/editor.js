@@ -21,6 +21,7 @@ function insertChecklist() {
 function setupEnterKey() {
   document.querySelectorAll('.ed-title, .sf-input').forEach(input => {
     input.addEventListener('keydown', e => {
+      if (e.isComposing || e.keyCode === 229) return;
       if (e.key === 'Enter') {
         e.preventDefault();
         const wrapper = e.target.closest('.editor-content-wrap');
@@ -625,12 +626,29 @@ function setupAutoSave() {
     if (textTypes.includes(activeTab)) SYNC.scheduleDocSave(activeTab);
     else if (activeTab === 'memo') SYNC.scheduleDocSave('memo');
   };
-  const onInput = () => { window._editorDirty = true; showSaving(); clearTimeout(_at); _at = setTimeout(doSaveAndSync, 800); updateWC(); var _activeBody = activeTab === 'memo' ? document.getElementById('memo-body') : document.getElementById('edBody'); _scrollToCaret(_activeBody); };
+  let _isComposing = false;
+  const onCompositionStart = () => { _isComposing = true; };
+  const onCompositionEnd   = () => {
+    _isComposing = false;
+    window._editorDirty = true;
+    showSaving();
+    clearTimeout(_at);
+    _at = setTimeout(doSaveAndSync, 800);
+    updateWC();
+  };
+  const onInput = (e) => {
+    if (_isComposing) return;
+    window._editorDirty = true; showSaving(); clearTimeout(_at); _at = setTimeout(doSaveAndSync, 800); updateWC();
+    var _activeBody = activeTab === 'memo' ? document.getElementById('memo-body') : document.getElementById('edBody');
+    if (document.activeElement === _activeBody) _scrollToCaret(_activeBody);
+  };
   const ids = ['edBody','edTitle','memo-body','memo-title','book-title','book-author','book-publisher','book-pages','book-body','quote-by','quote-body'];
   ids.forEach(id => {
     const el = document.getElementById(id);
     if (el) {
       el.addEventListener('input', onInput);
+      el.addEventListener('compositionstart', onCompositionStart);
+      el.addEventListener('compositionend', onCompositionEnd);
       el.addEventListener('blur', () => { setTimeout(() => { saveLocalOnly(); }, 200); });
     }
   });
